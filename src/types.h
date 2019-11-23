@@ -30,20 +30,20 @@ enum { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
 enum { MAX_PLY = 128, MAX_MOVES = 256 };
 
 enum {
-    WHITE_PAWN   =  0, BLACK_PAWN   =  1,
-    WHITE_KNIGHT =  4, BLACK_KNIGHT =  5,
-    WHITE_BISHOP =  8, BLACK_BISHOP =  9,
-    WHITE_ROOK   = 12, BLACK_ROOK   = 13,
-    WHITE_QUEEN  = 16, BLACK_QUEEN  = 17,
-    WHITE_KING   = 20, BLACK_KING   = 21,
+    WHITE_PAWN   =  0, BLACK_PAWN,
+    WHITE_KNIGHT =  4, BLACK_KNIGHT,
+    WHITE_BISHOP =  8, BLACK_BISHOP,
+    WHITE_ROOK   = 12, BLACK_ROOK,
+    WHITE_QUEEN  = 16, BLACK_QUEEN,
+    WHITE_KING   = 20, BLACK_KING,
     EMPTY        = 26
 };
 
 enum {
     MATE = 32000,
+    VALUE_NONE = 32001,
     MATE_IN_MAX = MATE - MAX_PLY,
-    MATED_IN_MAX = MAX_PLY - MATE,
-    VALUE_NONE = 32001
+    MATED_IN_MAX = MAX_PLY - MATE
 };
 
 enum {
@@ -54,20 +54,17 @@ enum {
 };
 
 static inline int pieceType(int piece) {
-    assert(0 <= piece / 4 && piece / 4 <= PIECE_NB);
-    assert(piece % 4 <= COLOUR_NB);
+    assert(0 <= piece / 4 && piece / 4 <= PIECE_NB &&piece % 4 <= COLOUR_NB);
     return piece / 4;
 }
 
 static inline int pieceColour(int piece) {
-    assert(0 <= piece / 4 && piece / 4 <= PIECE_NB);
-    assert(piece % 4 <= COLOUR_NB);
+    assert(0 <= piece / 4 && piece / 4 <= PIECE_NB &&piece % 4 <= COLOUR_NB);
     return piece % 4;
 }
 
 static inline int makePiece(int type, int colour) {
-    assert(0 <= type && type < PIECE_NB);
-    assert(0 <= colour && colour <= COLOUR_NB);
+    assert(0 <= type && type < PIECE_NB &&0 <= colour && colour <= COLOUR_NB);
     return type * 4 + colour;
 }
 
