@@ -20,7 +20,7 @@
 
 #include "types.h"
 
-#include <stdint.h>
+#include <cstdint>
 
 int tablebasesProbeDTZ(Board *board, uint16_t *best, uint16_t *ponder);
 unsigned tablebasesProbeWDL(Board *board, int depth, int height);

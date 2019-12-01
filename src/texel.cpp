@@ -20,8 +20,8 @@
 
 #include <math.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "bitboards.h"
 #include "board.h"
@@ -108,7 +108,7 @@ void runTexelTuning(Thread *thread) {
 
     printf("\nTUNER WILL BE TUNING %d TERMS...", NTERMS);
 
-    printf("\n\nSETTING TABLE SIZE TO 1MB FOR SPEED...");
+     cout << "\n\nSETTING TABLE SIZE TO 1MB FOR SPEED...";
     initTT(1);
 
     printf("\n\nALLOCATING MEMORY FOR TEXEL ENTRIES [%dMB]...",
@@ -119,16 +119,16 @@ void runTexelTuning(Thread *thread) {
            (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)));
     TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
 
-    printf("\n\nINITIALIZING TEXEL ENTRIES FROM FENS...");
+     cout << "\n\nINITIALIZING TEXEL ENTRIES FROM FENS...";
     initTexelEntries(tes, thread);
 
-    printf("\n\nFETCHING CURRENT EVALUATION TERMS AS A STARTING POINT...");
+     cout << "\n\nFETCHING CURRENT EVALUATION TERMS AS A STARTING POINT...";
     initCurrentParameters(cparams);
 
-    printf("\n\nSETTING TERM PHASES, MG, EG, OR BOTH...");
+     cout << "\n\nSETTING TERM PHASES, MG, EG, OR BOTH...";
     initPhaseManager(phases);
 
-    printf("\n\nCOMPUTING OPTIMAL K VALUE...\n");
+     cout << "\n\nCOMPUTING OPTIMAL K VALUE...\n";
     K = computeOptimalK(tes);
 
     while (1) {
@@ -441,11 +441,11 @@ void printParameters_1(char *name, int params[NTERMS][PHASE_NB], int i, int A) {
     printf("const int %s[%d] = {", name, A);
 
     for (int a = 0; a < A; a++, i++) {
-        if (a % 4 == 0) printf("\n    ");
+        if (a % 4 == 0)  cout << "\n    ";
         printf("S(%4d,%4d), ", params[i][MG], params[i][EG]);
     }
 
-    printf("\n};\n\n");
+     cout << "\n};\n\n";
 }
 
 void printParameters_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B) {
@@ -454,17 +454,17 @@ void printParameters_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
 
     for (int a = 0; a < A; a++) {
 
-        printf("   {");
+         cout << "   {";
 
         for (int b = 0; b < B; b++, i++) {
             printf("S(%4d,%4d)", params[i][MG], params[i][EG]);
             printf("%s", b == B - 1 ? "" : ", ");
         }
 
-        printf("},\n");
+         cout << "},\n";
     }
 
-    printf("};\n\n");
+     cout << "};\n\n";
 
 }
 
@@ -488,7 +488,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
 
     }
 
-    printf("};\n\n");
+     cout << "};\n\n";
 }
 
 #endif

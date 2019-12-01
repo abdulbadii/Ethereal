@@ -18,7 +18,8 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
+#include <iostream>
 
 #include "types.h"
 
@@ -32,6 +33,7 @@
     #define ETHEREAL_VERSION VERSION_ID
 #endif
 
+using std::string;
 struct Limits {
     double start, time, inc, mtg, timeLimit;
     int limitedByNone, limitedByTime, limitedBySelf;
@@ -40,20 +42,12 @@ struct Limits {
 
 struct UCIGoStruct {
     int multiPV;
-    char str[512];
+	 // char str[BLOCK];
+    string str{string(BLOCK,0)};
     Board *board;
     Thread *threads;
 };
 
-void *uciGo(void *cargo);
-void uciSetOption(char *str, Thread **threads, int *multiPV, int *chess960);
-void uciPosition(char *str, Board *board, int chess960);
-
 void uciReport(Thread *threads, int alpha, int beta, int value);
 void uciReportTBRoot(Board *board, uint16_t move, unsigned wdl, unsigned dtz);
 void uciReportCurrentMove(Board *board, uint16_t move, int currmove, int depth);
-
-int strEquals(char *str1, char *str2);
-int strStartsWith(char *str, char *key);
-int strContains(char *str, char *key);
-int getInput(char *str);

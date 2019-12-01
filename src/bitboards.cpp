@@ -16,9 +16,9 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
+#include <cassert>
 #include <stdbool.h>
-#include <stdint.h>
+#include <cstdint>
 #include <stdio.h>
 
 #include "bitboards.h"
@@ -136,5 +136,5 @@ void printBitboard(uint64_t bb) {
         printf("%s\n", line);
     }
 
-    printf("\n");
+     cout << "\n";
 }

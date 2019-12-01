@@ -16,8 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "board.h"
 #include "history.h"
@@ -28,7 +28,7 @@
 
 Thread* createThreadPool(int nthreads) {
 
-    Thread *threads = malloc(sizeof(Thread) * nthreads);
+    Thread *threads = (Thread*)malloc(sizeof(Thread) * nthreads);
 
     for (int i = 0; i < nthreads; i++) {
 

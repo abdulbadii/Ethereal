@@ -16,9 +16,9 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
-#include <stdint.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdint>
+#include <cstdlib>
 
 #include "bitboards.h"
 #include "board.h"

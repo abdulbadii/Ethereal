@@ -22,9 +22,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <assert.h>
+#include <cassert>
 #include <stdio.h>
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "tbprobe.h"
 
@@ -100,7 +100,7 @@ static bool do_move(struct pos *pos, const struct pos *pos0, uint16_t move);
 static int probe_dtz(const struct pos *pos, int *success);
 
 unsigned TB_LARGEST = 0;
-#include "tbcore.c"
+#include "tbcore.cpp"
 
 #define rank(s)                 ((s) >> 3)
 #define file(s)                 ((s) & 0x07)
@@ -273,7 +273,7 @@ static int probe_wdl_table(const struct pos *pos, int *success)
                 return 0;
             }
             // Memory barrier to ensure ptr->ready = 1 is not reordered.
-#if !defined(__cplusplus) || !defined(TB_USE_ATOMIC)
+#if !defined(TB_USE_ATOMIC)
 #ifdef __GNUC__
             __asm__ __volatile__ ("" ::: "memory");
 #elif defined(_MSC_VER)

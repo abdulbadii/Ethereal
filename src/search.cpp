@@ -16,14 +16,14 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
-#include <inttypes.h>
+#include <cassert>
+#include <cinttypes>
 #include <math.h>
 #include <pthread.h>
-#include <setjmp.h>
+#include <csetjmp>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <time.h>
 
 #include "attacks.h"
@@ -58,7 +58,7 @@ void initSearch() {
 
 void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, uint16_t *ponder) {
 
-    SearchInfo info = {0};
+    SearchInfo info = {};
     pthread_t pthreads[threads->nthreads];
 
     // If the root position can be found in the DTZ tablebases,
@@ -171,7 +171,7 @@ void aspirationWindow(Thread *thread) {
         if (value > alpha && value < beta) {
             thread->values[multiPV]      = value;
             thread->bestMoves[multiPV]   = pv->line[0];
-            thread->ponderMoves[multiPV] = pv->length > 1 ? pv->line[1] : NONE_MOVE;
+            thread->ponderMoves[multiPV] = pv->length > 1 ? pv->line[1] : (int)NONE_MOVE;
             return;
         }
 

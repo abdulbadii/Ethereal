@@ -137,28 +137,28 @@ endif
 
 ### 3.1 Selecting compiler (default := gcc)
 
-# -Wcast-qual -fno-exceptions
-CFLAGS += -Wall -std=gnu11 -march=native -lpthread -lm $(EXTRACFLAGS)
-DEPENDFLAGS += -std=gnu11
+#-march=native 
+CXXFLAGS += -Wcast-qual -fno-exceptions -Wall -std=c++11 -lpthread -lm $(EXTRACXXFLAGS)
+DEPENDFLAGS += -std=c++11
 LDFLAGS += $(EXTRALDFLAGS)
 
-ifneq ($(filter $(MODE),TEX TEXEL tex texel),)
-	CFLAGS += -fopenmp -DTUNE
-endif
-ifneq ($(filter $(MODE),PRO PROFILE pro profile),)
-	CFLAGS += -p -pg
-endif
-ifneq ($(filter $(MODE),REL RELEASE rel release),)
-	LDFLAGS += -static
+ifneq ($(filter $(dep),1 on),)
+	dep:=.depend
+else
+	ifneq ($(filter $(DEP),1 ON),)
+		dep:=.depend
+	else
+		dep:=
+	endif
 endif
 
-ifneq ($(filter $(TYPE),TEX TEXEL tex texel),)
-	CFLAGS += -fopenmp -DTUNE
+ifneq ($(filter $(MODE),TEX TEXEL tex),)
+	CXXFLAGS += -fopenmp -DTUNE
 endif
-ifneq ($(filter $(TYPE),PRO PROFILE pro profile),)
-	CFLAGS += -p -pg
+ifneq ($(filter $(MODE),PRO PROFILE pro),)
+	CXXFLAGS += -p -pg
 endif
-ifneq ($(filter $(TYPE),REL RELEASE rel release),)
+ifneq ($(filter $(MODE),REL RELEASE rel),)
 	LDFLAGS += -static
 endif
 
@@ -168,60 +168,59 @@ endif
 
 ifeq ($(COMP),gcc)
 	comp := gcc
-	CC := gcc
-	CFLAGS += -Wextra -Wshadow
+	CXX := g++
+	CXXFLAGS += -pedantic -Wextra -Wshadow
 
 	ifeq ($(ARCH),armv7)
 		ifeq ($(OS),Android)
-			CFLAGS += -m$(bits)
+			CXXFLAGS += -m$(bits)
 			LDFLAGS += -m$(bits)
 		endif
 	else
-		CFLAGS += -m$(bits)
+		CXXFLAGS += -m$(bits)
 		LDFLAGS += -m$(bits)
 	endif
 
 	ifneq ($(KERNEL),Darwin)
-	   LDFLAGS += -Wl,--no-as-needed
+		LDFLAGS += -Wl,--no-as-needed
 	endif
 endif
 
 ifeq ($(COMP),mingw)
 	comp := mingw
 	EXE:=$(EXE).exe
-
+# CXXFLAGS += -D_WIN32
 	ifeq ($(KERNEL),Linux)
 		ifeq ($(bits),64)
 			ifeq ($(shell which x86_64-w64-mingw32-c++-posix),)
-				CC := x86_64-w64-mingw32-c++
+				CXX := x86_64-w64-mingw32-c++
 			else
-				CC := x86_64-w64-mingw32-c++-posix
+				CXX := x86_64-w64-mingw32-c++-posix
 			endif
 		else
 			ifeq ($(shell which i686-w64-mingw32-c++-posix),)
-				CC := i686-w64-mingw32-c++
+				CXX := i686-w64-mingw32-c++
 			else
-				CC := i686-w64-mingw32-c++-posix
+				CXX := i686-w64-mingw32-c++-posix
 			endif
 		endif
 	else
-		CC := gcc
+		CXX := g++
 	endif
 
-	CFLAGS += -Wextra -Wshadow
-# LDFLAGS += -static
+	CXXFLAGS += -Wextra -Wshadow
 endif
 
 ifeq ($(COMP),icc)
 	comp := icc
-	CC := icpc
-	CFLAGS += -diag-disable 1476,10120 -Wcheck -Wabi -Wdeprecated -strict-ansi
+	CXX := icpc
+	CXXFLAGS += -diag-disable 1476,10120 -Wcheck -Wabi -Wdeprecated -strict-ansi
 endif
 
 ifeq ($(COMP),clang)
 	comp := clang
-	CC := clang++
-	CFLAGS += -Wextra -Wshadow
+	CXX := clang++
+	CXXFLAGS += -pedantic -Wextra -Wshadow
 
 	ifneq ($(KERNEL),Darwin)
 	ifneq ($(KERNEL),OpenBSD)
@@ -231,11 +230,11 @@ ifeq ($(COMP),clang)
 
 	ifeq ($(ARCH),armv7)
 		ifeq ($(OS),Android)
-			CFLAGS += -m$(bits)
+			CXXFLAGS += -m$(bits)
 			LDFLAGS += -m$(bits)
 		endif
 	else
-		CFLAGS += -m$(bits)
+		CXXFLAGS += -m$(bits)
 		LDFLAGS += -m$(bits)
 	endif
 endif
@@ -254,18 +253,18 @@ endif
 endif
 
 ifeq ($(KERNEL),Darwin)
-	CFLAGS += -arch $(arch) -mmacosx-version-min=10.9
+	CXXFLAGS += -arch $(arch) -mmacosx-version-min=10.9
 	LDFLAGS += -arch $(arch) -mmacosx-version-min=10.9
 endif
 
-### Travis CI script uses COMPILER to overwrite CC
+### Travis CI script uses COMPILER to overwrite CXX
 ifdef COMPILER
 	COMPCXX := $(COMPILER)
 endif
 
-### Allow overwriting CC from command line
+### Allow overwriting CXX from command line
 ifdef COMPCXX
-	CC := $(COMPCXX)
+	CXX := $(COMPCXX)
 endif
 
 ### On mingw use Windows threads, otherwise POSIX
@@ -281,65 +280,65 @@ endif
 
 ### 3.2.1 Debugging
 ifeq ($(debug),no)
-	CFLAGS += -DNDEBUG
+	CXXFLAGS += -DNDEBUG
 else
-	CFLAGS += -g
+	CXXFLAGS += -g
 endif
 
 ### 3.2.2 Debugging with undefined behavior sanitizers
 ifneq ($(sanitize),no)
-        CFLAGS += -g3 -fsanitize=$(sanitize) -fuse-ld=gold
-        LDFLAGS += -fsanitize=$(sanitize) -fuse-ld=gold
+		CXXFLAGS += -g3 -fsanitize=$(sanitize) -fuse-ld=gold
+		LDFLAGS += -fsanitize=$(sanitize) -fuse-ld=gold
 endif
 
 ### 3.3 Optimization
 ifeq ($(optimize),yes)
 
-	CFLAGS += -O3
+	CXXFLAGS += -O3
 	ifeq ($(comp),gcc)
 		ifeq ($(OS), Android)
-			CFLAGS += -fno-gcse -mthumb -march=armv7-a -mfloat-abi=softfp
+			CXXFLAGS += -fno-gcse -mthumb -march=armv7-a -mfloat-abi=softfp
 		endif
 	endif
 
 	ifeq ($(comp),$(filter $(comp),gcc clang icc))
 		ifeq ($(KERNEL),Darwin)
-			CFLAGS += -mdynamic-no-pic
+			CXXFLAGS += -mdynamic-no-pic
 		endif
 	endif
 endif
 
 ### 3.4 Bits
 ifeq ($(bits),64)
-	CFLAGS += -DIS_64BIT
+	CXXFLAGS += -DIS_64BIT
 endif
 
 ### 3.5 prefetch
 ifeq ($(prefetch),yes)
 	ifeq ($(sse),yes)
-		CFLAGS += -msse
+		CXXFLAGS += -msse
 		DEPENDFLAGS += -msse
 	endif
 else
-	CFLAGS += -DNO_PREFETCH
+	CXXFLAGS += -DNO_PREFETCH
 endif
 
 ### 3.6 popcnt
 ifeq ($(popcnt),yes)
 	ifeq ($(arch),ppc64)
-		CFLAGS += -DUSE_POPCNT
+		CXXFLAGS += -DUSE_POPCNT
 	else ifeq ($(comp),icc)
-		CFLAGS += -msse3 -DUSE_POPCNT
+		CXXFLAGS += -msse3 -DUSE_POPCNT
 	else
-		CFLAGS += -msse3 -mpopcnt -DUSE_POPCNT
+		CXXFLAGS += -msse3 -mpopcnt -DUSE_POPCNT
 	endif
 endif
 
 ### 3.7 pext
 ifeq ($(pext),yes)
-	CFLAGS += -DUSE_PEXT
+	CXXFLAGS += -DUSE_PEXT
 	ifeq ($(comp),$(filter $(comp),gcc clang mingw))
-		CFLAGS += -msse4 -mbmi2
+		CXXFLAGS += -msse4 -mbmi2
 	endif
 endif
 
@@ -349,14 +348,14 @@ endif
 ifeq ($(optimize),yes)
 ifeq ($(debug), no)
 	ifeq ($(comp),$(filter $(comp),gcc clang))
-		CFLAGS += -flto
-		LDFLAGS += $(CFLAGS)
+		CXXFLAGS += -flto
+		LDFLAGS += $(CXXFLAGS)
 	endif
 
 	ifeq ($(comp),mingw)
-	CFLAGS += -flto
+	CXXFLAGS += -flto
 	ifeq ($(KERNEL),Linux)
-		LDFLAGS += $(CFLAGS)
+		LDFLAGS += $(CXXFLAGS)
 	endif
 	endif
 endif
@@ -365,7 +364,7 @@ endif
 ### 3.9 Android 5 can only run position independent executables. Note that this
 ### breaks Android 4.0 and earlier.
 ifeq ($(OS), Android)
-	CFLAGS += -fPIE
+	CXXFLAGS += -fPIE
 	LDFLAGS += -fPIE -pie
 endif
 
@@ -423,11 +422,10 @@ help:
 
 
 .PHONY: help build profile-build strip install clean objclean profileclean help \
-        config-sanity icc-profile-use icc-profile-make gcc-profile-use gcc-profile-make \
-        clang-profile-use clang-profile-make
+		config-sanity icc-profile-use icc-profile-make gcc-profile-use gcc-profile-make \
+		clang-profile-use clang-profile-make dep
 
-build: config-sanity
-	$(MAKE) all
+build: config-sanity all
 
 profile-build: config-sanity objclean profileclean
 	@echo ""
@@ -473,7 +471,7 @@ default:
 ### Section 5. Private targets
 ### ==========================================================================
 
-all: $(EXE) .depend
+all: $(EXE) $(dep)
 
 config-sanity:
 	@echo ""
@@ -491,8 +489,8 @@ config-sanity:
 	@echo "pext: '$(pext)'"
 	@echo ""
 	@echo "Flags:"
-	@echo "CC: $(CC)"
-	@echo "CFLAGS: $(CFLAGS)"
+	@echo "CXX: $(CXX)"
+	@echo "CXXFLAGS: $(CXXFLAGS)"
 	@echo "LDFLAGS: $(LDFLAGS)"
 	@echo ""
 	@echo "Testing config sanity. If this fails, try 'make help' ..."
@@ -501,7 +499,7 @@ config-sanity:
 	@test "$(sanitize)" = "undefined" || test "$(sanitize)" = "thread" || test "$(sanitize)" = "address" || test "$(sanitize)" = "no"
 	@test "$(optimize)" = "yes" || test "$(optimize)" = "no"
 	@test "$(arch)" = "any" || test "$(arch)" = "x86_64" || test "$(arch)" = "i386" || \
-	 test "$(arch)" = "ppc64" || test "$(arch)" = "ppc" || test "$(arch)" = "armv7"
+	test "$(arch)" = "ppc64" || test "$(arch)" = "ppc" || test "$(arch)" = "armv7"
 	@test "$(bits)" = "32" || test "$(bits)" = "64"
 	@test "$(prefetch)" = "yes" || test "$(prefetch)" = "no"
 	@test "$(popcnt)" = "yes" || test "$(popcnt)" = "no"
@@ -510,45 +508,46 @@ config-sanity:
 	@test "$(comp)" = "gcc" || test "$(comp)" = "icc" || test "$(comp)" = "mingw" || test "$(comp)" = "clang"
 
 $(EXE): $(OBJS)
-	$(CC) -o $@ $(OBJS) $(LDFLAGS)
+	$(CXX) -o $@ $(OBJS) $(LDFLAGS)
 
 clang-profile-make:
 	$(MAKE) \
-	EXTRACFLAGS := '-fprofile-instr-generate ' \
+	EXTRACXXFLAGS := '-fprofile-instr-generate ' \
 	EXTRALDFLAGS := ' -fprofile-instr-generate' \
 	all
 
 clang-profile-use:
 	llvm-profdata merge -output=Ethereal.profdata *.profraw
 	$(MAKE) \
-	EXTRACFLAGS := '-fprofile-instr-use=Ethereal.profdata' \
+	EXTRACXXFLAGS := '-fprofile-instr-use=Ethereal.profdata' \
 	EXTRALDFLAGS := '-fprofile-use ' \
 	all
 
 gcc-profile-make:
 	$(MAKE) \
-	EXTRACFLAGS := '-fprofile-generate' \
+	EXTRACXXFLAGS := '-fprofile-generate' \
 	EXTRALDFLAGS := '-lgcov' \
 	all
 
 gcc-profile-use:
 	$(MAKE) \
-	EXTRACFLAGS := '-fprofile-use -fno-peel-loops -fno-tracer' \
+	EXTRACXXFLAGS := '-fprofile-use -fno-peel-loops -fno-tracer' \
 	EXTRALDFLAGS := '-lgcov' \
 	all
 
 icc-profile-make:
 	@mkdir -p profdir
 	$(MAKE) \
-	EXTRACFLAGS := '-prof-gen=srcpos -prof_dir ./profdir' \
+	EXTRACXXFLAGS := '-prof-gen=srcpos -prof_dir ./profdir' \
 	all
 
 icc-profile-use:
 	$(MAKE) \
-	EXTRACFLAGS := '-prof_use -prof_dir ./profdir' \
+	EXTRACXXFLAGS := '-prof_use -prof_dir ./profdir' \
 	all
 
 .depend:
-	-@$(CC) $(DEPENDFLAGS) -MM $(OBJS:.o=.c)> $@ 2> /dev/null
+	@echo -n Logging dependency...
+	-@$(CXX) $(DEPENDFLAGS) -MM $(OBJS:.o=.cpp)>$@ 2> /dev/null &&echo " successfully written on '.depend' file"
 
--include .depend
+# -include .depend

@@ -26,13 +26,13 @@
   a particular engine, provided the engine is written in C or C++.
 */
 
-#include <assert.h>
+#include <cassert>
 #include <stdio.h>
 #ifndef TB_NO_STDINT
-#include <stdint.h>
+#include <cstdint>
 #endif
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <sys/stat.h>
 #include <fcntl.h>
 #ifndef _WIN32

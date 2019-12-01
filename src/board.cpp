@@ -16,12 +16,12 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
-#include <ctype.h>
-#include <inttypes.h>
+#include <cassert>
+#include <cctype>
+#include <cinttypes>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "attacks.h"
 #include "bitboards.h"
@@ -115,7 +115,7 @@ void boardFromFEN(Board *board, const char *fen, int chess960) {
     clearBoard(board); // Zero out, set squares to EMPTY
 
     // Piece placement
-    while((ch=*token++)) {
+    while ((ch = *token++)) {
         if (isdigit(ch))
             sq += ch - '0';
         else if (ch == '/')
@@ -253,7 +253,7 @@ void printBoard(Board *board) {
     // Print each row of the board, starting from the top
     for(int sq = square(RANK_NB-1, 0); sq >= 0; sq -= FILE_NB) {
 
-        printf("\n     |----|----|----|----|----|----|----|----|\n");
+         cout << "\n     |----|----|----|----|----|----|----|----|\n";
         printf("   %d ", 1 + sq / 8);
 
         // Print each square in a row, starting from the left
@@ -265,15 +265,15 @@ void printBoard(Board *board) {
             switch(colour){
                 case WHITE: printf("| *%c ", PieceLabel[colour][type]); break;
                 case BLACK: printf("|  %c ", PieceLabel[colour][type]); break;
-                default   : printf("|    "); break;
+                default   :  cout << "|    "; break;
             }
         }
 
-        printf("|");
+         cout << "|";
     }
 
-    printf("\n     |----|----|----|----|----|----|----|----|");
-    printf("\n        A    B    C    D    E    F    G    H\n");
+     cout << "\n     |----|----|----|----|----|----|----|----|";
+     cout << "\n        A    B    C    D    E    F    G    H\n";
 
     // Print FEN
     boardToFEN(board, fen);
@@ -395,7 +395,7 @@ void runBenchmark(int argc, char **argv) {
     }
 
     printf("Time  : %dms\n", (int)(getRealTime() - start));
-    printf("Nodes : %"PRIu64"\n", nodes);
+    printf("Nodes : %" PRIu64 "\n", nodes);
     printf("NPS   : %d\n", (int)(nodes / ((getRealTime() - start) / 1000.0)));
 
     free(threads);

@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include <setjmp.h>
-#include <stdint.h>
+#include <csetjmp>
+#include <cstdint>
 
 #include "board.h"
 #include "search.h"

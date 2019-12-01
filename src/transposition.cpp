@@ -16,10 +16,10 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cassert>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
 
 #include "transposition.h"
 #include "types.h"
@@ -46,7 +46,7 @@ void initTT(uint64_t megabytes) {
 
     // Allocate the TTBuckets and save the lookup mask
     Table.hashMask = (1ull << keySize) - 1u;
-    Table.buckets  = malloc(sizeof(TTBucket) * (1ull << keySize));
+    Table.buckets  = (TTBucket*)malloc(sizeof(TTBucket) * (1ull << keySize));
 
     clearTT(); // Clear the table and load everything into the cache
 }
