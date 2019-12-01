@@ -15,17 +15,14 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-//false|true
-//\b(?:alignas|alignof|and|and_eq|asm|bitand|bitor|bool|catch|char16_t|char32_t|class|compl|const_cast|constexpr|decltype|delete|dynamic_cast|explicit|friend|inline|mutable|namespace|new|noexcept|not|not_eq|nullptr|operator|or_eq|private|protected|public|reinterpret_cast|static_assert|static_cast|template|this|thread_local|throw|try|typeid|typename|using|virtual|wchar_t|xor|xor_eq)\b
+//false|true//\b(?:alignas|alignof|and|and_eq|asm|bitand|bitor|bool|catch|char16_t|char32_t|class|compl|const_cast|constexpr|decltype|delete|dynamic_cast|explicit|friend|inline|mutable|namespace|new|noexcept|not|not_eq|nullptr|operator|or_eq|private|protected|public|reinterpret_cast|static_assert|static_cast|template|this|thread_local|throw|try|typeid|typename|using|virtual|wchar_t|xor|xor_eq)\b
 //(#include)\s+<((?!stdio|pthread|windows|math|time|unistd|stdbool|fcntl|\w+/\w).+?)\.h>	\1 <c\2>
-// printf\(("[^%]+?")\)\s*(?:,\s*fflush\(stdout\))?    cout << \1
 
 #include <cinttypes>
 #include <pthread.h>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
-//#include <iostream>
 
 #include "attacks.h"
 #include "board.h"
@@ -52,22 +49,21 @@ extern volatile int IS_PONDERING; // Defined by Search.c
 pthread_mutex_t READYLOCK = PTHREAD_MUTEX_INITIALIZER;
 const char *StartPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-using namespace std;
 inline bool equStarts(string& s, const char* key, size_t& l){	return !s.compare(0,l=strlen(key),key); }
 inline bool equStarts(string& s, const char* key){	return !s.compare(0,strlen(key),key); }
-
 inline string strs(string& s, const char* key){
-	uint16_t f;
-	return (f=s.find(key))==string::npos? "": s.substr(f);
+	uint16_t f;	return (f=s.find(key))==string::npos? "": s.substr(f);
 }
 inline string& strsr(string& s, const char* key){
-	uint16_t f;
-	return s=(f=s.find(key))==string::npos? "": s.substr(f);
+	uint16_t f;	return s=(f=s.find(key))==string::npos? "": s.substr(f);
 }
 inline string& strsr(string& s, const char* key, uint16_t& u){
-	uint16_t f;
-	return s=(f=s.find(key))==string::npos? "": (u=strlen(key),s.substr(f));
+	uint16_t f;	return s=(f=s.find(key))==string::npos? "": (u=strlen(key),s.substr(f));
 }
+inline string& strsr(string& s, string& key, uint16_t& u){
+	uint16_t f;
+	return s=(f=s.find(key))==string::npos? "": (u=key.size(),s.substr(f));}
+	
 inline const char* strContains(string& s, const char* key, uint16_t& u) {
 	const char* p=s.c_str();
 	uint16_t f=s.find(key);
@@ -190,23 +186,23 @@ void uciSetOption(string& str, Thread **threads, int *multiPV, int *chess960) {
 
 	size_t l;
 	if (equStarts(str, "setoption name Hash value ", l)) {
-		int megabytes = stoi(str.substr(l),nullptr);
+		int megabytes = stoi(str.substr(l,9),nullptr);
 		initTT(megabytes); printf("info string set Hash to %dMB\n", megabytes);
 	}
 
 	else if (equStarts(str, "setoption name Threads value ", l)) {
-		int nthreads = stoi(str.substr(l),nullptr);
+		int nthreads = stoi(str.substr(l,9),nullptr);
 		free(*threads); *threads = createThreadPool(nthreads);
 		printf("info string set Threads to %d\n", nthreads);
 	}
 
 	else if (equStarts(str, "setoption name MultiPV value ", l)) {
-		*multiPV = stoi(str.substr(l),nullptr);
+		*multiPV = stoi(str.substr(l,9),nullptr);
 		printf("info string set MultiPV to %d\n", *multiPV);
 	}
 
 	else if (equStarts(str, "setoption name MoveOverhead value ", l)) {
-		MoveOverhead = stoi(str.substr(l),nullptr);
+		MoveOverhead = stoi(str.substr(l,9),nullptr);
 		printf("info string set MoveOverhead to %d\n", MoveOverhead);
 	}
 
@@ -216,7 +212,7 @@ void uciSetOption(string& str, Thread **threads, int *multiPV, int *chess960) {
 	}
 
 	else if (equStarts(str, "setoption name SyzygyProbeDepth value ", l)) {
-		TB_PROBE_DEPTH = stoi(str.substr(l),nullptr);
+		TB_PROBE_DEPTH = stoi(str.substr(l,9),nullptr);
 		printf("info string set SyzygyProbeDepth to %u\n", TB_PROBE_DEPTH);
 	}
 
@@ -311,9 +307,7 @@ void uciReport(Thread *threads, int alpha, int beta, int value) {
 	const char *bound = bounded >=  beta ? " lowerbound "
 					: bounded <= alpha ? " upperbound " : " ";
 
-	printf("info depth %d seldepth %d multipv %d score %s %d%stime %d "
-			"nodes %" PRIu64 " nps %d tbhits %" PRIu64 " hashfull %d pv ",
-			depth, seldepth, multiPV, type, score, bound, elapsed, nodes, nps, tbhits, hashfull);
+	printf("info depth %d seldepth %d multipv %d score %s %d%stime %d "			"nodes %" PRIu64 " nps %d tbhits %" PRIu64 " hashfull %d pv ",			depth, seldepth, multiPV, type, score, bound, elapsed, nodes, nps, tbhits, hashfull);
 
 	// Iterate over the PV and print each move
 	for (int i = 0; i < threads->pv.length; i++) {
@@ -334,9 +328,7 @@ void uciReportTBRoot(Board *board, uint16_t move, unsigned wdl, unsigned dtz) {
 	int score = wdl == TB_LOSS ? -MATE + MAX_PLY + dtz + 1
 				: wdl == TB_WIN  ?  MATE - MAX_PLY - dtz - 1 : 0;
 
-	printf("info depth %d seldepth %d multipv 1 score cp %d time 0 "
-			"nodes 0 tbhits 1 nps 0 hashfull %d pv ",
-			MAX_PLY - 1, MAX_PLY - 1, score, 0);
+	printf("info depth %d seldepth %d multipv 1 score cp %d time 0 "			"nodes 0 tbhits 1 nps 0 hashfull %d pv ",			MAX_PLY - 1, MAX_PLY - 1, score, 0);
 
 	// Print out the given move
 	moveToString(move, moveStr, board->chess960);

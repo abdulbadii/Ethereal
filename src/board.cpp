@@ -253,7 +253,7 @@ void printBoard(Board *board) {
     // Print each row of the board, starting from the top
     for(int sq = square(RANK_NB-1, 0); sq >= 0; sq -= FILE_NB) {
 
-         cout << "\n     |----|----|----|----|----|----|----|----|\n";
+        printf("\n     |----|----|----|----|----|----|----|----|\n");
         printf("   %d ", 1 + sq / 8);
 
         // Print each square in a row, starting from the left
@@ -265,15 +265,15 @@ void printBoard(Board *board) {
             switch(colour){
                 case WHITE: printf("| *%c ", PieceLabel[colour][type]); break;
                 case BLACK: printf("|  %c ", PieceLabel[colour][type]); break;
-                default   :  cout << "|    "; break;
+                default   : printf("|    "); break;
             }
         }
 
-         cout << "|";
+        printf("|");
     }
 
-     cout << "\n     |----|----|----|----|----|----|----|----|";
-     cout << "\n        A    B    C    D    E    F    G    H\n";
+    printf("\n     |----|----|----|----|----|----|----|----|");
+    printf("\n        A    B    C    D    E    F    G    H\n");
 
     // Print FEN
     boardToFEN(board, fen);

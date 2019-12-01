@@ -108,27 +108,25 @@ void runTexelTuning(Thread *thread) {
 
     printf("\nTUNER WILL BE TUNING %d TERMS...", NTERMS);
 
-     cout << "\n\nSETTING TABLE SIZE TO 1MB FOR SPEED...";
+    printf("\n\nSETTING TABLE SIZE TO 1MB FOR SPEED...");
     initTT(1);
 
-    printf("\n\nALLOCATING MEMORY FOR TEXEL ENTRIES [%dMB]...",
-           (int)(NPOSITIONS * sizeof(TexelEntry) / (1024 * 1024)));
+    printf("\n\nALLOCATING MEMORY FOR TEXEL ENTRIES [%dMB]...",           (int)(NPOSITIONS * sizeof(TexelEntry) / (1024 * 1024)));
     tes = calloc(NPOSITIONS, sizeof(TexelEntry));
 
-    printf("\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [%dMB]...",
-           (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)));
+    printf("\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [%dMB]...",           (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)));
     TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
 
-     cout << "\n\nINITIALIZING TEXEL ENTRIES FROM FENS...";
+    printf("\n\nINITIALIZING TEXEL ENTRIES FROM FENS...");
     initTexelEntries(tes, thread);
 
-     cout << "\n\nFETCHING CURRENT EVALUATION TERMS AS A STARTING POINT...";
+    printf("\n\nFETCHING CURRENT EVALUATION TERMS AS A STARTING POINT...");
     initCurrentParameters(cparams);
 
-     cout << "\n\nSETTING TERM PHASES, MG, EG, OR BOTH...";
+    printf("\n\nSETTING TERM PHASES, MG, EG, OR BOTH...");
     initPhaseManager(phases);
 
-     cout << "\n\nCOMPUTING OPTIMAL K VALUE...\n";
+    printf("\n\nCOMPUTING OPTIMAL K VALUE...\n");
     K = computeOptimalK(tes);
 
     while (1) {
@@ -287,8 +285,7 @@ void updateMemory(TexelEntry *te, int size) {
 
     // First ensure we have enough Tuples left for this TexelEntry
     if (size > TupleStackSize) {
-        printf("\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [%dMB]...\n\n",
-                (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)));
+        printf("\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [%dMB]...\n\n",                (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)));
         TupleStackSize = STACKSIZE;
         TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
     }
@@ -441,11 +438,11 @@ void printParameters_1(char *name, int params[NTERMS][PHASE_NB], int i, int A) {
     printf("const int %s[%d] = {", name, A);
 
     for (int a = 0; a < A; a++, i++) {
-        if (a % 4 == 0)  cout << "\n    ";
+        if (a % 4 == 0) printf("\n    ");
         printf("S(%4d,%4d), ", params[i][MG], params[i][EG]);
     }
 
-     cout << "\n};\n\n";
+    printf("\n};\n\n");
 }
 
 void printParameters_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, int B) {
@@ -454,17 +451,17 @@ void printParameters_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
 
     for (int a = 0; a < A; a++) {
 
-         cout << "   {";
+        printf("   {");
 
         for (int b = 0; b < B; b++, i++) {
             printf("S(%4d,%4d)", params[i][MG], params[i][EG]);
             printf("%s", b == B - 1 ? "" : ", ");
         }
 
-         cout << "},\n";
+        printf("},\n");
     }
 
-     cout << "};\n\n";
+    printf("};\n\n");
 
 }
 
@@ -488,7 +485,7 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
 
     }
 
-     cout << "};\n\n";
+    printf("};\n\n");
 }
 
 #endif

@@ -107,21 +107,21 @@ int main(int argc, char* argv[]) {
 	while (getline(cin,str)) {
 		size_t l;
 		if (str=="uci") {
-				 cout << "id name Ethereal " ETHEREAL_VERSION "\n";
-				 cout << "id author Andrew Grant & Laldon\n";
-				 cout << "option name Hash ; spin default 16 min 1 max 65536\n";
-				 cout << "option name Threads type spin default 1 min 1 max 2048\n";
-				 cout << "option name MultiPV type spin default 1 min 1 max 256\n";
-				 cout << "option name MoveOverhead type spin default 100 min 0 max 10000\n";
-				 cout << "option name SyzygyPath type string default <empty>\n";
-				 cout << "option name SyzygyProbeDepth type spin default 0 min 0 max 127\n";
-				 cout << "option name Ponder type check default false\n";
-				 cout << "option name UCI_Chess960 type check default false\n";
-				 cout << "uciok\n";
+				printf("id name Ethereal " ETHEREAL_VERSION "\n");
+				printf("id author Andrew Grant & Laldon\n");
+				printf("option name Hash ; spin default 16 min 1 max 65536\n");
+				printf("option name Threads type spin default 1 min 1 max 2048\n");
+				printf("option name MultiPV type spin default 1 min 1 max 256\n");
+				printf("option name MoveOverhead type spin default 100 min 0 max 10000\n");
+				printf("option name SyzygyPath type string default <empty>\n");
+				printf("option name SyzygyProbeDepth type spin default 0 min 0 max 127\n");
+				printf("option name Ponder type check default false\n");
+				printf("option name UCI_Chess960 type check default false\n");
+				printf("uciok\n"), fflush(stdout);
 		}
 
 		else if (str=="isready")
-				 cout << "readyok\n";
+				printf("readyok\n"), fflush(stdout);
 
 		else if (str=="ucinewgame")
 				resetThreadPool(threads), clearTT();
@@ -238,7 +238,7 @@ void *uciGo(void *cargo) {
 	}
 
 	// Make sure this all gets reported
-	 cout << "\n"; fflush(stdout);
+	printf("\n"); fflush(stdout);
 
 	// Drop the ready lock, as we are prepared to handle a new search
 	pthread_mutex_unlock(&READYLOCK);
@@ -291,9 +291,9 @@ void uciSetOption(string& str, Thread **threads, int *multiPV, int *chess960) {
 
 	else if (equStarts(str, "setoption name UCI_Chess960 value ", l)) {
 		if (str.substr(l,4)=="true")
-			 cout << "info string set UCI_Chess960 to true\n", *chess960 = 1;
+			printf("info string set UCI_Chess960 to true\n"), *chess960 = 1;
 		else if (str.substr(l,5)=="false")
-			 cout << "info string set UCI_Chess960 to false\n", *chess960 = 0;
+			printf("info string set UCI_Chess960 to false\n"), *chess960 = 0;
 	}
 
 	fflush(stdout);
@@ -376,9 +376,7 @@ void uciReport(Thread *threads, int alpha, int beta, int value) {
 	const char *bound = bounded >=  beta ? " lowerbound "
 					: bounded <= alpha ? " upperbound " : " ";
 
-	printf("info depth %d seldepth %d multipv %d score %s %d%stime %d "
-			"nodes %" PRIu64 " nps %d tbhits %" PRIu64 " hashfull %d pv ",
-			depth, seldepth, multiPV, type, score, bound, elapsed, nodes, nps, tbhits, hashfull);
+	printf("info depth %d seldepth %d multipv %d score %s %d%stime %d "			"nodes %" PRIu64 " nps %d tbhits %" PRIu64 " hashfull %d pv ",			depth, seldepth, multiPV, type, score, bound, elapsed, nodes, nps, tbhits, hashfull);
 
 	// Iterate over the PV and print each move
 	for (int i = 0; i < threads->pv.length; i++) {
@@ -401,9 +399,7 @@ void uciReportTBRoot(Board *board, uint16_t move, unsigned wdl, unsigned dtz) {
 	int score = wdl == TB_LOSS ? -MATE + MAX_PLY + dtz + 1
 				: wdl == TB_WIN  ?  MATE - MAX_PLY - dtz - 1 : 0;
 
-	printf("info depth %d seldepth %d multipv 1 score cp %d time 0 "
-			"nodes 0 tbhits 1 nps 0 hashfull %d pv ",
-			MAX_PLY - 1, MAX_PLY - 1, score, 0);
+	printf("info depth %d seldepth %d multipv 1 score cp %d time 0 "			"nodes 0 tbhits 1 nps 0 hashfull %d pv ",			MAX_PLY - 1, MAX_PLY - 1, score, 0);
 
 	// Print out the given move
 	moveToString(move, moveStr, board->chess960);

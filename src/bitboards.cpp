@@ -136,5 +136,5 @@ void printBitboard(uint64_t bb) {
         printf("%s\n", line);
     }
 
-     cout << "\n";
+    printf("\n");
 }
