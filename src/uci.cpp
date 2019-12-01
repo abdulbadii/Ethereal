@@ -53,7 +53,6 @@ pthread_mutex_t READYLOCK = PTHREAD_MUTEX_INITIALIZER;
 const char *StartPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 using namespace std;
-int strEquals(const char *str1,const char *str2) {	return strcmp(str1, str2) == 0;}
 inline bool equStarts(string& s, const char* key, size_t& l){	return !s.compare(0,l=strlen(key),key); }
 inline bool equStarts(string& s, const char* key){	return !s.compare(0,strlen(key),key); }
 
@@ -191,23 +190,23 @@ void uciSetOption(string& str, Thread **threads, int *multiPV, int *chess960) {
 
 	size_t l;
 	if (equStarts(str, "setoption name Hash value ", l)) {
-		int megabytes = stoi(str.substr(l,9),nullptr);
+		int megabytes = stoi(str.substr(l),nullptr);
 		initTT(megabytes); printf("info string set Hash to %dMB\n", megabytes);
 	}
 
 	else if (equStarts(str, "setoption name Threads value ", l)) {
-		int nthreads = stoi(str.substr(l,9),nullptr);
+		int nthreads = stoi(str.substr(l),nullptr);
 		free(*threads); *threads = createThreadPool(nthreads);
 		printf("info string set Threads to %d\n", nthreads);
 	}
 
 	else if (equStarts(str, "setoption name MultiPV value ", l)) {
-		*multiPV = stoi(str.substr(l,9),nullptr);
+		*multiPV = stoi(str.substr(l),nullptr);
 		printf("info string set MultiPV to %d\n", *multiPV);
 	}
 
 	else if (equStarts(str, "setoption name MoveOverhead value ", l)) {
-		MoveOverhead = stoi(str.substr(l,9),nullptr);
+		MoveOverhead = stoi(str.substr(l),nullptr);
 		printf("info string set MoveOverhead to %d\n", MoveOverhead);
 	}
 
@@ -217,7 +216,7 @@ void uciSetOption(string& str, Thread **threads, int *multiPV, int *chess960) {
 	}
 
 	else if (equStarts(str, "setoption name SyzygyProbeDepth value ", l)) {
-		TB_PROBE_DEPTH = stoi(str.substr(l,9),nullptr);
+		TB_PROBE_DEPTH = stoi(str.substr(l),nullptr);
 		printf("info string set SyzygyProbeDepth to %u\n", TB_PROBE_DEPTH);
 	}
 
