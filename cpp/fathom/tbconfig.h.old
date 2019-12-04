@@ -62,11 +62,6 @@
  */
 /* #define TB_CUSTOM_BSWAP64(x) <DEFINITION> */
 
-/*
- * Define TB_NO_STDINT if you do not want to use <stdint.h> or it is not
- * available.
- */
-/* #define TB_NO_STDINT */
 
 /*
  * Define TB_NO_STDBOOL if you do not want to use <stdbool.h> or it is not
@@ -97,7 +92,7 @@
  */
 /* #define TB_NO_HW_POP_COUNT */
 
-//Define TB_USE_ATOMIC to use C++ 11 (or higher) <atomic> feature (recommended if supported).
+//	Define TB_USE_ATOMIC to use C++ 11 (or higher) <atomic> feature (recommended if using C++ and compiler supports it).
 
 #define TB_USE_ATOMIC
 

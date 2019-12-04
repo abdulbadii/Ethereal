@@ -27,9 +27,9 @@
 int MoveOverhead = 250; // Set by UCI options
 
 double getRealTime() {
-#if defined(_WIN32) || defined(_WIN64)
-    return (double)(GetTickCount());
-#else
+// #if defined(_WIN32) || defined(_WIN64)
+    // return (double)(GetTickCount());
+// #else
     struct timeval tv;
     double secsInMilli, usecsInMilli;
 
@@ -38,7 +38,7 @@ double getRealTime() {
     usecsInMilli = tv.tv_usec / 1000;
 
     return secsInMilli + usecsInMilli;
-#endif
+// #endif
 }
 
 double elapsedTime(SearchInfo *info) {

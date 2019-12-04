@@ -115,7 +115,7 @@ void boardFromFEN(Board *board, const char *fen, int chess960) {
     clearBoard(board); // Zero out, set squares to EMPTY
 
     // Piece placement
-    while ((ch = *token++)) {
+    while((ch=*token++)) {
         if (isdigit(ch))
             sq += ch - '0';
         else if (ch == '/')
@@ -253,8 +253,8 @@ void printBoard(Board *board) {
     // Print each row of the board, starting from the top
     for(int sq = square(RANK_NB-1, 0); sq >= 0; sq -= FILE_NB) {
 
-        printf("\n     |----|----|----|----|----|----|----|----|\n");
-        printf("   %d ", 1 + sq / 8);
+        cout << "\n     |----|----|----|----|----|----|----|----|\n";
+        cout << "   " << 1 + sq / 8 << " ";
 
         // Print each square in a row, starting from the left
         for(int i = 0; i < 8; i++) {
@@ -263,21 +263,21 @@ void printBoard(Board *board) {
             int type = pieceType(board->squares[sq+i]);
 
             switch(colour){
-                case WHITE: printf("| *%c ", PieceLabel[colour][type]); break;
-                case BLACK: printf("|  %c ", PieceLabel[colour][type]); break;
-                default   : printf("|    "); break;
+                case WHITE: cout << "| *" << PieceLabel[colour][type] << " "; break;
+                case BLACK: cout << "|  " << PieceLabel[colour][type] << " "; break;
+                default   : cout << "|    "; break;
             }
         }
 
-        printf("|");
+        cout << "|";
     }
 
-    printf("\n     |----|----|----|----|----|----|----|----|");
-    printf("\n        A    B    C    D    E    F    G    H\n");
+    cout << "\n     |----|----|----|----|----|----|----|----|";
+    cout << "\n        A    B    C    D    E    F    G    H\n";
 
     // Print FEN
     boardToFEN(board, fen);
-    printf("\n%s\n\n", fen);
+    cout << "\n" << fen << "\n\n";
 }
 
 int boardHasNonPawnMaterial(Board *board, int turn) {
@@ -386,7 +386,7 @@ void runBenchmark(int argc, char **argv) {
     start = getRealTime();
 
     for (int i = 0; strcmp(Benchmarks[i], ""); i++) {
-        printf("\nPosition #%d: %s\n", i + 1, Benchmarks[i]);
+        cout << "\nPosition #" << i + 1 << ": " << Benchmarks[i] << "\n";
         boardFromFEN(&board, Benchmarks[i], 0);
         limits.start = getRealTime();
         getBestMove(threads, &board, &limits, &bestMove, &ponderMove);
@@ -394,9 +394,9 @@ void runBenchmark(int argc, char **argv) {
         clearTT(); // Reset TT for new search
     }
 
-    printf("Time  : %dms\n", (int)(getRealTime() - start));
-    printf("Nodes : %" PRIu64 "\n", nodes);
-    printf("NPS   : %d\n", (int)(nodes / ((getRealTime() - start) / 1000.0)));
+    cout << "Time  : " << (int)(getRealTime() - start) << "ms\n";
+    cout << "Nodes : " << nodes << "\n";
+    cout << "NPS   : " << (int)(nodes / ((getRealTime() - start) / 1000.0)) << "\n";
 
     free(threads);
 }

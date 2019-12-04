@@ -46,7 +46,7 @@ void initTT(uint64_t megabytes) {
 
     // Allocate the TTBuckets and save the lookup mask
     Table.hashMask = (1ull << keySize) - 1u;
-    Table.buckets  = (TTBucket*)malloc(sizeof(TTBucket) * (1ull << keySize));
+    Table.buckets  = (TTBucket *) malloc(sizeof(TTBucket) * (1ull << keySize));
 
     clearTT(); // Clear the table and load everything into the cache
 }

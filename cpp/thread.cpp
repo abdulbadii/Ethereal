@@ -28,7 +28,7 @@
 
 Thread* createThreadPool(int nthreads) {
 
-    Thread *threads = (Thread*)malloc(sizeof(Thread) * nthreads);
+    Thread *threads = (Thread *) malloc(sizeof(Thread) * nthreads);
 
     for (int i = 0; i < nthreads; i++) {
 
