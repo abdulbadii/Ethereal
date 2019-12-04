@@ -455,7 +455,7 @@ void printParameters_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
 
         for (int b = 0; b < B; b++, i++) {
             cout << "S(" << params[i][MG] << "d," << params[i][EG] << "d)";
-            printf("%s, b == B - 1 ?  : , ");
+            cout << "%s, b == B - 1 ?  : , "
         }
 
         cout << "},\n";
@@ -473,14 +473,14 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
 
         for (int b = 0; b < B; b++) {
 
-            printf("%s, b ?    { :   {{");;
+            cout << "%s, b ?    { :   {{";
 
             for (int c = 0; c < C; c++, i++) {
                 cout << "S(" << params[i][MG] << "d," << params[i][EG] << "d)";
-                printf("%s, c == C - 1 ?  : , ");
+                cout << "%s, c == C - 1 ?  : , "
             }
 
-            printf("%s, b == B - 1 ? }},\n : },\n");
+            cout << "%s, b == B - 1 ? }},\n : },\n"
         }
 
     }
