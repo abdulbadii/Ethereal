@@ -18,11 +18,11 @@
 
 #pragma once
 
-// #if defined(_WIN32) || defined(_WIN64)
-    // #include <windows.h>
-// #else
+#if defined(_WIN32) || defined(_WIN64)
+    #include <windows.h>
+#else
     #include <sys/time.h>
-// #endif
+#endif
 
 #include "types.h"
 

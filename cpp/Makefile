@@ -142,13 +142,23 @@ CXXFLAGS += -Wcast-qual -fno-exceptions -Wall -std=c++11 -lpthread -lm $(EXTRACX
 DEPENDFLAGS += -std=c++11
 LDFLAGS += $(EXTRALDFLAGS)
 
-ifneq ($(filter $(MODE),TEX TEXEL tex texel),)
+ifneq ($(filter $(dep),1 on),)
+	dep:=.depend
+else
+	ifneq ($(filter $(DEP),1 ON),)
+		dep:=.depend
+	else
+		dep:=
+	endif
+endif
+
+ifneq ($(filter $(MODE),TEX TEXEL tex),)
 	CXXFLAGS += -fopenmp -DTUNE
 endif
-ifneq ($(filter $(MODE),PRO PROFILE pro profile),)
+ifneq ($(filter $(MODE),PRO PROFILE pro),)
 	CXXFLAGS += -p -pg
 endif
-ifneq ($(filter $(MODE),REL RELEASE rel release),)
+ifneq ($(filter $(MODE),REL RELEASE rel),)
 	LDFLAGS += -static
 endif
 
@@ -172,7 +182,7 @@ ifeq ($(COMP),gcc)
 	endif
 
 	ifneq ($(KERNEL),Darwin)
-	   LDFLAGS += -Wl,--no-as-needed
+		LDFLAGS += -Wl,--no-as-needed
 	endif
 endif
 
@@ -277,8 +287,8 @@ endif
 
 ### 3.2.2 Debugging with undefined behavior sanitizers
 ifneq ($(sanitize),no)
-        CXXFLAGS += -g3 -fsanitize=$(sanitize) -fuse-ld=gold
-        LDFLAGS += -fsanitize=$(sanitize) -fuse-ld=gold
+		CXXFLAGS += -g3 -fsanitize=$(sanitize) -fuse-ld=gold
+		LDFLAGS += -fsanitize=$(sanitize) -fuse-ld=gold
 endif
 
 ### 3.3 Optimization
@@ -412,11 +422,10 @@ help:
 
 
 .PHONY: help build profile-build strip install clean objclean profileclean help \
-        config-sanity icc-profile-use icc-profile-make gcc-profile-use gcc-profile-make \
-        clang-profile-use clang-profile-make
+		config-sanity icc-profile-use icc-profile-make gcc-profile-use gcc-profile-make \
+		clang-profile-use clang-profile-make dep
 
-build: config-sanity
-	$(MAKE) all
+build: config-sanity all
 
 profile-build: config-sanity objclean profileclean
 	@echo ""
@@ -462,7 +471,7 @@ default:
 ### Section 5. Private targets
 ### ==========================================================================
 
-all: $(EXE) .depend
+all: $(EXE) $(dep)
 
 config-sanity:
 	@echo ""
@@ -490,7 +499,7 @@ config-sanity:
 	@test "$(sanitize)" = "undefined" || test "$(sanitize)" = "thread" || test "$(sanitize)" = "address" || test "$(sanitize)" = "no"
 	@test "$(optimize)" = "yes" || test "$(optimize)" = "no"
 	@test "$(arch)" = "any" || test "$(arch)" = "x86_64" || test "$(arch)" = "i386" || \
-	 test "$(arch)" = "ppc64" || test "$(arch)" = "ppc" || test "$(arch)" = "armv7"
+	test "$(arch)" = "ppc64" || test "$(arch)" = "ppc" || test "$(arch)" = "armv7"
 	@test "$(bits)" = "32" || test "$(bits)" = "64"
 	@test "$(prefetch)" = "yes" || test "$(prefetch)" = "no"
 	@test "$(popcnt)" = "yes" || test "$(popcnt)" = "no"
@@ -538,6 +547,7 @@ icc-profile-use:
 	all
 
 .depend:
-	-@$(CXX) $(DEPENDFLAGS) -M $(OBJS:.o=.cpp)> $@ 2> /dev/null
+	@echo -n Logging dependency...
+	-@$(CXX) $(DEPENDFLAGS) -MM $(OBJS:.o=.cpp)>$@ 2> /dev/null &&echo " successfully written on '.depend' file"
 
--include .depend
+# -include .depend

@@ -111,12 +111,10 @@ void runTexelTuning(Thread *thread) {
     printf("\n\nSETTING TABLE SIZE TO 1MB FOR SPEED...");
     initTT(1);
 
-    printf("\n\nALLOCATING MEMORY FOR TEXEL ENTRIES [%dMB]...",
-           (int)(NPOSITIONS * sizeof(TexelEntry) / (1024 * 1024)));
+    printf("\n\nALLOCATING MEMORY FOR TEXEL ENTRIES [%dMB]...",           (int)(NPOSITIONS * sizeof(TexelEntry) / (1024 * 1024)));
     tes = calloc(NPOSITIONS, sizeof(TexelEntry));
 
-    printf("\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [%dMB]...",
-           (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)));
+    printf("\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [%dMB]...",           (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)));
     TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
 
     printf("\n\nINITIALIZING TEXEL ENTRIES FROM FENS...");
@@ -287,8 +285,7 @@ void updateMemory(TexelEntry *te, int size) {
 
     // First ensure we have enough Tuples left for this TexelEntry
     if (size > TupleStackSize) {
-        printf("\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [%dMB]...\n\n",
-                (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)));
+        printf("\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [%dMB]...\n\n",                (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)));
         TupleStackSize = STACKSIZE;
         TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
     }

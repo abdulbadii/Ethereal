@@ -115,7 +115,7 @@ void boardFromFEN(Board *board, const char *fen, int chess960) {
     clearBoard(board); // Zero out, set squares to EMPTY
 
     // Piece placement
-    while((ch=*token++)) {
+    while ((ch = *token++)) {
         if (isdigit(ch))
             sq += ch - '0';
         else if (ch == '/')
