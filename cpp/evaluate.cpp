@@ -802,7 +802,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     // Evaluate King Shelter & King Storm threat by looking at the file of our King,
     // as well as the adjacent files. When looking at pawn distances, we will use a
     // distance of 7 to denote a missing pawn, since distance 7 is not possible otherwise.
-    for (int file = MAX(0, fileOf(kingSq) - 1); file <= MIN(FILE_NB - 1, fileOf(kingSq) + 1); file++) {
+    for (int file = MAX(0, fileOf(kingSq) - 1); file <= MIN(FILE_NB - 1, fileOf(kingSq) + 1); ++file) {
 
         // Find closest friendly pawn at or above our King on a given file
         uint64_t ours = myPawns & Files[file] & forwardRanksMasks(US, rankOf(kingSq));
@@ -1131,7 +1131,7 @@ void initEval() {
     // Init a normalized 64-length PSQT for the evaluation which
     // combines the Piece Values with the original PSQT Values
 
-    for (int sq = 0; sq < SQUARE_NB; sq++) {
+    for (int sq = 0; sq < SQUARE_NB; ++sq) {
 
         const int w32 = relativeSquare32(WHITE, sq);
         const int b32 = relativeSquare32(BLACK, sq);

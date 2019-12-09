@@ -129,7 +129,7 @@ void printBitboard(uint64_t bb) {
     for (int rank = 7; rank >= 0; rank--) {
         char line[] = ". . . . . . . .";
 
-        for (int file = 0; file < FILE_NB; file++)
+        for (int file = 0; file < FILE_NB; ++file)
             if (testBit(bb, square(rank, file)))
                 line[2 * file] = 'X';
 

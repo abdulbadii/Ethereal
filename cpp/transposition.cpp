@@ -40,7 +40,7 @@ void initTT(uint64_t megabytes) {
     // size. The formula works under the assumption that a TTBucket is
     // exactly 32 bytes. We assure this in order to get good caching
 
-    for (;1ull << (keySize + 5) <= megabytes << 20 ; keySize++);
+    for (;1ull << (keySize + 5) <= megabytes << 20 ; ++keySize);
     assert(sizeof(TTBucket) == 32);
     keySize = keySize - 1;
 
@@ -80,8 +80,8 @@ int hashfullTT() {
 
     int used = 0;
 
-    for (int i = 0; i < 1000; i++)
-        for (int j = 0; j < TT_BUCKET_NB; j++)
+    for (int i = 0; i < 1000; ++i)
+        for (int j = 0; j < TT_BUCKET_NB; ++j)
             used += (Table.buckets[i].slots[j].generation & TT_MASK_BOUND) != BOUND_NONE
                  && (Table.buckets[i].slots[j].generation & TT_MASK_AGE) == Table.generation;
 
@@ -112,7 +112,7 @@ int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth,
     TTEntry *slots = Table.buckets[hash & Table.hashMask].slots;
 
     // Search for a matching hash signature
-    for (int i = 0; i < TT_BUCKET_NB; i++) {
+    for (int i = 0; i < TT_BUCKET_NB; ++i) {
         if (slots[i].hash16 == hash16) {
 
             // Update age but retain bound type
@@ -140,7 +140,7 @@ void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, 
 
     // Find a matching hash, or replace using MAX(x1, x2, x3),
     // where xN equals the depth minus 4 times the age difference
-    for (i = 0; i < TT_BUCKET_NB && slots[i].hash16 != hash16; i++)
+    for (i = 0; i < TT_BUCKET_NB && slots[i].hash16 != hash16; ++i)
         if (   replace->depth - ((259 + Table.generation - replace->generation) & TT_MASK_AGE)
             >= slots[i].depth - ((259 + Table.generation - slots[i].generation) & TT_MASK_AGE))
             replace = &slots[i];

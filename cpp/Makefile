@@ -68,6 +68,8 @@ prefetch := no
 popcnt := no
 sse := no
 pext := no
+dep:=
+COMP := gcc
 
 ### 2.2 Architecture specific
 
@@ -135,21 +137,23 @@ endif
 ### Section 3. Low-level configuration
 ### ==========================================================================
 
-### 3.1 Selecting compiler (default := gcc)
+### 3.1 Selecting compiler (default=gcc)
 
-#-march=native 
-CXXFLAGS += -Wcast-qual -fno-exceptions -Wall -std=c++11 -lpthread -lm $(EXTRACXXFLAGS)
+#
+CXXFLAGS += -Wcast-qual -fno-exceptions -Wall -std=c++11 -march=native -lpthread -lm $(EXTRACXXFLAGS)
 DEPENDFLAGS += -std=c++11
 LDFLAGS += $(EXTRALDFLAGS)
 
-ifneq ($(filter $(dep),1 on),)
+ifneq ($(filter $(dep),1 yes),)
 	dep:=.depend
 else
-	ifneq ($(filter $(DEP),1 ON),)
-		dep:=.depend
-	else
-		dep:=
-	endif
+ifneq ($(filter $(DEP),1 YES),)
+	dep:=.depend
+endif
+endif
+
+ifneq ($(filter $(deb),1 yes),)
+	debug:=yes
 endif
 
 ifneq ($(filter $(MODE),TEX TEXEL tex),)
@@ -160,10 +164,6 @@ ifneq ($(filter $(MODE),PRO PROFILE pro),)
 endif
 ifneq ($(filter $(MODE),REL RELEASE rel),)
 	LDFLAGS += -static
-endif
-
-ifeq ($(COMP),)
-	COMP := gcc
 endif
 
 ifeq ($(COMP),gcc)
@@ -189,7 +189,7 @@ endif
 ifeq ($(COMP),mingw)
 	comp := mingw
 	EXE:=$(EXE).exe
-# CXXFLAGS += -D_WIN32
+
 	ifeq ($(KERNEL),Linux)
 		ifeq ($(bits),64)
 			ifeq ($(shell which x86_64-w64-mingw32-c++-posix),)
@@ -282,7 +282,8 @@ endif
 ifeq ($(debug),no)
 	CXXFLAGS += -DNDEBUG
 else
-	CXXFLAGS += -g
+	optimize :=no
+	CXXFLAGS += -g -O0
 endif
 
 ### 3.2.2 Debugging with undefined behavior sanitizers
@@ -293,7 +294,6 @@ endif
 
 ### 3.3 Optimization
 ifeq ($(optimize),yes)
-
 	CXXFLAGS += -O3
 	ifeq ($(comp),gcc)
 		ifeq ($(OS), Android)
@@ -379,7 +379,7 @@ help:
 	@echo ""
 	@echo "To compile Ethereal, type: "
 	@echo ""
-	@echo "make target ARCH := arch [COMP := compiler] [COMPCXX := cxx]"
+	@echo "make target ARCH = arch [COMP = compiler] [COMPCXX = cxx] [dep=1]"
 	@echo ""
 	@echo "Supported targets:"
 	@echo ""
@@ -408,22 +408,24 @@ help:
 	@echo "mingw                   > Gnu compiler with MinGW under Windows"
 	@echo "clang                   > LLVM Clang compiler"
 	@echo "icc                     > Intel compiler"
+	@echo "DEP | dep = 1   > make a dependency log file"
 	@echo ""
 	@echo "Simple examples. If you don't know what to do, you likely want to run: "
 	@echo ""
-	@echo "make build ARCH := x86-64    (This is for 64-bit systems)"
-	@echo "make build ARCH := x86-32    (This is for 32-bit systems)"
+	@echo "make build ARCH = x86-64    (This is for 64-bit systems)"
+	@echo "make build ARCH = x86-32    (This is for 32-bit systems)"
 	@echo ""
-	@echo "Advanced examples, for experienced users: "
+	@echo "Examples: "
 	@echo ""
-	@echo "make build ARCH := x86-64 COMP := clang"
-	@echo "make profile-build ARCH := x86-64-bmi2 COMP := gcc COMPCXX := g++-4.8"
+	@echo "make build ARCH = x86-64 COMP = clang"
+	@echo "make profile-build ARCH = x86-64-bmi2 COMP=gcc COMPCXX = g++-4.8"
+	@echo "make profile-build ARCH = x86-64-modern COMP =gcc dep=1"
 	@echo ""
 
 
 .PHONY: help build profile-build strip install clean objclean profileclean help \
 		config-sanity icc-profile-use icc-profile-make gcc-profile-use gcc-profile-make \
-		clang-profile-use clang-profile-make dep
+		clang-profile-use clang-profile-make
 
 build: config-sanity all
 
@@ -452,7 +454,7 @@ install:
 
 #clean all
 clean: objclean profileclean
-	@rm -f .depend *~ core
+	@rm -f $(dep) *~ core
 
 # clean binaries and objects
 objclean:

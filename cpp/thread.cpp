@@ -30,7 +30,7 @@ Thread* createThreadPool(int nthreads) {
 
     Thread *threads = (Thread*)malloc(sizeof(Thread) * nthreads);
 
-    for (int i = 0; i < nthreads; i++) {
+    for (int i = 0; i < nthreads; ++i) {
 
         // Offset stacks so the root position may look backwards
         threads[i].evalStack = &(threads[i]._evalStack[STACK_OFFSET]);
@@ -59,7 +59,7 @@ void resetThreadPool(Thread *threads) {
     // and evaluation caching. This is needed for ucinewgame
     // calls in order to ensure a deterministic behaviour
 
-    for (int i = 0; i < threads->nthreads; i++) {
+    for (int i = 0; i < threads->nthreads; ++i) {
         memset(&threads[i].pktable, 0, sizeof(PKTable));
         memset(&threads[i].killers, 0, sizeof(KillerTable));
         memset(&threads[i].cmtable, 0, sizeof(CounterMoveTable));
@@ -75,7 +75,7 @@ void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, SearchIn
     // somewhere to store the results of each iteration by the main, and
     // our own copy of the board. Also, we reset the seach statistics
 
-    for (int i = 0; i < threads->nthreads; i++) {
+    for (int i = 0; i < threads->nthreads; ++i) {
         threads[i].limits = limits;
         threads[i].info = info;
         threads[i].nodes = threads[i].tbhits = 0ull;
@@ -90,7 +90,7 @@ uint64_t nodesSearchedThreadPool(Thread *threads) {
 
     uint64_t nodes = 0ull;
 
-    for (int i = 0; i < threads->nthreads; i++)
+    for (int i = 0; i < threads->nthreads; ++i)
         nodes += threads[i].nodes;
 
     return nodes;
@@ -103,7 +103,7 @@ uint64_t tbhitsThreadPool(Thread *threads) {
 
     uint64_t tbhits = 0ull;
 
-    for (int i = 0; i < threads->nthreads; i++)
+    for (int i = 0; i < threads->nthreads; ++i)
         tbhits += threads[i].tbhits;
 
     return tbhits;

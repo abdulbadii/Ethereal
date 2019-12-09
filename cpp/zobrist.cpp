@@ -42,17 +42,17 @@ uint64_t rand64() {
 void initZobrist() {
 
     // Init the main Zobrist keys for all pieces
-    for (int piece = PAWN; piece <= KING; piece++)
-        for (int sq = 0; sq < SQUARE_NB; sq++)
-            for (int colour = WHITE; colour <= BLACK; colour++)
+    for (int piece = PAWN; piece <= KING; ++piece)
+        for (int sq = 0; sq < SQUARE_NB; ++sq)
+            for (int colour = WHITE; colour <= BLACK; ++colour)
                 ZobristKeys[makePiece(piece, colour)][sq] = rand64();
 
     // Init the Zobrist keys for each enpass file
-    for (int file = 0; file < FILE_NB; file++)
+    for (int file = 0; file < FILE_NB; ++file)
         ZobristEnpassKeys[file] = rand64();
 
     // Init the Zobrist keys for each castle rook
-    for (int sq = 0; sq < SQUARE_NB; sq++)
+    for (int sq = 0; sq < SQUARE_NB; ++sq)
         ZobristCastleKeys[sq] = rand64();
 
     // Init the Zobrist key for side to move

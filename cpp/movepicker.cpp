@@ -37,7 +37,7 @@ static int getBestMoveIndex(MovePicker *mp, int start, int end) {
 
     int best = start;
 
-    for (int i = start + 1; i < end; i++)
+    for (int i = start + 1; i < end; ++i)
         if (mp->values[i] > mp->values[best])
             best = i;
 
@@ -52,7 +52,7 @@ static void evaluateNoisyMoves(MovePicker *mp) {
     };
 
     // Use modified MVV-LVA to evaluate moves
-    for (int i = 0; i < mp->noisySize; i++) {
+    for (int i = 0; i < mp->noisySize; ++i) {
 
         int fromType = pieceType(mp->thread->board.squares[MoveFrom(mp->moves[i])]);
         int toType   = pieceType(mp->thread->board.squares[MoveTo(mp->moves[i])]);

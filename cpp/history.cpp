@@ -43,7 +43,7 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int he
     // Cap update size to avoid saturation
     bonus = MIN(bonus, HistoryMax);
 
-    for (int i = 0; i < length; i++) {
+    for (int i = 0; i < length; ++i) {
 
         // Apply a malus until the final move
         int delta = (moves[i] == bestMove) ? bonus : -bonus;
@@ -125,7 +125,7 @@ void getHistoryScores(Thread *thread, uint16_t *moves, int *scores, int start, i
     int fmPiece = thread->pieceStack[height-2];
     int fmTo = MoveTo(follow);
 
-    for (int i = start; i < start + length; i++) {
+    for (int i = start; i < start + length; ++i) {
 
         // Extract information from this move
         int to = MoveTo(moves[i]);

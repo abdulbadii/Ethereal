@@ -139,18 +139,18 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
 } while (0)
 
 #define INIT_PHASE_1(term, A, P) do {                           \
-    for (int _a = 0; _a < A; _a++)                              \
+    for (int _a = 0; _a < A; ++_a)                              \
        {phases[i  ][MG] = (P == NORMAL || P == MGONLY);         \
         phases[i++][EG] = (P == NORMAL || P == EGONLY);}        \
 } while (0)
 
 #define INIT_PHASE_2(term, A, B, P) do {                        \
-    for (int _b = 0; _b < A; _b++)                              \
+    for (int _b = 0; _b < A; ++_b)                              \
         INIT_PHASE_1(term[_b], B, P);                           \
 } while (0)
 
 #define INIT_PHASE_3(term, A, B, C, P) do {                     \
-    for (int _c = 0; _c < A; _c++)                              \
+    for (int _c = 0; _c < A; ++_c)                              \
         INIT_PHASE_2(term[_c], B, C, P);                        \
 } while (0)
 
@@ -162,18 +162,18 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
 } while (0)
 
 #define INIT_PARAM_1(term, A, P) do {                           \
-    for (int _a = 0; _a < A; _a++)                              \
+    for (int _a = 0; _a < A; ++_a)                              \
        {cparams[i  ][MG] = ScoreMG(term[_a]);                   \
         cparams[i++][EG] = ScoreEG(term[_a]);}                  \
 } while (0)
 
 #define INIT_PARAM_2(term, A, B, P) do {                        \
-    for (int _b = 0; _b < A; _b++)                              \
+    for (int _b = 0; _b < A; ++_b)                              \
         INIT_PARAM_1(term[_b], B, P);                           \
 } while (0)
 
 #define INIT_PARAM_3(term, A, B, C, P) do {                     \
-    for (int _c = 0; _c < A; _c++)                              \
+    for (int _c = 0; _c < A; ++_c)                              \
         INIT_PARAM_2(term[_c], B, C, P);                        \
 } while (0)
 
@@ -184,17 +184,17 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
 } while (0)
 
 #define INIT_COEFF_1(term, A, P) do {                           \
-    for (int _a = 0; _a < A; _a++)                              \
+    for (int _a = 0; _a < A; ++_a)                              \
         coeffs[i++] = T.term[_a][WHITE] - T.term[_a][BLACK];    \
 } while (0)
 
 #define INIT_COEFF_2(term, A, B, P) do {                        \
-    for (int _b = 0; _b < A; _b++)                              \
+    for (int _b = 0; _b < A; ++_b)                              \
         INIT_COEFF_1(term[_b], B, P);                           \
 } while (0)
 
 #define INIT_COEFF_3(term, A, B, C, P) do {                     \
-    for (int _c = 0; _c < A; _c++)                              \
+    for (int _c = 0; _c < A; ++_c)                              \
         INIT_COEFF_2(term[_c], B, C, P);                        \
 } while (0)
 

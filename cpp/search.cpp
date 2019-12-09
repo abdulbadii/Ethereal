@@ -51,8 +51,8 @@ volatile int IS_PONDERING; // Global PONDER flag for threads
 void initSearch() {
 
     // Init Late Move Reductions Table
-    for (int depth = 1; depth < 64; depth++)
-        for (int played = 1; played < 64; played++)
+    for (int depth = 1; depth < 64; ++depth)
+        for (int played = 1; played < 64; ++played)
             LMRTable[depth][played] = 0.75 + log(depth) * log(played) / 2.25;
 }
 
@@ -75,14 +75,14 @@ void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, 
     // Create a new thread for each of the helpers and reuse the current
     // thread for the main thread, which avoids some overhead and saves
     // us from having the current thread eating CPU time while waiting
-    for (int i = 1; i < threads->nthreads; i++)
+    for (int i = 1; i < threads->nthreads; ++i)
         pthread_create(&pthreads[i], NULL, &iterativeDeepening, &threads[i]);
     iterativeDeepening((void*) &threads[0]);
 
     // When the main thread exits it should signal for the helpers to
     // shutdown. Wait until all helpers have finished before moving on
     ABORT_SIGNAL = 1;
-    for (int i = 1; i < threads->nthreads; i++)
+    for (int i = 1; i < threads->nthreads; ++i)
         pthread_join(pthreads[i], NULL);
 
     // The main thread will update SearchInfo with results
@@ -103,13 +103,13 @@ void* iterativeDeepening(void *vthread) {
         bindThisThread(thread->index);
 
     // Perform iterative deepening until exit conditions
-    for (thread->depth = 1; thread->depth < MAX_PLY; thread->depth++) {
+    for (thread->depth = 1; thread->depth < MAX_PLY; ++thread->depth) {
 
         // If we abort to here, we stop searching
         if (setjmp(thread->jbuffer)) break;
 
         // Perform a search for the current depth for each requested line of play
-        for (thread->multiPV = 0; thread->multiPV < limits->multiPV; thread->multiPV++)
+        for (thread->multiPV = 0; thread->multiPV < limits->multiPV; ++thread->multiPV)
             aspirationWindow(thread);
 
         // Occasionally skip depths using Laser's method
@@ -716,7 +716,7 @@ int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
         if (myAttackers == 0ull) break;
 
         // Find our weakest piece to attack with
-        for (nextVictim = PAWN; nextVictim <= QUEEN; nextVictim++)
+        for (nextVictim = PAWN; nextVictim <= QUEEN; ++nextVictim)
             if (myAttackers & board->pieces[nextVictim])
                 break;
 

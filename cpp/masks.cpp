@@ -40,13 +40,13 @@ uint64_t OutpostRanksMasks[COLOUR_NB];
 void initMasks() {
 
     // Init a table for the distance between two given squares
-    for (int sq1 = 0; sq1 < SQUARE_NB; sq1++)
-        for (int sq2 = 0; sq2 < SQUARE_NB; sq2++)
+    for (int sq1 = 0; sq1 < SQUARE_NB; ++sq1)
+        for (int sq2 = 0; sq2 < SQUARE_NB; ++sq2)
             DistanceBetween[sq1][sq2] = MAX(abs(fileOf(sq1)-fileOf(sq2)), abs(rankOf(sq1)-rankOf(sq2)));
 
     // Init a table to compute the distance between Pawns and Kings file-wise
-    for (uint64_t mask = 0ull; mask <= 0xFF; mask++) {
-        for (int file = 0; file < FILE_NB; file++) {
+    for (uint64_t mask = 0ull; mask <= 0xFF; ++mask) {
+        for (int file = 0; file < FILE_NB; ++file) {
 
             int ldist, rdist, dist;
             uint64_t left, right;
@@ -66,15 +66,15 @@ void initMasks() {
     }
 
     // Init a table of bitmasks for the squares between two given ones (aligned on diagonal)
-    for (int sq1 = 0; sq1 < SQUARE_NB; sq1++)
-        for (int sq2 = 0; sq2 < SQUARE_NB; sq2++)
+    for (int sq1 = 0; sq1 < SQUARE_NB; ++sq1)
+        for (int sq2 = 0; sq2 < SQUARE_NB; ++sq2)
             if (testBit(bishopAttacks(sq1, 0ull), sq2))
                 BitsBetweenMasks[sq1][sq2] = bishopAttacks(sq1, 1ull << sq2)
                                            & bishopAttacks(sq2, 1ull << sq1);
 
     // Init a table of bitmasks for the squares between two given ones (aligned on a straight)
-    for (int sq1 = 0; sq1 < SQUARE_NB; sq1++)
-        for (int sq2 = 0; sq2 < SQUARE_NB; sq2++)
+    for (int sq1 = 0; sq1 < SQUARE_NB; ++sq1)
+        for (int sq2 = 0; sq2 < SQUARE_NB; ++sq2)
             if (testBit(rookAttacks(sq1, 0ull), sq2))
                 BitsBetweenMasks[sq1][sq2] = rookAttacks(sq1, 1ull << sq2)
                                            & rookAttacks(sq2, 1ull << sq1);
@@ -82,7 +82,7 @@ void initMasks() {
     // Init a table for the King Areas. Use the King's square, the King's target
     // squares, and the squares within the pawn shield. When on the A/H files, extend
     // the King Area to include an additional file, namely the C and F file respectively
-    for (int sq = 0; sq < SQUARE_NB; sq++) {
+    for (int sq = 0; sq < SQUARE_NB; ++sq) {
 
         KingAreaMasks[WHITE][sq] = kingAttacks(sq) | (1ull << sq) | (kingAttacks(sq) << 8);
         KingAreaMasks[BLACK][sq] = kingAttacks(sq) | (1ull << sq) | (kingAttacks(sq) >> 8);
@@ -95,35 +95,35 @@ void initMasks() {
     }
 
     // Init a table of bitmasks for the ranks at or above a given rank, by colour
-    for (int rank = 0; rank < RANK_NB; rank++) {
-        for (int i = rank; i < RANK_NB; i++)
+    for (int rank = 0; rank < RANK_NB; ++rank) {
+        for (int i = rank; i < RANK_NB; ++i)
             ForwardRanksMasks[WHITE][rank] |= Ranks[i];
         ForwardRanksMasks[BLACK][rank] = ~ForwardRanksMasks[WHITE][rank] | Ranks[rank];
     }
 
     // Init a table of bitmasks for the squares on a file above a given square, by colour
-    for (int sq = 0; sq < SQUARE_NB; sq++) {
+    for (int sq = 0; sq < SQUARE_NB; ++sq) {
         ForwardFileMasks[WHITE][sq] = Files[fileOf(sq)] & ForwardRanksMasks[WHITE][rankOf(sq)];
         ForwardFileMasks[BLACK][sq] = Files[fileOf(sq)] & ForwardRanksMasks[BLACK][rankOf(sq)];
     }
 
     // Init a table of bitmasks containing the files next to a given file
-    for (int file = 0; file < FILE_NB; file++) {
+    for (int file = 0; file < FILE_NB; ++file) {
         AdjacentFilesMasks[file]  = Files[MAX(0, file-1)];
         AdjacentFilesMasks[file] |= Files[MIN(FILE_NB-1, file+1)];
         AdjacentFilesMasks[file] &= ~Files[file];
     }
 
     // Init a table of bitmasks to check if a given pawn has any opposition
-    for (int colour = WHITE; colour <= BLACK; colour++)
-        for (int sq = 0; sq < SQUARE_NB; sq++)
+    for (int colour = WHITE; colour <= BLACK; ++colour)
+        for (int sq = 0; sq < SQUARE_NB; ++sq)
             PassedPawnMasks[colour][sq] = ~forwardRanksMasks(!colour, rankOf(sq))
                                         & (adjacentFilesMasks(fileOf(sq)) | Files[fileOf(sq)]);
 
     // Init a table of bitmasks to check if a square is an outpost relative
     // to opposing pawns, such that no enemy pawn may attack the square with ease
-    for (int colour = WHITE; colour <= BLACK; colour++)
-        for (int sq = 0; sq < SQUARE_NB; sq++)
+    for (int colour = WHITE; colour <= BLACK; ++colour)
+        for (int sq = 0; sq < SQUARE_NB; ++sq)
             OutpostSquareMasks[colour][sq] = PassedPawnMasks[colour][sq] & ~Files[fileOf(sq)];
 
     // Init a pair of bitmasks to check if a square may be an outpost, by colour
@@ -131,7 +131,7 @@ void initMasks() {
     OutpostRanksMasks[BLACK] = RANK_3 | RANK_4 | RANK_5;
 
     // Init a table of bitmasks to check for supports for a given pawn
-    for (int sq = 8 ; sq < 56; sq++) {
+    for (int sq = 8 ; sq < 56; ++sq) {
         PawnConnectedMasks[WHITE][sq] = pawnAttacks(BLACK, sq) | pawnAttacks(BLACK, sq + 8);
         PawnConnectedMasks[BLACK][sq] = pawnAttacks(WHITE, sq) | pawnAttacks(WHITE, sq - 8);
     }

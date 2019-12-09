@@ -110,7 +110,7 @@ static FD open_tb(const char *str, const char *suffix)
   remain = MAX_LEN-1; // allow room for null
   char file[MAX_LEN];
 
-  for (i = 0; i < num_paths; i++) {
+  for (i = 0; i < num_paths; ++i) {
     strncpy(file, paths[i], remain);
     remain -= strlen(paths[i]);
     if (remain <=0) break;
@@ -235,10 +235,10 @@ static void init_tb(char *str)
   if (fd == FD_ERR) return;
   close_tb(fd);
 
-  for (i = 0; i < 16; i++)
+  for (i = 0; i < 16; ++i)
     pcs[i] = 0;
   color = 0;
-  for (s = str; *s; s++)
+  for (s = str; *s; ++s)
     switch (*s) {
     case 'P':
       pcs[TB_PAWN | color]++;
@@ -281,7 +281,7 @@ static void init_tb(char *str)
   entry->key = key;
   entry->ready = 0;
   entry->num = 0;
-  for (i = 0; i < 16; i++)
+  for (i = 0; i < 16; ++i)
     entry->num += pcs[i];
   entry->symmetric = (key == key2);
   entry->has_pawns = (pcs[TB_WPAWN] + pcs[TB_BPAWN] > 0);
@@ -299,13 +299,13 @@ static void init_tb(char *str)
     }
   } else {
     struct TBEntry_piece *ptr = (struct TBEntry_piece *)entry;
-    for (i = 0, j = 0; i < 16; i++)
+    for (i = 0, j = 0; i < 16; ++i)
       if (pcs[i] == 1) j++;
     if (j >= 3) ptr->enc_type = 0;
     else if (j == 2) ptr->enc_type = 2;
     else { /* only for suicide */
       j = 16;
-      for (i = 0; i < 16; i++) {
+      for (i = 0; i < 16; ++i) {
 	if (pcs[i] < j && pcs[i] > 1) j = pcs[i];
 	ptr->enc_type = 1 + j;
       }
@@ -324,15 +324,15 @@ void init_tablebases(const char *path)
     free(path_string);
     free(paths);
     struct TBEntry *entry;
-    for (i = 0; i < TBnum_piece; i++) {
+    for (i = 0; i < TBnum_piece; ++i) {
       entry = (struct TBEntry *)&TB_piece[i];
       free_wdl_entry(entry);
     }
-    for (i = 0; i < TBnum_pawn; i++) {
+    for (i = 0; i < TBnum_pawn; ++i) {
       entry = (struct TBEntry *)&TB_pawn[i];
       free_wdl_entry(entry);
     }
-    for (i = 0; i < DTZ_ENTRIES; i++)
+    for (i = 0; i < DTZ_ENTRIES; ++i)
       if (DTZ_table[i].entry)
 	free_dtz_entry(DTZ_table[i].entry);
   } else {
@@ -345,7 +345,7 @@ void init_tablebases(const char *path)
   path_string = (char *)malloc(strlen(p) + 1);
   strcpy(path_string, p);
   num_paths = 0;
-  for (i = 0;; i++) {
+  for (i = 0;; ++i) {
     if (path_string[i] != SEP_CHAR)
       num_paths++;
     while (path_string[i] && path_string[i] != SEP_CHAR)
@@ -354,7 +354,7 @@ void init_tablebases(const char *path)
     path_string[i] = 0;
   }
   paths = (char **)malloc(num_paths * sizeof(char *));
-  for (i = j = 0; i < num_paths; i++) {
+  for (i = j = 0; i < num_paths; ++i) {
     while (!path_string[j]) j++;
     paths[i] = &path_string[j];
     while (path_string[j]) j++;
@@ -365,66 +365,66 @@ void init_tablebases(const char *path)
   TBnum_piece = TBnum_pawn = 0;
   TB_LARGEST = 0;
 
-  for (i = 0; i < (1 << TBHASHBITS); i++)
-    for (j = 0; j < HSHMAX; j++) {
+  for (i = 0; i < (1 << TBHASHBITS); ++i)
+    for (j = 0; j < HSHMAX; ++j) {
       TB_hash[i][j].key = 0ULL;
       TB_hash[i][j].ptr = NULL;
     }
 
-  for (i = 0; i < DTZ_ENTRIES; i++)
+  for (i = 0; i < DTZ_ENTRIES; ++i)
     DTZ_table[i].entry = NULL;
 
-  for (i = 1; i < 6; i++) {
+  for (i = 1; i < 6; ++i) {
     sprintf(str, "K%cvK", pchr[i]);
     init_tb(str);
   }
 
-  for (i = 1; i < 6; i++)
-    for (j = i; j < 6; j++) {
+  for (i = 1; i < 6; ++i)
+    for (j = i; j < 6; ++j) {
       sprintf(str, "K%cvK%c", pchr[i], pchr[j]);
       init_tb(str);
     }
 
-  for (i = 1; i < 6; i++)
-    for (j = i; j < 6; j++) {
+  for (i = 1; i < 6; ++i)
+    for (j = i; j < 6; ++j) {
       sprintf(str, "K%c%cvK", pchr[i], pchr[j]);
       init_tb(str);
     }
 
-  for (i = 1; i < 6; i++)
-    for (j = i; j < 6; j++)
-      for (k = 1; k < 6; k++) {
+  for (i = 1; i < 6; ++i)
+    for (j = i; j < 6; ++j)
+      for (k = 1; k < 6; ++k) {
 	sprintf(str, "K%c%cvK%c", pchr[i], pchr[j], pchr[k]);
 	init_tb(str);
       }
 
-  for (i = 1; i < 6; i++)
-    for (j = i; j < 6; j++)
-      for (k = j; k < 6; k++) {
+  for (i = 1; i < 6; ++i)
+    for (j = i; j < 6; ++j)
+      for (k = j; k < 6; ++k) {
 	sprintf(str, "K%c%c%cvK", pchr[i], pchr[j], pchr[k]);
 	init_tb(str);
       }
 
-  for (i = 1; i < 6; i++)
-    for (j = i; j < 6; j++)
-      for (k = i; k < 6; k++)
-	for (l = (i == k) ? j : k; l < 6; l++) {
+  for (i = 1; i < 6; ++i)
+    for (j = i; j < 6; ++j)
+      for (k = i; k < 6; ++k)
+	for (l = (i == k) ? j : k; l < 6; ++l) {
 	  sprintf(str, "K%c%cvK%c%c", pchr[i], pchr[j], pchr[k], pchr[l]);
 	  init_tb(str);
 	}
 
-  for (i = 1; i < 6; i++)
-    for (j = i; j < 6; j++)
-      for (k = j; k < 6; k++)
-	for (l = 1; l < 6; l++) {
+  for (i = 1; i < 6; ++i)
+    for (j = i; j < 6; ++j)
+      for (k = j; k < 6; ++k)
+	for (l = 1; l < 6; ++l) {
 	  sprintf(str, "K%c%c%cvK%c", pchr[i], pchr[j], pchr[k], pchr[l]);
 	  init_tb(str);
 	}
 
-  for (i = 1; i < 6; i++)
-    for (j = i; j < 6; j++)
-      for (k = j; k < 6; k++)
-	for (l = k; l < 6; l++) {
+  for (i = 1; i < 6; ++i)
+    for (j = i; j < 6; ++j)
+      for (k = j; k < 6; ++k)
+	for (l = k; l < 6; ++l) {
 	  sprintf(str, "K%c%c%c%cvK", pchr[i], pchr[j], pchr[k], pchr[l]);
 	  init_tb(str);
 	}
@@ -739,38 +739,38 @@ static void init_indices(void)
   int i, j, k;
 
 // binomial[k-1][n] = Bin(n, k)
-  for (i = 0; i < 5; i++)
-    for (j = 0; j < 64; j++) {
+  for (i = 0; i < 5; ++i)
+    for (j = 0; j < 64; ++j) {
       int f = j;
       int l = 1;
-      for (k = 1; k <= i; k++) {
+      for (k = 1; k <= i; ++k) {
 	f *= (j - k);
 	l *= (k + 1);
       }
       binomial[i][j] = f / l;
     }
 
-  for (i = 0; i < 5; i++) {
+  for (i = 0; i < 5; ++i) {
     int s = 0;
-    for (j = 0; j < 6; j++) {
+    for (j = 0; j < 6; ++j) {
       pawnidx[i][j] = s;
       s += (i == 0) ? 1 : binomial[i - 1][ptwist[invflap[j]]];
     }
     pfactor[i][0] = s;
     s = 0;
-    for (; j < 12; j++) {
+    for (; j < 12; ++j) {
       pawnidx[i][j] = s;
       s += (i == 0) ? 1 : binomial[i - 1][ptwist[invflap[j]]];
     }
     pfactor[i][1] = s;
     s = 0;
-    for (; j < 18; j++) {
+    for (; j < 18; ++j) {
       pawnidx[i][j] = s;
       s += (i == 0) ? 1 : binomial[i - 1][ptwist[invflap[j]]];
     }
     pfactor[i][2] = s;
     s = 0;
-    for (; j < 24; j++) {
+    for (; j < 24; ++j) {
       pawnidx[i][j] = s;
       s += (i == 0) ? 1 : binomial[i - 1][ptwist[invflap[j]]];
     }
@@ -778,9 +778,9 @@ static void init_indices(void)
   }
 
 #ifdef CONNECTED_KINGS
-  for (i = 0; i < 5; i++) {
+  for (i = 0; i < 5; ++i) {
     int s = 0;
-    for (j = 0; j < 10; j++) {
+    for (j = 0; j < 10; ++j) {
       multidx[i][j] = s;
       s += (i == 0) ? 1 : binomial[i - 1][mtwist[invtriangle[j]]];
     }
@@ -798,18 +798,18 @@ static uint64 encode_piece(struct TBEntry_piece *ptr, ubyte *norm, int *pos, int
   // assert(n>=0 && n<6); // EDIT - Andrew Grant
 
   if (pos[0] & 0x04) {
-    for (i = 0; i < n; i++)
+    for (i = 0; i < n; ++i)
       pos[i] ^= 0x07;
   }
   if (pos[0] & 0x20) {
-    for (i = 0; i < n; i++)
+    for (i = 0; i < n; ++i)
       pos[i] ^= 0x38;
   }
 
-  for (i = 0; i < n; i++)
+  for (i = 0; i < n; ++i)
     if (offdiag[pos[i]]) break;
   if (i < (ptr->enc_type == 0 ? 3 : 2) && offdiag[pos[i]] > 0)
-    for (i = 0; i < n; i++)
+    for (i = 0; i < n; ++i)
       pos[i] = flipdiag[pos[i]];
 
   switch (ptr->enc_type) {
@@ -852,13 +852,13 @@ static uint64 encode_piece(struct TBEntry_piece *ptr, ubyte *norm, int *pos, int
 
   for (; i < n;) {
     int t = norm[i];
-    for (j = i; j < i + t; j++)
-      for (k = j + 1; k < i + t; k++)
+    for (j = i; j < i + t; ++j)
+      for (k = j + 1; k < i + t; ++k)
 	if (pos[j] > pos[k]) Swap(pos[j], pos[k]);
     int s = 0;
-    for (m = i; m < i + t; m++) {
+    for (m = i; m < i + t; ++m) {
       p = pos[m];
-      for (l = 0, j = 0; l < i; l++)
+      for (l = 0, j = 0; l < i; ++l)
 	j += (p > pos[l]);
       assert(m-i >= 0 && m-i < 5);
       assert(p-j >= 0 && p-j < 64);
@@ -880,18 +880,18 @@ static uint64 encode_piece(struct TBEntry_piece *ptr, ubyte *norm, int *pos, int
 
   if (ptr->enc_type < 3) {
     if (pos[0] & 0x04) {
-      for (i = 0; i < n; i++)
+      for (i = 0; i < n; ++i)
 	pos[i] ^= 0x07;
     }
     if (pos[0] & 0x20) {
-      for (i = 0; i < n; i++)
+      for (i = 0; i < n; ++i)
 	pos[i] ^= 0x38;
     }
 
-    for (i = 0; i < n; i++)
+    for (i = 0; i < n; ++i)
       if (offdiag[pos[i]]) break;
     if (i < (ptr->enc_type == 0 ? 3 : 2) && offdiag[pos[i]] > 0)
-      for (i = 0; i < n; i++)
+      for (i = 0; i < n; ++i)
 	pos[i] = flipdiag[pos[i]];
 
     switch (ptr->enc_type) {
@@ -928,54 +928,54 @@ static uint64 encode_piece(struct TBEntry_piece *ptr, ubyte *norm, int *pos, int
     if (triangle[pos[0]] > triangle[pos[1]])
       Swap(pos[0], pos[1]);
     if (pos[0] & 0x04)
-      for (i = 0; i < n; i++)
+      for (i = 0; i < n; ++i)
 	pos[i] ^= 0x07;
     if (pos[0] & 0x20)
-      for (i = 0; i < n; i++)
+      for (i = 0; i < n; ++i)
 	pos[i] ^= 0x38;
     if (offdiag[pos[0]] > 0 || (offdiag[pos[0]] == 0 && offdiag[pos[1]] > 0))
-      for (i = 0; i < n; i++)
+      for (i = 0; i < n; ++i)
 	pos[i] = flipdiag[pos[i]];
     if (test45[pos[1]] && triangle[pos[0]] == triangle[pos[1]]) {
       Swap(pos[0], pos[1]);
-      for (i = 0; i < n; i++)
+      for (i = 0; i < n; ++i)
         pos[i] = flipdiag[pos[i] ^ 0x38];
     }
     idx = PP_idx[triangle[pos[0]]][pos[1]];
     i = 2;
   } else { /* 3 and higher, e.g. KKKvK and KKKKvK */
-    for (i = 1; i < norm[0]; i++)
+    for (i = 1; i < norm[0]; ++i)
       if (triangle[pos[0]] > triangle[pos[i]])
 	Swap(pos[0], pos[i]);
     if (pos[0] & 0x04)
-      for (i = 0; i < n; i++)
+      for (i = 0; i < n; ++i)
 	pos[i] ^= 0x07;
     if (pos[0] & 0x20)
-      for (i = 0; i < n; i++)
+      for (i = 0; i < n; ++i)
 	pos[i] ^= 0x38;
     if (offdiag[pos[0]] > 0)
-      for (i = 0; i < n; i++)
+      for (i = 0; i < n; ++i)
 	pos[i] = flipdiag[pos[i]];
-    for (i = 1; i < norm[0]; i++)
-      for (j = i + 1; j < norm[0]; j++)
+    for (i = 1; i < norm[0]; ++i)
+      for (j = i + 1; j < norm[0]; ++j)
         if (mtwist[pos[i]] > mtwist[pos[j]])
 	  Swap(pos[i], pos[j]);
 
     idx = multidx[norm[0] - 1][triangle[pos[0]]];
-    for (i = 1; i < norm[0]; i++)
+    for (i = 1; i < norm[0]; ++i)
       idx += binomial[i - 1][mtwist[pos[i]]];
   }
   idx *= factor[0];
 
   for (; i < n;) {
     int t = norm[i];
-    for (j = i; j < i + t; j++)
-      for (k = j + 1; k < i + t; k++)
+    for (j = i; j < i + t; ++j)
+      for (k = j + 1; k < i + t; ++k)
 	if (pos[j] > pos[k]) Swap(pos[j], pos[k]);
     int s = 0;
-    for (m = i; m < i + t; m++) {
+    for (m = i; m < i + t; ++m) {
       p = pos[m];
-      for (l = 0, j = 0; l < i; l++)
+      for (l = 0, j = 0; l < i; ++l)
 	j += (p > pos[l]);
       s += binomial[m - i][p - j];
     }
@@ -992,7 +992,7 @@ static int pawn_file(struct TBEntry_pawn *ptr, int *pos)
 {
   int i;
 
-  for (i = 1; i < ptr->pawns[0]; i++)
+  for (i = 1; i < ptr->pawns[0]; ++i)
     if (flap[pos[0]] > flap[pos[i]])
       Swap(pos[0], pos[i]);
 
@@ -1006,11 +1006,11 @@ static uint64 encode_pawn(struct TBEntry_pawn *ptr, ubyte *norm, int *pos, int *
   int n = ptr->num;
 
   if (pos[0] & 0x04)
-    for (i = 0; i < n; i++)
+    for (i = 0; i < n; ++i)
       pos[i] ^= 0x07;
 
-  for (i = 1; i < ptr->pawns[0]; i++)
-    for (j = i + 1; j < ptr->pawns[0]; j++)
+  for (i = 1; i < ptr->pawns[0]; ++i)
+    for (j = i + 1; j < ptr->pawns[0]; ++j)
       if (ptwist[pos[i]] < ptwist[pos[j]])
 	Swap(pos[i], pos[j]);
 
@@ -1024,13 +1024,13 @@ static uint64 encode_pawn(struct TBEntry_pawn *ptr, ubyte *norm, int *pos, int *
   i = ptr->pawns[0];
   t = i + ptr->pawns[1];
   if (t > i) {
-    for (j = i; j < t; j++)
-      for (k = j + 1; k < t; k++)
+    for (j = i; j < t; ++j)
+      for (k = j + 1; k < t; ++k)
 	if (pos[j] > pos[k]) Swap(pos[j], pos[k]);
     s = 0;
-    for (m = i; m < t; m++) {
+    for (m = i; m < t; ++m) {
       int p = pos[m];
-      for (k = 0, j = 0; k < i; k++)
+      for (k = 0, j = 0; k < i; ++k)
 	j += (p > pos[k]);
       s += binomial[m - i][p - j - 8];
     }
@@ -1040,13 +1040,13 @@ static uint64 encode_pawn(struct TBEntry_pawn *ptr, ubyte *norm, int *pos, int *
 
   for (; i < n;) {
     t = norm[i];
-    for (j = i; j < i + t; j++)
-      for (k = j + 1; k < i + t; k++)
+    for (j = i; j < i + t; ++j)
+      for (k = j + 1; k < i + t; ++k)
 	if (pos[j] > pos[k]) Swap(pos[j], pos[k]);
     s = 0;
-    for (m = i; m < i + t; m++) {
+    for (m = i; m < i + t; ++m) {
       int p = pos[m];
-      for (k = 0, j = 0; k < i; k++)
+      for (k = 0, j = 0; k < i; ++k)
 	j += (p > pos[k]);
       s += binomial[m - i][p - j];
     }
@@ -1066,7 +1066,7 @@ static int subfactor(int k, int n)
 
   f = n;
   l = 1;
-  for (i = 1; i < k; i++) {
+  for (i = 1; i < k; ++i) {
     f *= n - i;
     l *= i + 1;
   }
@@ -1087,7 +1087,7 @@ static uint64 calc_factors_piece(int *factor, int num, int order, ubyte *norm, u
   n = 64 - norm[0];
 
   f = 1;
-  for (i = norm[0], k = 0; i < num || k == order; k++) {
+  for (i = norm[0], k = 0; i < num || k == order; ++k) {
     if (k == order) {
       factor[0] = (int)f;
 #ifndef CONNECTED_KINGS
@@ -1119,7 +1119,7 @@ static uint64 calc_factors_pawn(int *factor, int num, int order, int order2, uby
   n = 64 - i;
 
   f = 1;
-  for (k = 0; i < num || k == order || k == order2; k++) {
+  for (k = 0; i < num || k == order || k == order2; ++k) {
     if (k == order) {
       factor[0] = (int)f;
       f *= pfactor[norm[0] - 1][file];
@@ -1141,7 +1141,7 @@ static void set_norm_piece(struct TBEntry_piece *ptr, ubyte *norm, ubyte *pieces
 {
   int i, j;
 
-  for (i = 0; i < ptr->num; i++)
+  for (i = 0; i < ptr->num; ++i)
     norm[i] = 0;
 
   switch (ptr->enc_type) {
@@ -1157,7 +1157,7 @@ static void set_norm_piece(struct TBEntry_piece *ptr, ubyte *norm, ubyte *pieces
   }
 
   for (i = norm[0]; i < ptr->num; i += norm[i])
-    for (j = i; j < ptr->num && pieces[j] == pieces[i]; j++)
+    for (j = i; j < ptr->num && pieces[j] == pieces[i]; ++j)
       norm[i]++;
 }
 
@@ -1165,14 +1165,14 @@ static void set_norm_pawn(struct TBEntry_pawn *ptr, ubyte *norm, ubyte *pieces)
 {
   int i, j;
 
-  for (i = 0; i < ptr->num; i++)
+  for (i = 0; i < ptr->num; ++i)
     norm[i] = 0;
 
   norm[0] = ptr->pawns[0];
   if (ptr->pawns[1]) norm[ptr->pawns[0]] = ptr->pawns[1];
 
   for (i = ptr->pawns[0] + ptr->pawns[1]; i < ptr->num; i += norm[i])
-    for (j = i; j < ptr->num && pieces[j] == pieces[i]; j++)
+    for (j = i; j < ptr->num && pieces[j] == pieces[i]; ++j)
       norm[i]++;
 }
 
@@ -1181,13 +1181,13 @@ static void setup_pieces_piece(struct TBEntry_piece *ptr, unsigned char *data, u
   int i;
   int order;
 
-  for (i = 0; i < ptr->num; i++)
+  for (i = 0; i < ptr->num; ++i)
     ptr->pieces[0][i] = data[i + 1] & 0x0f;
   order = data[0] & 0x0f;
   set_norm_piece(ptr, ptr->norm[0], ptr->pieces[0]);
   tb_size[0] = calc_factors_piece(ptr->factor[0], ptr->num, order, ptr->norm[0], ptr->enc_type);
 
-  for (i = 0; i < ptr->num; i++)
+  for (i = 0; i < ptr->num; ++i)
     ptr->pieces[1][i] = data[i + 1] >> 4;
   order = data[0] >> 4;
   set_norm_piece(ptr, ptr->norm[1], ptr->pieces[1]);
@@ -1199,7 +1199,7 @@ static void setup_pieces_piece_dtz(struct DTZEntry_piece *ptr, unsigned char *da
   int i;
   int order;
 
-  for (i = 0; i < ptr->num; i++)
+  for (i = 0; i < ptr->num; ++i)
     ptr->pieces[i] = data[i + 1] & 0x0f;
   order = data[0] & 0x0f;
   set_norm_piece((struct TBEntry_piece *)ptr, ptr->norm, ptr->pieces);
@@ -1214,14 +1214,14 @@ static void setup_pieces_pawn(struct TBEntry_pawn *ptr, unsigned char *data, uin
   j = 1 + (ptr->pawns[1] > 0);
   order = data[0] & 0x0f;
   order2 = ptr->pawns[1] ? (data[1] & 0x0f) : 0x0f;
-  for (i = 0; i < ptr->num; i++)
+  for (i = 0; i < ptr->num; ++i)
     ptr->file[f].pieces[0][i] = data[i + j] & 0x0f;
   set_norm_pawn(ptr, ptr->file[f].norm[0], ptr->file[f].pieces[0]);
   tb_size[0] = calc_factors_pawn(ptr->file[f].factor[0], ptr->num, order, order2, ptr->file[f].norm[0], f);
 
   order = data[0] >> 4;
   order2 = ptr->pawns[1] ? (data[1] >> 4) : 0x0f;
-  for (i = 0; i < ptr->num; i++)
+  for (i = 0; i < ptr->num; ++i)
     ptr->file[f].pieces[1][i] = data[i + j] >> 4;
   set_norm_pawn(ptr, ptr->file[f].norm[1], ptr->file[f].pieces[1]);
   tb_size[1] = calc_factors_pawn(ptr->file[f].factor[1], ptr->num, order, order2, ptr->file[f].norm[1], f);
@@ -1235,7 +1235,7 @@ static void setup_pieces_pawn_dtz(struct DTZEntry_pawn *ptr, unsigned char *data
   j = 1 + (ptr->pawns[1] > 0);
   order = data[0] & 0x0f;
   order2 = ptr->pawns[1] ? (data[1] & 0x0f) : 0x0f;
-  for (i = 0; i < ptr->num; i++)
+  for (i = 0; i < ptr->num; ++i)
     ptr->file[f].pieces[i] = data[i + j] & 0x0f;
   set_norm_pawn((struct TBEntry_pawn *)ptr, ptr->file[f].norm, ptr->file[f].pieces);
   tb_size[0] = calc_factors_pawn(ptr->file[f].factor, ptr->num, order, order2, ptr->file[f].norm, f);
@@ -1300,9 +1300,9 @@ static struct PairsData *setup_pairs(unsigned char *data, uint64 tb_size, uint64
 
   // char tmp[num_syms];
   char tmp[4096];
-  for (i = 0; i < num_syms; i++)
+  for (i = 0; i < num_syms; ++i)
     tmp[i] = 0;
-  for (i = 0; i < num_syms; i++)
+  for (i = 0; i < num_syms; ++i)
     if (!tmp[i])
       calc_symlen(d, i, tmp);
 
@@ -1310,10 +1310,10 @@ static struct PairsData *setup_pairs(unsigned char *data, uint64 tb_size, uint64
   for (i = h - 2; i >= 0; i--)
     d->base[i] = (d->base[i + 1] + d->offset[i] - d->offset[i + 1]) / 2;
 #ifdef DECOMP64
-  for (i = 0; i < h; i++)
+  for (i = 0; i < h; ++i)
     d->base[i] <<= 64 - (min_len + i);
 #else
-  for (i = 0; i < h; i++)
+  for (i = 0; i < h; ++i)
     d->base[i] <<= 32 - (min_len + i);
 #endif
 
@@ -1388,13 +1388,13 @@ static int init_table_wdl(struct TBEntry *entry, char *str)
   } else {
     struct TBEntry_pawn *ptr = (struct TBEntry_pawn *)entry;
     s = 1 + (ptr->pawns[1] > 0);
-    for (f = 0; f < 4; f++) {
+    for (f = 0; f < 4; ++f) {
       setup_pieces_pawn((struct TBEntry_pawn *)ptr, data, &tb_size[2 * f], f);
       data += ptr->num + s;
     }
     data += ((uintptr_t)data) & 0x01;
 
-    for (f = 0; f < files; f++) {
+    for (f = 0; f < files; ++f) {
       ptr->file[f].precomp[0] = setup_pairs(data, tb_size[2 * f], &size[6 * f], &next, &flags, 1);
       data = next;
       if (split) {
@@ -1404,7 +1404,7 @@ static int init_table_wdl(struct TBEntry *entry, char *str)
 	ptr->file[f].precomp[1] = NULL;
     }
 
-    for (f = 0; f < files; f++) {
+    for (f = 0; f < files; ++f) {
       ptr->file[f].precomp[0]->indextable = (char *)data;
       data += size[6 * f];
       if (split) {
@@ -1413,7 +1413,7 @@ static int init_table_wdl(struct TBEntry *entry, char *str)
       }
     }
 
-    for (f = 0; f < files; f++) {
+    for (f = 0; f < files; ++f) {
       ptr->file[f].precomp[0]->sizetable = (ushort *)data;
       data += size[6 * f + 1];
       if (split) {
@@ -1422,7 +1422,7 @@ static int init_table_wdl(struct TBEntry *entry, char *str)
       }
     }
 
-    for (f = 0; f < files; f++) {
+    for (f = 0; f < files; ++f) {
       data = (ubyte *)((((uintptr_t)data) + 0x3f) & ~0x3f);
       ptr->file[f].precomp[0]->data = data;
       data += size[6 * f + 2];
@@ -1469,7 +1469,7 @@ static int init_table_dtz(struct TBEntry *entry)
     ptr->map = data;
     if (ptr->flags & 2) {
       int i;
-      for (i = 0; i < 4; i++) {
+      for (i = 0; i < 4; ++i) {
 	     ptr->map_idx[i] = (ushort)(data + 1 - ptr->map);
 	     data += 1 + data[0];
       }
@@ -1488,22 +1488,22 @@ static int init_table_dtz(struct TBEntry *entry)
   } else {
     struct DTZEntry_pawn *ptr = (struct DTZEntry_pawn *)entry;
     s = 1 + (ptr->pawns[1] > 0);
-    for (f = 0; f < 4; f++) {
+    for (f = 0; f < 4; ++f) {
       setup_pieces_pawn_dtz(ptr, data, &tb_size[f], f);
       data += ptr->num + s;
     }
     data += ((uintptr_t)data) & 0x01;
 
-    for (f = 0; f < files; f++) {
+    for (f = 0; f < files; ++f) {
       ptr->file[f].precomp = setup_pairs(data, tb_size[f], &size[3 * f], &next, &(ptr->flags[f]), 0);
       data = next;
     }
 
     ptr->map = data;
-    for (f = 0; f < files; f++) {
+    for (f = 0; f < files; ++f) {
       if (ptr->flags[f] & 2) {
 	    int i;
-	    for (i = 0; i < 4; i++) {
+	    for (i = 0; i < 4; ++i) {
 	       ptr->map_idx[f][i] = (ushort)(data + 1 - ptr->map);
 	       data += 1 + data[0];
 	    }
@@ -1511,17 +1511,17 @@ static int init_table_dtz(struct TBEntry *entry)
     }
     data += ((uintptr_t)data) & 0x01;
 
-    for (f = 0; f < files; f++) {
+    for (f = 0; f < files; ++f) {
       ptr->file[f].precomp->indextable = (char *)data;
       data += size[3 * f];
     }
 
-    for (f = 0; f < files; f++) {
+    for (f = 0; f < files; ++f) {
       ptr->file[f].precomp->sizetable = (ushort *)data;
       data += size[3 * f + 1];
     }
 
-    for (f = 0; f < files; f++) {
+    for (f = 0; f < files; ++f) {
       data = (ubyte *)((((uintptr_t)data) + 0x3f) & ~0x3f);
       ptr->file[f].precomp->data = data;
       data += size[3 * f + 2];
@@ -1629,7 +1629,7 @@ void load_dtz_table(char *str, uint64 key1, uint64 key2)
 
   // find corresponding WDL entry
   ptr2 = TB_hash[key1 >> (64 - TBHASHBITS)];
-  for (i = 0; i < HSHMAX; i++)
+  for (i = 0; i < HSHMAX; ++i)
     if (ptr2[i].key == key1) break;
   if (i == HSHMAX) return;
   ptr = ptr2[i].ptr;
@@ -1670,7 +1670,7 @@ static void free_wdl_entry(struct TBEntry *entry)
   } else {
     struct TBEntry_pawn *ptr = (struct TBEntry_pawn *)entry;
     int f;
-    for (f = 0; f < 4; f++) {
+    for (f = 0; f < 4; ++f) {
       free(ptr->file[f].precomp[0]);
       if (ptr->file[f].precomp[1])
 	free(ptr->file[f].precomp[1]);
@@ -1690,7 +1690,7 @@ static void free_dtz_entry(struct TBEntry *entry)
   } else {
     struct DTZEntry_pawn *ptr = (struct DTZEntry_pawn *)entry;
     int f;
-    for (f = 0; f < 4; f++) {
+    for (f = 0; f < 4; ++f) {
       free(ptr->file[f].precomp);
       ptr->file[f].precomp = NULL;
     }

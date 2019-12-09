@@ -148,15 +148,15 @@ void runTexelTuning(Thread *thread) {
             cout << "\nIteration [" << iteration << "] Error = " << best << " \n";
         }
 
-        for (int batch = 0; batch < NPOSITIONS / BATCHSIZE; batch++) {
+        for (int batch = 0; batch < NPOSITIONS / BATCHSIZE; ++batch) {
 
             TexelVector gradient = {0};
             updateGradient(tes, gradient, params, phases, K, batch);
 
             // Update Parameters. Note that in updateGradient() we skip the multiplcation by negative
             // two over BATCHSIZE. This is done only here, just once, for precision and a speed gain
-            for (int i = 0; i < NTERMS; i++)
-                for (int j = MG; j <= EG; j++)
+            for (int i = 0; i < NTERMS; ++i)
+                for (int j = MG; j <= EG; ++j)
                     params[i][j] += (2.0 / BATCHSIZE) * rate * gradient[i][j];
         }
     }
@@ -174,7 +174,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
     thread->limits = &limits; thread->depth  = 0;
 
     // Create a TexelEntry for each FEN
-    for (i = 0; i < NPOSITIONS; i++) {
+    for (i = 0; i < NPOSITIONS; ++i) {
 
         // Read next position from the FEN file
         if (fgets(line, 128, fin) == NULL) {
@@ -199,7 +199,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         // Resolve FEN to a quiet position
         boardFromFEN(&thread->board, line, 0);
         qsearch(thread, &thread->pv, -MATE, MATE, 0);
-        for (j = 0; j < thread->pv.length; j++)
+        for (j = 0; j < thread->pv.length; ++j)
             applyMove(&thread->board, thread->pv.line[j], undo);
 
         // Determine the game phase based on remaining material
@@ -227,14 +227,14 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
                     +  searchEval * SEARCHWEIGHT;
 
         // Count up the non zero coefficients
-        for (k = 0, j = 0; j < NTERMS; j++)
+        for (k = 0, j = 0; j < NTERMS; ++j)
             k += coeffs[j] != 0;
 
         // Allocate Tuples
         updateMemory(&tes[i], k);
 
         // Initialize the Texel Tuples
-        for (k = 0, j = 0; j < NTERMS; j++) {
+        for (k = 0, j = 0; j < NTERMS; ++j) {
             if (coeffs[j] != 0){
                 tes[i].tuples[k].index = j;
                 tes[i].tuples[k++].coeff = coeffs[j];
@@ -305,24 +305,24 @@ void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, T
     {
         TexelVector local = {0};
         #pragma omp for schedule(static, BATCHSIZE / NPARTITIONS)
-        for (int i = batch * BATCHSIZE; i < (batch + 1) * BATCHSIZE; i++) {
+        for (int i = batch * BATCHSIZE; i < (batch + 1) * BATCHSIZE; ++i) {
 
             double error = singleLinearError(&tes[i], params, K);
 
-            for (int j = 0; j < tes[i].ntuples; j++)
-                for (int k = MG; k <= EG; k++)
+            for (int j = 0; j < tes[i].ntuples; ++j)
+                for (int k = MG; k <= EG; ++k)
                     local[tes[i].tuples[j].index][k] += error * tes[i].factors[k] * tes[i].tuples[j].coeff;
         }
 
-        for (int i = 0; i < NTERMS; i++)
-            for (int j = MG; j <= EG; j++)
+        for (int i = 0; i < NTERMS; ++i)
+            for (int j = MG; j <= EG; ++j)
                 if (phases[i][j]) gradient[i][j] += local[i][j];
     }
 }
 
 void shuffleTexelEntries(TexelEntry *tes) {
 
-    for (int i = 0; i < NPOSITIONS; i++) {
+    for (int i = 0; i < NPOSITIONS; ++i) {
 
         int A = rand64() % NPOSITIONS;
         int B = rand64() % NPOSITIONS;
@@ -338,7 +338,7 @@ double computeOptimalK(TexelEntry *tes) {
     double start = -10.0, end = 10.0, delta = 1.0;
     double curr = start, error, best = completeEvaluationError(tes, start);
 
-    for (int i = 0; i < KPRECISION; i++) {
+    for (int i = 0; i < KPRECISION; ++i) {
 
         curr = start - delta;
         while (curr < end) {
@@ -365,7 +365,7 @@ double completeEvaluationError(TexelEntry *tes, double K) {
     #pragma omp parallel shared(total)
     {
         #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS) reduction(+:total)
-        for (int i = 0; i < NPOSITIONS; i++)
+        for (int i = 0; i < NPOSITIONS; ++i)
             total += pow(tes[i].result - sigmoid(K, tes[i].eval), 2);
     }
 
@@ -379,7 +379,7 @@ double completeLinearError(TexelEntry *tes, TexelVector params, double K) {
     #pragma omp parallel shared(total)
     {
         #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS) reduction(+:total)
-        for (int i = 0; i < NPOSITIONS; i++)
+        for (int i = 0; i < NPOSITIONS; ++i)
             total += pow(tes[i].result - sigmoid(K, linearEvaluation(&tes[i], params)), 2);
     }
 
@@ -396,7 +396,7 @@ double linearEvaluation(TexelEntry *te, TexelVector params) {
 
     double mg = 0, eg = 0;
 
-    for (int i = 0; i < te->ntuples; i++) {
+    for (int i = 0; i < te->ntuples; ++i) {
         mg += te->tuples[i].coeff * params[te->tuples[i].index][MG];
         eg += te->tuples[i].coeff * params[te->tuples[i].index][EG];
     }
@@ -413,7 +413,7 @@ void printParameters(TexelVector params, TexelVector cparams) {
     int tparams[NTERMS][PHASE_NB];
 
     // Combine updated and current parameters
-    for (int j = 0; j < NTERMS; j++) {
+    for (int j = 0; j < NTERMS; ++j) {
         tparams[j][MG] = round(params[j][MG] + cparams[j][MG]);
         tparams[j][EG] = round(params[j][EG] + cparams[j][EG]);
     }
@@ -437,7 +437,7 @@ void printParameters_1(char *name, int params[NTERMS][PHASE_NB], int i, int A) {
 
     cout << "const int " << name << "[" << A << "] = {";
 
-    for (int a = 0; a < A; a++, i++) {
+    for (int a = 0; a < A; a++, ++i) {
         if (a % 4 == 0) cout << "\n    ";
         cout << "S(" << params[i][MG] << "d," << params[i][EG] << "d), ";
     }
@@ -449,11 +449,11 @@ void printParameters_2(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
 
     cout << "const int " << name << "[" << A << "][" << B << "] = {\n";
 
-    for (int a = 0; a < A; a++) {
+    for (int a = 0; a < A; ++a) {
 
         cout << "   {";
 
-        for (int b = 0; b < B; b++, i++) {
+        for (int b = 0; b < B; b++, ++i) {
             cout << "S(" << params[i][MG] << "d," << params[i][EG] << "d)";
             cout << "%s, b == B - 1 ?  : , "
         }
@@ -469,13 +469,13 @@ void printParameters_3(char *name, int params[NTERMS][PHASE_NB], int i, int A, i
 
     cout << "const int " << name << "[" << A << "][" << B << "][" << C << "] = {\n";
 
-    for (int a = 0; a < A; a++) {
+    for (int a = 0; a < A; ++a) {
 
-        for (int b = 0; b < B; b++) {
+        for (int b = 0; b < B; ++b) {
 
             cout << "%s, b ?    { :   {{";
 
-            for (int c = 0; c < C; c++, i++) {
+            for (int c = 0; c < C; c++, ++i) {
                 cout << "S(" << params[i][MG] << "d," << params[i][EG] << "d)";
                 cout << "%s, c == C - 1 ?  : , "
             }

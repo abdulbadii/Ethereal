@@ -38,7 +38,7 @@ struct Undo {
 };
 
 void squareToString(int sq, char *str);
-void boardFromFEN(Board *board, const char *fen, int chess960);
+void boardFromFEN(Board *board, string& fen, int chess960);
 void boardToFEN(Board *board, char *fen);
 void printBoard(Board *board);
 int boardHasNonPawnMaterial(Board *board, int turn);

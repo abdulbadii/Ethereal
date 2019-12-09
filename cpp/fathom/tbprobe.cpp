@@ -246,7 +246,7 @@ static int probe_wdl_table(const struct pos *pos, int *success)
         return 0;
 
     ptr2 = TB_hash[key >> (64 - TBHASHBITS)];
-    for (i = 0; i < HSHMAX; i++)
+    for (i = 0; i < HSHMAX; ++i)
     {
         if (ptr2[i].key == key)
             break;
@@ -367,7 +367,7 @@ static int probe_dtz_table(const struct pos *pos, int wdl, int *success)
 
     if (DTZ_table[0].key1 != key && DTZ_table[0].key2 != key)
     {
-        for (i = 1; i < DTZ_ENTRIES; i++)
+        for (i = 1; i < DTZ_ENTRIES; ++i)
         {
             if (DTZ_table[i].key1 == key)
                 break;
@@ -382,7 +382,7 @@ static int probe_dtz_table(const struct pos *pos, int wdl, int *success)
         else
         {
             struct TBHashEntry *ptr2 = TB_hash[key >> (64 - TBHASHBITS)];
-            for (i = 0; i < HSHMAX; i++)
+            for (i = 0; i < HSHMAX; ++i)
             {
                 if (ptr2[i].key == key)
                     break;
@@ -823,7 +823,7 @@ static bool is_mate(const struct pos *pos)
     uint16_t moves0[TB_MAX_MOVES];
     uint16_t *moves = moves0;
     uint16_t *end = gen_moves(pos, moves);
-    for (; moves < end; moves++)
+    for (; moves < end; ++moves)
     {
         struct pos pos1;
         if (do_move(&pos1, pos, *moves))
@@ -952,7 +952,7 @@ static int probe_ab(const struct pos *pos, int alpha, int beta, int *success)
     uint16_t moves0[64];
     uint16_t *moves = moves0;
     uint16_t *end = gen_captures_or_promotions(pos, moves);
-    for (; moves < end; moves++)
+    for (; moves < end; ++moves)
     {
         if (is_en_passant(pos, *moves))
             continue;
@@ -1004,7 +1004,7 @@ static int probe_wdl(const struct pos *pos, int *success)
     uint16_t moves0[2];      // Max=2 possible en-passant captures.
     uint16_t *moves = moves0;
     uint16_t *end = gen_pawn_ep_captures(pos, moves);
-    for (; moves < end; moves++)
+    for (; moves < end; ++moves)
     {
         struct pos pos1;
         if (!do_move(&pos1, pos, *moves))
@@ -1026,7 +1026,7 @@ static int probe_wdl(const struct pos *pos, int *success)
             uint16_t *_moves = _moves0;
             uint16_t *_end = gen_moves(pos, _moves);
             bool found = false;
-            for (; _moves < _end; _moves++)
+            for (; _moves < _end; ++_moves)
             {
                 if (is_en_passant(pos, *_moves))
                     continue;
@@ -1062,7 +1062,7 @@ static int probe_dtz_no_ep(const struct pos *pos, int *success)
         // Generate at least all legal non-capturing pawn moves
         // including non-capturing promotions.
         end = gen_pawn_quiets_or_promotions(pos, moves);
-        for (; moves < end; moves++)
+        for (; moves < end; ++moves)
         {
             struct pos pos1;
             if (!do_move(&pos1, pos, *moves))
@@ -1090,7 +1090,7 @@ static int probe_dtz_no_ep(const struct pos *pos, int *success)
         int best = BEST_NONE;
         moves = moves0;
         end = gen_moves(pos, moves);
-        for (; moves < end; moves++)
+        for (; moves < end; ++moves)
         {
             struct pos pos1;
             if (!do_move(&pos1, pos, *moves))
@@ -1110,7 +1110,7 @@ static int probe_dtz_no_ep(const struct pos *pos, int *success)
     {
         int best = -1;
         end = gen_moves(pos, moves);
-        for (; moves < end; moves++)
+        for (; moves < end; ++moves)
         {
             int v;
             struct pos pos1;
@@ -1183,7 +1183,7 @@ static int probe_dtz(const struct pos *pos, int *success)
     uint16_t moves0[2];      // Max=2 possible en-passant captures.
     uint16_t *moves = moves0;
     uint16_t *end = gen_pawn_ep_captures(pos, moves);
-    for (; moves < end; moves++)
+    for (; moves < end; ++moves)
     {
         struct pos pos1;
         if (!do_move(&pos1, pos, *moves))
@@ -1226,7 +1226,7 @@ static int probe_dtz(const struct pos *pos, int *success)
             uint16_t *_moves = _moves0;
             uint16_t *_end = gen_moves(pos, _moves);
             bool found = false;
-            for (; _moves < _end; _moves++)
+            for (; _moves < _end; ++_moves)
             {
                 if (is_en_passant(pos, *_moves))
                     continue;
@@ -1270,7 +1270,7 @@ static uint16_t probe_root(const struct pos *pos, int *score,
     size_t len = end - moves;
     size_t num_draw = 0;
     unsigned j = 0;
-    for (unsigned i = 0; i < len; i++)
+    for (unsigned i = 0; i < len; ++i)
     {
         struct pos pos1;
         if (!do_move(&pos1, pos, moves[i]))
@@ -1323,7 +1323,7 @@ static uint16_t probe_root(const struct pos *pos, int *score,
     {
         int best = BEST_NONE;
         uint16_t best_move = 0;
-        for (unsigned i = 0; i < len; i++)
+        for (unsigned i = 0; i < len; ++i)
         {
             int v = scores[i];
             if (v == SCORE_ILLEGAL)
@@ -1340,7 +1340,7 @@ static uint16_t probe_root(const struct pos *pos, int *score,
     {
         int best = 0;
         uint16_t best_move = 0;
-        for (unsigned i = 0; i < len; i++)
+        for (unsigned i = 0; i < len; ++i)
         {
             int v = scores[i];
             if (v == SCORE_ILLEGAL)
@@ -1362,7 +1362,7 @@ static uint16_t probe_root(const struct pos *pos, int *score,
         // Select a "random" move that preserves the draw.
         // Uses calc_key as the PRNG.
         size_t count = calc_key(pos, !pos->turn) % num_draw;
-        for (unsigned i = 0; i < len; i++)
+        for (unsigned i = 0; i < len; ++i)
         {
             int v = scores[i];
             if (v == SCORE_ILLEGAL)

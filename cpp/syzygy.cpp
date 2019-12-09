@@ -70,8 +70,7 @@ unsigned tablebasesProbeWDL(Board *board, int depth, int height) {
 
 int tablebasesProbeDTZ(Board *board, uint16_t *best, uint16_t *ponder) {
 
-    int size = 0;
-    uint16_t moves[MAX_MOVES];
+    uint16_t moves[MAX_MOVES], size = 0;
     unsigned wdl, dtz, to, from, ep, promo;
 
     // Check to make sure we expect to be within the Syzygy tables
@@ -135,8 +134,8 @@ int tablebasesProbeDTZ(Board *board, uint16_t *best, uint16_t *ponder) {
         *best = NONE_MOVE, assert(0);
 
     // Verify the legality of the parsed move as a final safety check
-    genAllLegalMoves(board, moves, &size);
-    for (int i = 0; i < size; i++) {
+    genAllLegalMoves(board, moves, size);
+    for (int i = 0; i < size; ++i) {
         if (moves[i] == *best) {
             uciReportTBRoot(board, *best, wdl, dtz);
             *ponder = NONE_MOVE;

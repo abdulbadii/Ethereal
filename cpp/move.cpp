@@ -441,9 +441,9 @@ int legalMoveCount(Board * board) {
 
     // Count of the legal number of moves for a given position
 
-    int size = 0;
+    uint16_t size = 0;
     uint16_t moves[MAX_MOVES];
-    genAllLegalMoves(board, moves, &size);
+    genAllLegalMoves(board, moves, size);
 
     return size;
 }
@@ -453,7 +453,7 @@ int moveExaminedByMultiPV(Thread *thread, uint16_t move) {
     // Check to see if this move was already selected as the
     // best move in a previous iteration of this search depth
 
-    for (int i = 0; i < thread->multiPV; i++)
+    for (int i = 0; i < thread->multiPV; ++i)
         if (thread->bestMoves[i] == move)
             return 1;
 
@@ -637,7 +637,7 @@ int moveIsPseudoLegal(Board *board, uint16_t move) {
     return 0;
 }
 
-void moveToString(uint16_t move, char *str, int chess960) {
+void moveToString(uint16_t move, string& str, int chess960) {
 
     int from = MoveFrom(move), to = MoveTo(move);
 
@@ -652,6 +652,6 @@ void moveToString(uint16_t move, char *str, int chess960) {
     // Add promotion piece label (Uppercase)
     if (MoveType(move) == PROMOTION_MOVE) {
         str[4] = PieceLabel[BLACK][MovePromoPiece(move)];
-        str[5] = '\0';
+        str[5] = 0;
     }
 }

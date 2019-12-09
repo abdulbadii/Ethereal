@@ -60,7 +60,7 @@ static uint64_t sliderAttacks(int sq, uint64_t occupied, const int delta[4][2]) 
     int rank, file, dr, df;
     uint64_t result = 0ull;
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; ++i) {
 
         dr = delta[i][0], df = delta[i][1];
 
@@ -110,23 +110,23 @@ void initAttacks() {
     RookTable[0].offset = RookAttacks;
 
     // Init attack tables for Pawns
-    for (int sq = 0; sq < 64; sq++) {
-        for (int dir = 0; dir < 2; dir++) {
+    for (int sq = 0; sq < 64; ++sq) {
+        for (int dir = 0; dir < 2; ++dir) {
             setSquare(&PawnAttacks[WHITE][sq], rankOf(sq) + PawnDelta[dir][0], fileOf(sq) + PawnDelta[dir][1]);
             setSquare(&PawnAttacks[BLACK][sq], rankOf(sq) - PawnDelta[dir][0], fileOf(sq) - PawnDelta[dir][1]);
         }
     }
 
     // Init attack tables for Knights & Kings
-    for (int sq = 0; sq < 64; sq++) {
-        for (int dir = 0; dir < 8; dir++) {
+    for (int sq = 0; sq < 64; ++sq) {
+        for (int dir = 0; dir < 8; ++dir) {
             setSquare(&KnightAttacks[sq], rankOf(sq) + KnightDelta[dir][0], fileOf(sq) + KnightDelta[dir][1]);
             setSquare(  &KingAttacks[sq], rankOf(sq) +   KingDelta[dir][0], fileOf(sq) +   KingDelta[dir][1]);
         }
     }
 
     // Init attack tables for sliding pieces
-    for (int sq = 0; sq < 64; sq++) {
+    for (int sq = 0; sq < 64; ++sq) {
         initSliderAttacks(sq, BishopTable, BishopMagics[sq], BishopDelta);
         initSliderAttacks(sq,   RookTable,   RookMagics[sq],   RookDelta);
     }

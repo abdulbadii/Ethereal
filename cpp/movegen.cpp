@@ -83,7 +83,7 @@ static void buildKingMoves(uint16_t *moves, int *size, uint64_t pieces, uint64_t
     buildNonPawnMoves(moves, size, kingAttacks(sq) & targets, sq);
 }
 
-void genAllLegalMoves(Board *board, uint16_t *moves, int *size) {
+void genAllLegalMoves(Board *board, uint16_t *moves, uint16_t& size) {
 
     Undo undo[1];
     int pseudoSize = 0;
@@ -94,9 +94,9 @@ void genAllLegalMoves(Board *board, uint16_t *moves, int *size) {
     genAllQuietMoves(board, pseudoMoves, &pseudoSize);
 
     // Check each move for legality before copying
-    for (int i = 0; i < pseudoSize; i++) {
+    for (int i = 0; i < pseudoSize; ++i) {
         applyMove(board, pseudoMoves[i], undo);
-        if (moveWasLegal(board)) moves[(*size)++] = pseudoMoves[i];
+        if (moveWasLegal(board)) moves[size++] = pseudoMoves[i];
         revertMove(board, pseudoMoves[i], undo);
     }
 }

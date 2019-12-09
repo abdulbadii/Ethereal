@@ -75,13 +75,13 @@ static int bestGroup(int index) {
 
     // Run as many threads as possible on the same node until
     // core limit is reached, then move on filling the next node.
-    for (int n = 0; n < nodes; n++)
-        for (int i = 0; i < cores / nodes; i++)
+    for (int n = 0; n < nodes; ++n)
+        for (int i = 0; i < cores / nodes; ++i)
             groups[groupSize++] = n;
 
     // In case a core has more than one logical processor (we assume 2) and we
     // still have threads to allocate, then spread them across available nodes.
-    for (int t = 0; t < threads - cores; t++)
+    for (int t = 0; t < threads - cores; ++t)
         groups[groupSize++] = t % nodes;
 
     // If we still have more threads than the total number of logical
