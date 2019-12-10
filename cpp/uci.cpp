@@ -49,23 +49,27 @@ extern volatile int IS_PONDERING; // Defined by Search.c
 pthread_mutex_t READYLOCK = PTHREAD_MUTEX_INITIALIZER;
 string StartPosition="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-inline bool equStarts(string& s, const char* key, size_t& l){	return !s.compare(0,l=strlen(key),key); }
-inline bool equStarts(string& s, const char* key){	return !s.compare(0,strlen(key),key); }
-inline string strs(string& s, const char* key){
-	size_t f;	return (f=s.find(key))==string::npos? "": s.substr(f);
-}
-inline string& strsr(string& s, const char* key){
-	size_t f;	return s=(f=s.find(key))==string::npos? "": s.substr(f);
-}
-inline string& strsr(string& s, const char* key, size_t& u){
-	size_t f;	return s=(f=s.find(key))==string::npos? "": (u=strlen(key),s.substr(f));
-}
-inline string& strsr(string& s, string& key, size_t& u){
-	size_t f;	return s=(f=s.find(key))==string::npos? "": (u=key.size(), s.substr(f));}
+// inline string strs(string& s, const char* key){	size_t f;	return (f=s.find(key))==string::npos? "": s.substr(f);}
+// inline string& strs(string& s, const char* key){
+	// size_t f=s.find(key);
+	// return s=f==string::npos? "": s.substr(f);}
+// inline string& strs(string& s, const char* key, size_t& u){
+	// size_t f=s.find(key);	return s=f==string::npos? "": (u=strlen(key),s.substr(f));}
+// inline string& strs(string& s, string& key, size_t& u){
+	// size_t f=s.find(key);	return s=f==string::npos? "": (u=key.size(), s.substr(f));}
 
+inline bool equStart(string& s, const char* key){	return !s.compare(0,strlen(key),key); }
+inline bool equStart(string& s, const char* key, size_t& l){	return !s.compare(0,l=strlen(key),key); }
+inline bool equStart(string& s, const char* key, string& nxstr){
+	uint16_t l=strlen(key);	return !s.compare(0,l,key)? nxstr=s.substr(l), 1: 0;}
+
+inline bool strContains(string& s, const char* key, string& nxstr, size_t len) {
+	size_t f=s.find(key), b;
+	return f==string::npos? (nxstr="", 0): (nxstr=s.substr(b=f+strlen(key), len), s=s.substr(b+len), 1);
+}
 inline bool strContains(string& s, const char* key, string& nxstr) {
 	size_t f=s.find(key);
-	return f==string::npos? (nxstr="",0) : (nxstr=s.substr(f+strlen(key)),1);
+	return f==string::npos? (nxstr="", 0): (nxstr=s.substr(f+strlen(key)), 1);
 }
 inline bool strContains(string& s, const char* key, size_t& u) {
 	size_t f=s.find(key);
@@ -184,42 +188,42 @@ void uciSetOption(string& str, Thread **threads, int *multiPV, int *chess960) {
 	//  SyzygyProbeDepth : Minimal Depth to probe the highest cardinality Tablebase
 	//  UCI_Chess960     : Set when playing FRC, but not required in order to work
 
-	size_t u;
-	if (equStarts(str, "setoption name Hash value ", u)) {
-		int megabytes = stoi(str.substr(u),nullptr);
+	size_t v;
+	if (equStart(str, "setoption name Hash value ", v)) {
+		int megabytes = stoi(str.substr(v),nullptr);
 		initTT(megabytes); cout << "info string set Hash to " << megabytes << "MB\n";
 	}
 
-	else if (equStarts(str, "setoption name Threads value ", u)) {
-		int nthreads = stoi(str.substr(u),nullptr);
+	else if (equStart(str, "setoption name Threads value ", v)) {
+		int nthreads = stoi(str.substr(v),nullptr);
 		free(*threads); *threads = createThreadPool(nthreads);
 		cout << "info string set Threads to " << nthreads << "\n";
 	}
 
-	else if (equStarts(str, "setoption name MultiPV value ", u)) {
-		*multiPV = stoi(str.substr(u),nullptr);
+	else if (equStart(str, "setoption name MultiPV value ", v)) {
+		*multiPV = stoi(str.substr(v),nullptr);
 		cout << "info string set MultiPV to " << *multiPV << "\n";
 	}
 
-	else if (equStarts(str, "setoption name MoveOverhead value ", u)) {
-		MoveOverhead = stoi(str.substr(u),nullptr);
+	else if (equStart(str, "setoption name MoveOverhead value ", v)) {
+		MoveOverhead = stoi(str.substr(v),nullptr);
 		cout << "info string set MoveOverhead to " << MoveOverhead << "\n";
 	}
 
-	else if (equStarts(str, "setoption name SyzygyPath value ", u)) {
-		const char *ptr = str.substr(u).c_str();
+	else if (equStart(str, "setoption name SyzygyPath value ", v)) {
+		const char *ptr = str.substr(v).c_str();
 		tb_init(ptr); cout << "info string set SyzygyPath to " << ptr << "\n";
 	}
 
-	else if (equStarts(str, "setoption name SyzygyProbeDepth value ", u)) {
-		TB_PROBE_DEPTH = stoi(str.substr(u),nullptr);
+	else if (equStart(str, "setoption name SyzygyProbeDepth value ", v)) {
+		TB_PROBE_DEPTH = stoi(str.substr(v),nullptr);
 		cout << "info string set SyzygyProbeDepth to " << TB_PROBE_DEPTH << "\n";
 	}
 
-	else if (equStarts(str, "setoption name UCI_Chess960 value ", u)) {
-		if (str.substr(u,4)=="true")
+	else if (equStart(str, "setoption name UCI_Chess960 value ", v)) {
+		if (str.substr(v,4)=="true")
 			 cout << "info string set UCI_Chess960 to true\n", *chess960 = 1;
-		else if (str.substr(u,5)=="false")
+		else if (str.substr(v,5)=="false")
 			 cout << "info string set UCI_Chess960 to false\n", *chess960 = 0;
 	}
 
@@ -231,7 +235,7 @@ void uciPosition(string& str, Board *board, int chess960) {
 	uint16_t size, moves[MAX_MOVES];
 	string moveStr(6,0),testStr(6,0);
 	Undo undo[1];
-	size_t i,j;
+	size_t i;
 	
 	// Position is defined by a FEN, X-FEN or Shredder-FEN
 	if (strContains(str, "fen ", str8kb))
@@ -242,13 +246,11 @@ void uciPosition(string& str, Board *board, int chess960) {
 		boardFromFEN(board, StartPosition, chess960);
 	
 	// Position command may include a list of moves
-	j=0;
-	if (strContains(str, "moves", str8kb))
+	if (strContains(str, "moves ", moveStr, 5))
 	// Apply each move in the move list
-	while(str8kb[j]) {
+	while(moveStr[0]) {
+
 		// UCI sends moves in long algebraic notation
-		for (i=0; i < 5; ++i,++j)
-			moveStr[i] = str8kb[j];
 		if (moveStr[4] == ' ') moveStr[4] = 0;
 
 		// Generate moves for this position
@@ -262,14 +264,16 @@ void uciPosition(string& str, Board *board, int chess960) {
 					break;
 				}
 		}
-
 		// Reset move history whenever we reset the fifty move rule. This way
 		// we can track all positions that are candidates for repetitions, and
 		// are still able to use a fixed size for the history array (512)
 		if (board->halfMoveCounter == 0)	board->numMoves = 0;
 
 		// Skip over all white space
-		while (str8kb[j] == ' ') ++j;
+		i=0;
+		while (str[++i] == ' ');
+		str = str.substr(i);
+		moveStr = str.substr(0,5);
 	};
 }
 
@@ -389,13 +393,13 @@ int main(int argc, char* argv[]) {
 		else if (str=="ucinewgame")
 				resetThreadPool(threads), clearTT();
 
-		else if (equStarts(str, "setoption"))
+		else if (equStart(str, "setoption"))
 				uciSetOption(str, &threads, &multiPV, &chess960);
 
-		else if (equStarts(str, "position"))
+		else if (equStart(str, "position"))
 				uciPosition(str, &board, chess960);
 
-		else if (equStarts(str, "go")) {
+		else if (equStart(str, "go")) {
 				uciGoStruct.str=str;
 				uciGoStruct.multiPV = multiPV;
 				uciGoStruct.board   = &board;
@@ -412,9 +416,9 @@ int main(int argc, char* argv[]) {
 		}
 		else if (str=="quit")	break;
 
-		else if (equStarts(str, "perft ", u))
+		else if (equStart(str, "perft ", u))
 				cout<< perft(&board, stoi(str.substr(u),nullptr));
-		else if (equStarts(str, "print"))
+		else if (equStart(str, "print"))
 				printBoard(&board), fflush(stdout);
 	}
 

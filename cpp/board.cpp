@@ -45,7 +45,8 @@ string Benchmarks[] = {
 	""
 };
 
-static void clearBoard(Board *board) {
+namespace {
+void clearBoard(Board *board) {
 
 	// Wipe the entire board structure, and also set all of
 	// the pieces on the board to be EMPTY. Ideally, before
@@ -55,7 +56,7 @@ static void clearBoard(Board *board) {
 	memset(&board->squares, EMPTY, sizeof(board->squares));
 }
 
-static void setSquare(Board *board, int colour, int piece, int sq) {
+void setSquare(Board *board, int colour, int piece, int sq) {
 
 	// Generate a piece on the given square. This serves as an aid
 	// to setting up the board from a FEN. We make sure update any
@@ -75,14 +76,14 @@ static void setSquare(Board *board, int colour, int piece, int sq) {
 		board->pkhash ^= ZobristKeys[board->squares[sq]][sq];
 }
 
-static int stringToSquare(char *str) {
+int stringToSquare(char *str) {
 
 	// Helper for reading the enpass square from a FEN. If no square
 	// is provided, Ethereal will use -1 to represent this internally
 
 	return str[0] == '-' ? -1 : square(str[1] - '1', str[0] - 'a');
 }
-
+}
 void squareToString(int sq, char *str) {
 
 	// Helper for writing the enpass square, as well as for converting
