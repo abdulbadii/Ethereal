@@ -27,83 +27,83 @@
 #include "types.h"
 
 namespace {
-void buildEnpassMoves(uint16_t *moves, int *size, uint64_t attacks, int epsq) {
+void buildEnpassMoves(uint16_t *moves, int& size, uint64_t attacks, int epsq) {
     while (attacks) {
         int sq = poplsb(&attacks);
-        moves[(*size)++] = MoveMake(sq, epsq, ENPASS_MOVE);
+        moves[size++] = MoveMake(sq, epsq, ENPASS_MOVE);
     }
 }
 
-void buildPawnMoves(uint16_t *moves, int *size, uint64_t attacks, int delta) {
+void buildPawnMoves(uint16_t *moves, int& size, uint64_t attacks, int delta) {
     while (attacks) {
         int sq = poplsb(&attacks);
-        moves[(*size)++] = MoveMake(sq + delta, sq, NORMAL_MOVE);
+        moves[size++] = MoveMake(sq + delta, sq, NORMAL_MOVE);
     }
 }
 
-void buildPawnPromotions(uint16_t *moves, int *size, uint64_t attacks, int delta) {
+void buildPawnPromotions(uint16_t *moves, int& size, uint64_t attacks, int delta) {
     while (attacks) {
         int sq = poplsb(&attacks);
-        moves[(*size)++] = MoveMake(sq + delta, sq,  QUEEN_PROMO_MOVE);
-        moves[(*size)++] = MoveMake(sq + delta, sq,   ROOK_PROMO_MOVE);
-        moves[(*size)++] = MoveMake(sq + delta, sq, BISHOP_PROMO_MOVE);
-        moves[(*size)++] = MoveMake(sq + delta, sq, KNIGHT_PROMO_MOVE);
+        moves[size++] = MoveMake(sq + delta, sq,  QUEEN_PROMO_MOVE);
+        moves[size++] = MoveMake(sq + delta, sq,   ROOK_PROMO_MOVE);
+        moves[size++] = MoveMake(sq + delta, sq, BISHOP_PROMO_MOVE);
+        moves[size++] = MoveMake(sq + delta, sq, KNIGHT_PROMO_MOVE);
     }
 }
 
-void buildNonPawnMoves(uint16_t *moves, int *size, uint64_t attacks, int sq) {
+void buildNonPawnMoves(uint16_t *moves, int& size, uint64_t attacks, int sq) {
     while (attacks) {
         int to = poplsb(&attacks);
-        moves[(*size)++] = MoveMake(sq, to, NORMAL_MOVE);
+        moves[size++] = MoveMake(sq, to, NORMAL_MOVE);
     }
 }
 
-void buildKnightMoves(uint16_t *moves, int *size, uint64_t pieces, uint64_t targets) {
+void buildKnightMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t targets) {
     while (pieces) {
         int sq = poplsb(&pieces);
         buildNonPawnMoves(moves, size, knightAttacks(sq) & targets, sq);
     }
 }
 
-void buildBishopMoves(uint16_t *moves, int *size, uint64_t pieces, uint64_t occupied, uint64_t targets) {
+void buildBishopMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t occupied, uint64_t targets) {
     while (pieces) {
         int sq = poplsb(&pieces);
         buildNonPawnMoves(moves, size, bishopAttacks(sq, occupied) & targets, sq);
     }
 }
 
-void buildRookMoves(uint16_t *moves, int *size, uint64_t pieces, uint64_t occupied, uint64_t targets) {
+void buildRookMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t occupied, uint64_t targets) {
     while (pieces) {
         int sq = poplsb(&pieces);
         buildNonPawnMoves(moves, size, rookAttacks(sq, occupied) & targets, sq);
     }
 }
 
-void buildKingMoves(uint16_t *moves, int *size, uint64_t pieces, uint64_t targets) {
+void buildKingMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t targets) {
     int sq = getlsb(pieces);
     buildNonPawnMoves(moves, size, kingAttacks(sq) & targets, sq);
 }
 }
 
-void genAllLegalMoves(Board& board, uint16_t *moves, int *size) {
+void genAllLegalMoves(Board& board, uint16_t *moves, int& size) {
 
     Undo undo[1];
     int pseudoSize = 0;
     uint16_t pseudoMoves[MAX_MOVES];
 
     // Call genAllNoisyMoves() & genAllNoisyMoves()
-    genAllNoisyMoves(board, pseudoMoves, &pseudoSize);
-    genAllQuietMoves(board, pseudoMoves, &pseudoSize);
+    genAllNoisyMoves(board, pseudoMoves, pseudoSize);
+    genAllQuietMoves(board, pseudoMoves, pseudoSize);
 
     // Check each move for legality before copying
     for (int i = 0; i < pseudoSize; ++i) {
         applyMove(&board, pseudoMoves[i], undo);
-        if (moveWasLegal(&board)) moves[(*size)++] = pseudoMoves[i];
+        if (moveWasLegal(&board)) moves[size++] = pseudoMoves[i];
         revertMove(&board, pseudoMoves[i], undo);
     }
 }
 
-void genAllNoisyMoves(Board& board, uint16_t *moves, int *size) {
+void genAllNoisyMoves(Board& board, uint16_t *moves, int& size) {
 
     const int Forward = board.turn == WHITE ? -8 : 8;
     const int Left    = board.turn == WHITE ? -7 : 7;
@@ -157,7 +157,7 @@ void genAllNoisyMoves(Board& board, uint16_t *moves, int *size) {
     buildKingMoves(moves, size, myKings, enemy);
 }
 
-void genAllQuietMoves(Board& board, uint16_t *moves, int *size) {
+void genAllQuietMoves(Board& board, uint16_t *moves, int& size) {
 
     const int Forward = board.turn == WHITE ? -8 : 8;
     const uint64_t Rank3Relative = board.turn == WHITE ? RANK_3 : RANK_6;
@@ -233,6 +233,6 @@ void genAllQuietMoves(Board& board, uint16_t *moves, int *size) {
         if (attacked) continue;
 
         // All conditions have been met. Identify which side we are castling to
-        moves[(*size)++] = MoveMake(king, rook, CASTLE_MOVE);
+        moves[size++] = MoveMake(king, rook, CASTLE_MOVE);
     }
 }

@@ -116,19 +116,21 @@ void *uciGo(void *cargo) {
 	IS_PONDERING = 0;
 
 	// Init the tokenizer with spaces
-	char* ptr = strtok(str, " ");
+	char* p = strtok(str, " ");
+	string ptr;
 
 	// Parse any time control and search method information that was sent
-	for (ptr = strtok(NULL, " "); ptr != nullptr; ptr = strtok(NULL, " ")) {
-		if (strEquals(ptr, "wtime")) wtime = atoi(strtok(NULL, " "));
-		if (strEquals(ptr, "btime")) btime = atoi(strtok(NULL, " "));
-		if (strEquals(ptr, "winc")) winc = atoi(strtok(NULL, " "));
-		if (strEquals(ptr, "binc")) binc = atoi(strtok(NULL, " "));
-		if (strEquals(ptr, "movestogo")) mtg = atoi(strtok(NULL, " "));
-		if (strEquals(ptr, "depth")) depth = atoi(strtok(NULL, " "));
-		if (strEquals(ptr, "movetime")) movetime = atoi(strtok(NULL, " "));
-		if (strEquals(ptr, "infinite")) infinite = 1;
-		if (strEquals(ptr, "ponder")) IS_PONDERING = 1;
+	for (p = strtok(NULL, " "); p != nullptr; p = strtok(NULL, " ")) {
+		ptr=p;
+		if (ptr=="wtime") wtime = atoi(strtok(NULL, " "));
+		if (ptr=="btime") btime = atoi(strtok(NULL, " "));
+		if (ptr=="winc") winc = atoi(strtok(NULL, " "));
+		if (ptr=="binc") binc = atoi(strtok(NULL, " "));
+		if (ptr=="movestogo") mtg = atoi(strtok(NULL, " "));
+		if (ptr=="depth") depth = atoi(strtok(NULL, " "));
+		if (ptr=="movetime") movetime = atoi(strtok(NULL, " "));
+		if (ptr=="infinite") infinite = 1;
+		if (ptr=="ponder") IS_PONDERING = 1;
 	}
 
 	// Initialize limits for the search
@@ -140,10 +142,10 @@ void *uciGo(void *cargo) {
 	limits.depthLimit     = depth;
 
 	// Pick the time values for the colour we are playing as
-	limits.start = (board.turn == WHITE) ? start : start;
+	limits.start = start;
 	limits.time  = (board.turn == WHITE) ? wtime : btime;
 	limits.inc   = (board.turn == WHITE) ?  winc :  binc;
-	limits.mtg   = (board.turn == WHITE) ?   mtg :   mtg;
+	limits.mtg   = mtg;
 
 	// Limit MultiPV to the number of legal moves
 	limits.multiPV = MIN(multiPV, legalMoveCount(board));
@@ -173,7 +175,7 @@ void *uciGo(void *cargo) {
 	return nullptr;
 }
 
-void uciSetOption(string str, Thread *threads, int& multiPV, int *chess960) {
+void uciSetOption(string str, Thread *threads, int& multiPV, int& chess960) {
 
 	// Handle setting UCI options in Ethereal. Options include:
 	//  Hash             : Size of the Transposition Table in Megabyes
@@ -217,9 +219,9 @@ void uciSetOption(string str, Thread *threads, int& multiPV, int *chess960) {
 
 	if (equStart(str, "setoption name UCI_Chess960 value ", nextr)) {
 		if (equStart(nextr, "true"))
-				cout << "info string set UCI_Chess960 to true\n", *chess960 = 1;
+				cout << "info string set UCI_Chess960 to true\n", chess960 = 1;
 		else if (equStart(nextr, "false"))
-				cout << "info string set UCI_Chess960 to false\n", *chess960 = 0;
+				cout << "info string set UCI_Chess960 to false\n", chess960 = 0;
 	}
 	fflush(stdout);
 }
@@ -253,7 +255,7 @@ void uciPosition(char *str, Board& board, int chess960) {
 		moveStr[5] = '\0';
 
 		// Generate moves for this position
-		size = 0; genAllLegalMoves(board, moves, &size);
+		size = 0; genAllLegalMoves(board, moves, size);
 
 		// Find and apply the given move
 		for (int i = 0; i < size; ++i) {
@@ -398,7 +400,7 @@ int main(int argc, char* argv[]) {
 				resetThreadPool(threads), clearTT();
 
 		else if (equStart(str, "setoption"))
-				uciSetOption(str, threads, multiPV, &chess960);
+				uciSetOption(str, threads, multiPV, chess960);
 
 		else if (equStart(str, "position"))
 				uciPosition(&str[0], board, chess960);
@@ -423,7 +425,7 @@ int main(int argc, char* argv[]) {
 		else if (equStart(str, "print"))
 				printBoard(&board), fflush(stdout);
 	}
-
+	delete &nextr[0];
 	return 0;
 }
 

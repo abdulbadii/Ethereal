@@ -135,7 +135,7 @@ int tablebasesProbeDTZ(Board& board, uint16_t *best, uint16_t *ponder) {
         *best = NONE_MOVE, assert(0);
 
     // Verify the legality of the parsed move as a final safety check
-    genAllLegalMoves(board, moves, &size);
+    genAllLegalMoves(board, moves, size);
     for (int i = 0; i < size; ++i) {
         if (moves[i] == *best) {
             uciReportTBRoot(board, *best, wdl, dtz);

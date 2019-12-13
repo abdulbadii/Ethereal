@@ -442,7 +442,7 @@ int legalMoveCount(Board& board) {
 
     int size = 0;
     uint16_t moves[MAX_MOVES];
-    genAllLegalMoves(board, moves, &size);
+    genAllLegalMoves(board, moves, size);
 
     return size;
 }
