@@ -33,7 +33,7 @@ double getRealTime() {
     struct timeval tv;
     double secsInMilli, usecsInMilli;
 
-    gettimeofday(&tv, NULL);
+    gettimeofday(&tv, nullptr);
     secsInMilli = ((double)tv.tv_sec) * 1000;
     usecsInMilli = tv.tv_usec / 1000;
 

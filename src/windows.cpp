@@ -45,8 +45,8 @@ static int bestGroup(int index) {
     if (!fun1) return -1;
 
     // First call to get returnLength. We expect
-    // it to fail due to the NULL buffer we pass
-    if (fun1(RelationAll, NULL, &returnLength))
+    // it to fail due to the nullptr buffer we pass
+    if (fun1(RelationAll, nullptr, &returnLength))
         return -1;
 
     // Once we know returnLength, allocate the buffer
@@ -107,7 +107,7 @@ void bindThisThread(int index) {
 
     // Set the Affinity
     if (fun2(group, &affinity))
-        fun3(GetCurrentThread(), &affinity, NULL);
+        fun3(GetCurrentThread(), &affinity, nullptr);
 }
 
 #endif

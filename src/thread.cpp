@@ -68,7 +68,7 @@ void resetThreadPool(Thread *threads) {
     }
 }
 
-void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, SearchInfo *info) {
+void newSearchThreadPool(Thread *threads, Board& board, Limits *limits, SearchInfo *info) {
 
     // Initialize each Thread in the Thread Pool. We need a reference
     // to the UCI seach parameters, access to the timing information,
@@ -79,7 +79,7 @@ void newSearchThreadPool(Thread *threads, Board *board, Limits *limits, SearchIn
         threads[i].limits = limits;
         threads[i].info = info;
         threads[i].nodes = threads[i].tbhits = 0ull;
-        memcpy(&threads[i].board, board, sizeof(Board));
+        memcpy(&threads[i].board, &board, sizeof(Board));
     }
 }
 

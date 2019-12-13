@@ -48,7 +48,7 @@ int castleRookTo(int king, int rook) {
 
 int apply(Thread *thread, Board *board, uint16_t move, int height) {
 
-    // NULL moves are only tried when legal
+    // nullptr moves are only tried when legal
     if (move == NULL_MOVE) {
         thread->moveStack[height] = NULL_MOVE;
         applyNullMove(board, &thread->undoStack[height]);
@@ -315,7 +315,7 @@ void applyNullMove(Board *board, Undo *undo) {
     undo->epSquare        = board->epSquare;
     undo->halfMoveCounter = board->halfMoveCounter++;
 
-    // NULL moves simply swap the turn only
+    // nullptr moves simply swap the turn only
     board->turn = !board->turn;
     board->history[board->numMoves++] = board->hash;
     board->fullMoveCounter++;
@@ -431,12 +431,12 @@ void revertNullMove(Board *board, Undo *undo) {
     board->epSquare        = undo->epSquare;
     board->halfMoveCounter = undo->halfMoveCounter;
 
-    // NULL moves simply swap the turn only
+    // nullptr moves simply swap the turn only
     board->turn = !board->turn;
     board->numMoves--;
 }
 
-int legalMoveCount(Board * board) {
+int legalMoveCount(Board& board) {
 
     // Count of the legal number of moves for a given position
 

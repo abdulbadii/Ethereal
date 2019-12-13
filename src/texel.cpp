@@ -103,7 +103,7 @@ void runTexelTuning(Thread *thread) {
     double K, error, best = 1e6, rate = LEARNING;
     TexelVector params = {0}, cparams = {0}, phases = {0};
 
-    setvbuf(stdout, NULL, _IONBF, 0);
+    setvbuf(stdout, nullptr, _IONBF, 0);
 
     cout << "\nTUNER WILL BE TUNING " << NTERMS << " TERMS...";
 
@@ -176,7 +176,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
     for (i = 0; i < NPOSITIONS; ++i) {
 
         // Read next position from the FEN file
-        if (fgets(line, 128, fin) == NULL) {
+        if (fgets(line, 128, fin) == nullptr) {
             cout << "Unable to read line #" << i << "\n";
             exit(EXIT_FAILURE);
         }
@@ -196,7 +196,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         else    {cout << "Cannot Parse " << line); exit(EXIT_FAILURE << "\n";}
 
         // Resolve FEN to a quiet position
-        boardFromFEN(&thread->board, line, 0);
+        boardFromFEN(thread->board, line, 0);
         qsearch(thread, &thread->pv, -MATE, MATE, 0);
         for (j = 0; j < thread->pv.length; ++j)
             applyMove(&thread->board, thread->pv.line[j], undo);
@@ -217,7 +217,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         // Vectorize the evaluation coefficients and save the eval
         // relative to WHITE. We must first clear the coeff vector.
         T = EmptyTrace;
-        tes[i].eval = evaluateBoard(&thread->board, NULL);
+        tes[i].eval = evaluateBoard(&thread->board, nullptr);
         if (thread->board.turn == BLACK) tes[i].eval *= -1;
         initCoefficients(coeffs);
 

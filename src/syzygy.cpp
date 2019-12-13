@@ -68,31 +68,31 @@ unsigned tablebasesProbeWDL(Board *board, int depth, int height) {
     );
 }
 
-int tablebasesProbeDTZ(Board *board, uint16_t *best, uint16_t *ponder) {
+int tablebasesProbeDTZ(Board& board, uint16_t *best, uint16_t *ponder) {
 
     int size = 0;
     uint16_t moves[MAX_MOVES];
     unsigned wdl, dtz, to, from, ep, promo;
 
     // Check to make sure we expect to be within the Syzygy tables
-    if (board->castleRooks || popcount(board->colours[WHITE] | board->colours[BLACK]) > (int)TB_LARGEST)
+    if (board.castleRooks || popcount(board.colours[WHITE] | board.colours[BLACK]) > (int)TB_LARGEST)
         return 0;
 
     // Tap into Fathom's API routines
     unsigned result = tb_probe_root(
-        board->colours[WHITE],
-        board->colours[BLACK],
-        board->pieces[KING  ],
-        board->pieces[QUEEN ],
-        board->pieces[ROOK  ],
-        board->pieces[BISHOP],
-        board->pieces[KNIGHT],
-        board->pieces[PAWN  ],
-        board->halfMoveCounter,
-        board->castleRooks,
-        board->epSquare == -1 ? 0 : board->epSquare,
-        board->turn == WHITE ? 1 : 0,
-        NULL
+        board.colours[WHITE],
+        board.colours[BLACK],
+        board.pieces[KING  ],
+        board.pieces[QUEEN ],
+        board.pieces[ROOK  ],
+        board.pieces[BISHOP],
+        board.pieces[KNIGHT],
+        board.pieces[PAWN  ],
+        board.halfMoveCounter,
+        board.castleRooks,
+        board.epSquare == -1 ? 0 : board.epSquare,
+        board.turn == WHITE ? 1 : 0,
+        nullptr
     );
 
     // Probe failed, or we are already in a finished position, in which
@@ -117,11 +117,11 @@ int tablebasesProbeDTZ(Board *board, uint16_t *best, uint16_t *ponder) {
     if (ep == 0u && promo == 0u)
         *best = MoveMake(from, to, NORMAL_MOVE);
 
-    // Enpass Moves. Fathom returns a to square, but in Ethereal board->epSquare
+    // Enpass Moves. Fathom returns a to square, but in Ethereal board.epSquare
     // is not the square of the captured pawn, but the square that the capturing
     // pawn will be moving to. Thus, we ignore Fathom's to value to be safe
     else if (ep != 0u)
-        *best = MoveMake(from, board->epSquare, ENPASS_MOVE);
+        *best = MoveMake(from, board.epSquare, ENPASS_MOVE);
 
     // Promotion Moves. Fathom has the inverted order of our promotion
     // flags. Thus, four minus the flag converts to our representation.

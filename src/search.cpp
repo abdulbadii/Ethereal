@@ -55,7 +55,7 @@ void initSearch() {
             LMRTable[depth][played] = 0.75 + log(depth) * log(played) / 2.25;
 }
 
-void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, uint16_t *ponder) {
+void getBestMove(Thread *threads, Board& board, Limits *limits, uint16_t *best, uint16_t *ponder) {
 
     SearchInfo info = {};
     pthread_t pthreads[threads->nthreads];
@@ -75,14 +75,14 @@ void getBestMove(Thread *threads, Board *board, Limits *limits, uint16_t *best, 
     // thread for the main thread, which avoids some overhead and saves
     // us from having the current thread eating CPU time while waiting
     for (int i = 1; i < threads->nthreads; ++i)
-        pthread_create(&pthreads[i], NULL, &iterativeDeepening, &threads[i]);
+        pthread_create(&pthreads[i], nullptr, &iterativeDeepening, &threads[i]);
     iterativeDeepening((void*) &threads[0]);
 
     // When the main thread exits it should signal for the helpers to
     // shutdown. Wait until all helpers have finished before moving on
     ABORT_SIGNAL = 1;
     for (int i = 1; i < threads->nthreads; ++i)
-        pthread_join(pthreads[i], NULL);
+        pthread_join(pthreads[i], nullptr);
 
     // The main thread will update SearchInfo with results
     *best = info.bestMoves[info.depth];
@@ -138,7 +138,7 @@ void* iterativeDeepening(void *vthread) {
             break;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 void aspirationWindow(Thread *thread) {
@@ -298,7 +298,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
     inCheck = !!board->kingAttackers;
 
     // Save a history of the static evaluations. We can reuse a TT entry if the given
-    // evaluation has been set. Also, if we made a NULL move on the previous ply, we
+    // evaluation has been set. Also, if we made a nullptr move on the previous ply, we
     // can recompute the eval as `eval = -last_eval + 2 * Tempo`
     eval = thread->evalStack[height] =
            ttHit && ttEval != VALUE_NONE            ?  ttEval
@@ -610,7 +610,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
     }
 
     // Save a history of the static evaluations. We can reuse a TT entry if the given
-    // evaluation has been set. Also, if we made a NULL move on the previous ply, we
+    // evaluation has been set. Also, if we made a nullptr move on the previous ply, we
     // can recompute the eval as `eval = -last_eval + 2 * Tempo`
     eval = thread->evalStack[height] =
            ttHit && ttEval != VALUE_NONE            ?  ttEval

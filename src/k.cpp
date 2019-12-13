@@ -21,12 +21,7 @@ inline string& strsr(string& s, string& key, uint16_t& u){
 	uint16_t f;
 	return s=(f=s.find(key))==string::npos? "": (u=key.size(),s.substr(f));}
 
-inline const char* strContains(string& s, const char* key, uint16_t& u) {
-	const char* p=s.c_str();
-	uint16_t f=s.find(key);
-	return f==string::npos? (u=0,nullptr): (u=f+strlen(key),p+f);
-}
-inline bool strContains(const char *str, const char *key) {	return strstr(str, key) != NULL;}
+inline bool strContains(const char *str, const char *key) {	return strstr(str, key) != nullptr;}
 
 inline bool strContains(string& s, const char* key, string& nxstr, size_t len=string::npos) {
 	size_t f=s.find(key);

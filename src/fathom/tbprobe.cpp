@@ -1055,7 +1055,7 @@ static int probe_dtz_no_ep(const struct pos *pos, int *success)
         return wdl == 2 ? 1 : 101;
 
     uint16_t moves0[TB_MAX_MOVES];
-    uint16_t *moves = moves0, *end = NULL;
+    uint16_t *moves = moves0, *end = nullptr;
 
     if (wdl > 0)
     {
@@ -1301,7 +1301,7 @@ static uint16_t probe_root(const struct pos *pos, int *score,
         if (!success)
             return 0;
         scores[i] = v;
-        if (results != NULL)
+        if (results != nullptr)
         {
             unsigned res = 0;
             res = TB_SET_WDL(res, dtz_to_wdl(pos->rule50, v));
@@ -1313,9 +1313,9 @@ static uint16_t probe_root(const struct pos *pos, int *score,
             results[j++] = res;
         }
     }
-    if (results != NULL)
+    if (results != nullptr)
         results[j++] = TB_RESULT_FAILED;
-    if (score != NULL)
+    if (score != nullptr)
         *score = dtz;
 
     // Now be a bit smart about filtering out moves.
@@ -1385,7 +1385,7 @@ bool tb_init_impl(const char *path)
             sizeof(uint16_t) != 2 ||
             sizeof(uint8_t) != 1)
         return false;
-    if (path == NULL)
+    if (path == nullptr)
         path = "";
     init_tablebases(path);
     return true;

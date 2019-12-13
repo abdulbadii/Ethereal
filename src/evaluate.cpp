@@ -373,7 +373,7 @@ int evaluateBoard(Board *board, PKTable *pktable) {
     eval += board->turn == WHITE ? Tempo : -Tempo;
 
     // Store a new Pawn King Entry if we did not have one
-    if (ei.pkentry == NULL && pktable != NULL)
+    if (ei.pkentry == nullptr && pktable != nullptr)
         storePKEntry(pktable, board->pkhash, ei.passedPawns, pkeval);
 
     // Return the evaluation relative to the side to move
@@ -414,7 +414,7 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     ei->kingAttacksCount[US] += popcount(attacks);
 
     // Pawn hash holds the rest of the pawn evaluation
-    if (ei->pkentry != NULL) return eval;
+    if (ei->pkentry != nullptr) return eval;
 
     pawns = board->pieces[PAWN];
     myPawns = tempPawns = pawns & board->colours[US];
@@ -790,7 +790,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     }
 
     // Everything else is stored in the Pawn King Table
-    if (ei->pkentry != NULL) return eval;
+    if (ei->pkentry != nullptr) return eval;
 
     // Evaluate based on the number of files between our King and the nearest
     // file-wise pawn. If there is no pawn, kingPawnFileDistance() returns the
@@ -1120,10 +1120,10 @@ void initEvalInfo(EvalInfo *ei, Board *board, PKTable *pktable) {
     ei->kingAttackersWeight[WHITE] = ei->kingAttackersWeight[BLACK] = 0;
 
     // Try to read a hashed Pawn King Eval. Otherwise, start from scratch
-    ei->pkentry       =     pktable == NULL ? NULL : getPKEntry(pktable, board->pkhash);
-    ei->passedPawns   = ei->pkentry == NULL ? 0ull : ei->pkentry->passed;
-    ei->pkeval[WHITE] = ei->pkentry == NULL ? 0    : ei->pkentry->eval;
-    ei->pkeval[BLACK] = ei->pkentry == NULL ? 0    : 0;
+    ei->pkentry       =     pktable == nullptr ? nullptr : getPKEntry(pktable, board->pkhash);
+    ei->passedPawns   = ei->pkentry == nullptr ? 0ull : ei->pkentry->passed;
+    ei->pkeval[WHITE] = ei->pkentry == nullptr ? 0    : ei->pkentry->eval;
+    ei->pkeval[BLACK] = ei->pkentry == nullptr ? 0    : 0;
 }
 
 void initEval() {

@@ -85,7 +85,7 @@ void buildKingMoves(uint16_t *moves, int *size, uint64_t pieces, uint64_t target
 }
 }
 
-void genAllLegalMoves(Board *board, uint16_t *moves, int *size) {
+void genAllLegalMoves(Board& board, uint16_t *moves, int *size) {
 
     Undo undo[1];
     int pseudoSize = 0;
@@ -97,34 +97,34 @@ void genAllLegalMoves(Board *board, uint16_t *moves, int *size) {
 
     // Check each move for legality before copying
     for (int i = 0; i < pseudoSize; ++i) {
-        applyMove(board, pseudoMoves[i], undo);
-        if (moveWasLegal(board)) moves[(*size)++] = pseudoMoves[i];
-        revertMove(board, pseudoMoves[i], undo);
+        applyMove(&board, pseudoMoves[i], undo);
+        if (moveWasLegal(&board)) moves[(*size)++] = pseudoMoves[i];
+        revertMove(&board, pseudoMoves[i], undo);
     }
 }
 
-void genAllNoisyMoves(Board *board, uint16_t *moves, int *size) {
+void genAllNoisyMoves(Board& board, uint16_t *moves, int *size) {
 
-    const int Forward = board->turn == WHITE ? -8 : 8;
-    const int Left    = board->turn == WHITE ? -7 : 7;
-    const int Right   = board->turn == WHITE ? -9 : 9;
+    const int Forward = board.turn == WHITE ? -8 : 8;
+    const int Left    = board.turn == WHITE ? -7 : 7;
+    const int Right   = board.turn == WHITE ? -9 : 9;
 
     uint64_t destinations, pawnEnpass, pawnLeft, pawnRight;
     uint64_t pawnPromoForward, pawnPromoLeft, pawnPromoRight;
 
-    uint64_t friendly = board->colours[ board->turn];
-    uint64_t enemy    = board->colours[!board->turn];
+    uint64_t friendly = board.colours[ board.turn];
+    uint64_t enemy    = board.colours[!board.turn];
     uint64_t occupied = friendly | enemy;
 
-    uint64_t myPawns   = friendly &  board->pieces[PAWN  ];
-    uint64_t myKnights = friendly &  board->pieces[KNIGHT];
-    uint64_t myBishops = friendly & (board->pieces[BISHOP] | board->pieces[QUEEN]);
-    uint64_t myRooks   = friendly & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
-    uint64_t myKings   = friendly &  board->pieces[KING  ];
+    uint64_t myPawns   = friendly &  board.pieces[PAWN  ];
+    uint64_t myKnights = friendly &  board.pieces[KNIGHT];
+    uint64_t myBishops = friendly & (board.pieces[BISHOP] | board.pieces[QUEEN]);
+    uint64_t myRooks   = friendly & (board.pieces[ROOK  ] | board.pieces[QUEEN]);
+    uint64_t myKings   = friendly &  board.pieces[KING  ];
 
     // Double checks can only be evaded by moving the King. We only
     // look at captures by the king since we are generating noisy moves
-    if (several(board->kingAttackers)) {
+    if (several(board.kingAttackers)) {
         buildKingMoves(moves, size, myKings, enemy);
         return;
     }
@@ -132,18 +132,18 @@ void genAllNoisyMoves(Board *board, uint16_t *moves, int *size) {
     // If we are attacked we will only consider the normal moves which would
     // capture the checking piece, since we are only generating noisy moves
     // in this function. Otherwise, we consider all enemy pieces as targets
-    destinations = board->kingAttackers ? board->kingAttackers : enemy;
+    destinations = board.kingAttackers ? board.kingAttackers : enemy;
 
     // Compute bitboards for each type of Pawn movement
-    pawnEnpass       = pawnEnpassCaptures(myPawns, board->epSquare, board->turn);
-    pawnLeft         = pawnLeftAttacks(myPawns, enemy, board->turn);
-    pawnRight        = pawnRightAttacks(myPawns, enemy, board->turn);
-    pawnPromoForward = pawnAdvance(myPawns, occupied, board->turn) & PROMOTION_RANKS;
+    pawnEnpass       = pawnEnpassCaptures(myPawns, board.epSquare, board.turn);
+    pawnLeft         = pawnLeftAttacks(myPawns, enemy, board.turn);
+    pawnRight        = pawnRightAttacks(myPawns, enemy, board.turn);
+    pawnPromoForward = pawnAdvance(myPawns, occupied, board.turn) & PROMOTION_RANKS;
     pawnPromoLeft    = pawnLeft & PROMOTION_RANKS; pawnLeft &= ~PROMOTION_RANKS;
     pawnPromoRight   = pawnRight & PROMOTION_RANKS; pawnRight &= ~PROMOTION_RANKS;
 
     // Generate all the noisy Pawn moves
-    buildEnpassMoves(moves, size, pawnEnpass, board->epSquare);
+    buildEnpassMoves(moves, size, pawnEnpass, board.epSquare);
     buildPawnMoves(moves, size, pawnLeft & destinations, Left);
     buildPawnMoves(moves, size, pawnRight & destinations, Right);
     buildPawnPromotions(moves, size, pawnPromoForward, Forward);
@@ -157,35 +157,35 @@ void genAllNoisyMoves(Board *board, uint16_t *moves, int *size) {
     buildKingMoves(moves, size, myKings, enemy);
 }
 
-void genAllQuietMoves(Board *board, uint16_t *moves, int *size) {
+void genAllQuietMoves(Board& board, uint16_t *moves, int *size) {
 
-    const int Forward = board->turn == WHITE ? -8 : 8;
-    const uint64_t Rank3Relative = board->turn == WHITE ? RANK_3 : RANK_6;
+    const int Forward = board.turn == WHITE ? -8 : 8;
+    const uint64_t Rank3Relative = board.turn == WHITE ? RANK_3 : RANK_6;
 
     int rook, king, rookTo, kingTo, attacked;
     uint64_t destinations, pawnForwardOne, pawnForwardTwo, mask;
 
-    uint64_t friendly = board->colours[ board->turn];
-    uint64_t enemy    = board->colours[!board->turn];
+    uint64_t friendly = board.colours[ board.turn];
+    uint64_t enemy    = board.colours[!board.turn];
     uint64_t occupied = friendly | enemy;
 
-    uint64_t myPawns   = friendly &  board->pieces[PAWN  ];
-    uint64_t myKnights = friendly &  board->pieces[KNIGHT];
-    uint64_t myBishops = friendly & (board->pieces[BISHOP] | board->pieces[QUEEN]);
-    uint64_t myRooks   = friendly & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
-    uint64_t myKings   = friendly &  board->pieces[KING  ];
-    uint64_t castles   = friendly &  board->castleRooks;
+    uint64_t myPawns   = friendly &  board.pieces[PAWN  ];
+    uint64_t myKnights = friendly &  board.pieces[KNIGHT];
+    uint64_t myBishops = friendly & (board.pieces[BISHOP] | board.pieces[QUEEN]);
+    uint64_t myRooks   = friendly & (board.pieces[ROOK  ] | board.pieces[QUEEN]);
+    uint64_t myKings   = friendly &  board.pieces[KING  ];
+    uint64_t castles   = friendly &  board.castleRooks;
 
     // Double checks can only be evaded by moving the King. We do not
     // look at captures by the king since we are generating quiet moves
-    if (several(board->kingAttackers)) {
+    if (several(board.kingAttackers)) {
         buildKingMoves(moves, size, myKings, ~occupied);
         return;
     }
 
     // Like above, since checks by Pawns and Knights cannot be blocked,
     // the only quiet evasions are the ones in which we move our King
-    if (board->kingAttackers & (board->pieces[PAWN] | board->pieces[KNIGHT])) {
+    if (board.kingAttackers & (board.pieces[PAWN] | board.pieces[KNIGHT])) {
         buildKingMoves(moves, size, myKings, ~occupied);
         return;
     }
@@ -193,12 +193,12 @@ void genAllQuietMoves(Board *board, uint16_t *moves, int *size) {
     // When there is no checking threat we will look at all moves to empty squares.
     // squares. When there is a checking threat, we may only look at moves which
     // block the sliding path between the piece giving check and our King
-    destinations = !board->kingAttackers ? ~occupied
-                 : ~occupied & bitsBetweenMasks(getlsb(myKings), getlsb(board->kingAttackers));
+    destinations = !board.kingAttackers ? ~occupied
+                 : ~occupied & bitsBetweenMasks(getlsb(myKings), getlsb(board.kingAttackers));
 
     // Compute bitboards for the quiet Pawn moves
-    pawnForwardOne = pawnAdvance(myPawns, occupied, board->turn) & ~PROMOTION_RANKS;
-    pawnForwardTwo = pawnAdvance(pawnForwardOne & Rank3Relative, occupied, board->turn);
+    pawnForwardOne = pawnAdvance(myPawns, occupied, board.turn) & ~PROMOTION_RANKS;
+    pawnForwardTwo = pawnAdvance(pawnForwardOne & Rank3Relative, occupied, board.turn);
 
     // Generate all of the quiet Pawn moves
     buildPawnMoves(moves, size, pawnForwardOne & destinations, Forward);
@@ -211,7 +211,7 @@ void genAllQuietMoves(Board *board, uint16_t *moves, int *size) {
     buildKingMoves(moves, size, myKings, ~occupied);
 
     // Attempt to generate a castle move for each rook
-    while (castles && !board->kingAttackers) {
+    while (castles && !board.kingAttackers) {
 
         // Figure out which pieces are moving to which squares
         rook = poplsb(&castles), king = getlsb(myKings);
@@ -228,7 +228,7 @@ void genAllQuietMoves(Board *board, uint16_t *moves, int *size) {
         // Castle is illegal if we move through a checking threat
         mask = bitsBetweenMasks(king, kingTo);
         while (mask)
-            if (squareIsAttacked(board, board->turn, poplsb(&mask)))
+            if (squareIsAttacked(&board, board.turn, poplsb(&mask)))
                 { attacked = 1; break; }
         if (attacked) continue;
 

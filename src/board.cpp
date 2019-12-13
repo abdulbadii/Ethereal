@@ -101,18 +101,18 @@ void squareToString(int sq, char *str) {
     *str++ = '\0';
 }
 
-void boardFromFEN(Board *board, const char *fen, int chess960) {
+void boardFromFEN(Board& board, const char *fen, int chess960) {
 
     static const uint64_t StandardCastles = (1ull <<  0) | (1ull <<  7)
                                           | (1ull << 56) | (1ull << 63);
 
     int sq = 56;
     char ch;
-    char *str = strdup(fen), *strPos = NULL;
+    char *str = strdup(fen), *strPos = nullptr;
     char *token = strtok_r(str, " ", &strPos);
     uint64_t rooks, kings, white, black;
 
-    clearBoard(board); // Zero out, set squares to EMPTY
+    clearBoard(&board); // Zero out, set squares to EMPTY
 
     // Piece placement
     while ((ch = *token++)) {
@@ -125,62 +125,62 @@ void boardFromFEN(Board *board, const char *fen, int chess960) {
             const char *piece = strchr(PieceLabel[colour], ch);
 
             if (piece)
-                setSquare(board, colour, piece - PieceLabel[colour], sq++);
+                setSquare(&board, colour, piece - PieceLabel[colour], sq++);
         }
     }
 
     // Turn of play
     token = strtok_r(NULL, " ", &strPos);
-    board->turn = token[0] == 'w' ? WHITE : BLACK;
-    if (board->turn == BLACK) board->hash ^= ZobristTurnKey;
+    board.turn = token[0] == 'w' ? WHITE : BLACK;
+    if (board.turn == BLACK) board.hash ^= ZobristTurnKey;
 
     // Castling rights
     token = strtok_r(NULL, " ", &strPos);
 
-    rooks = board->pieces[ROOK];
-    kings = board->pieces[KING];
-    white = board->colours[WHITE];
-    black = board->colours[BLACK];
+    rooks = board.pieces[ROOK];
+    kings = board.pieces[KING];
+    white = board.colours[WHITE];
+    black = board.colours[BLACK];
 
     while ((ch = *token++)) {
-        if (ch == 'K') setBit(&board->castleRooks, getmsb(white & rooks & RANK_1));
-        if (ch == 'Q') setBit(&board->castleRooks, getlsb(white & rooks & RANK_1));
-        if (ch == 'k') setBit(&board->castleRooks, getmsb(black & rooks & RANK_8));
-        if (ch == 'q') setBit(&board->castleRooks, getlsb(black & rooks & RANK_8));
-        if ('A' <= ch && ch <= 'H') setBit(&board->castleRooks, square(0, ch - 'A'));
-        if ('a' <= ch && ch <= 'h') setBit(&board->castleRooks, square(7, ch - 'a'));
+        if (ch == 'K') setBit(&board.castleRooks, getmsb(white & rooks & RANK_1));
+        if (ch == 'Q') setBit(&board.castleRooks, getlsb(white & rooks & RANK_1));
+        if (ch == 'k') setBit(&board.castleRooks, getmsb(black & rooks & RANK_8));
+        if (ch == 'q') setBit(&board.castleRooks, getlsb(black & rooks & RANK_8));
+        if ('A' <= ch && ch <= 'H') setBit(&board.castleRooks, square(0, ch - 'A'));
+        if ('a' <= ch && ch <= 'h') setBit(&board.castleRooks, square(7, ch - 'a'));
     }
 
     for (sq = 0; sq < SQUARE_NB; ++sq) {
-        board->castleMasks[sq] = ~0ull;
-        if (testBit(board->castleRooks, sq)) clearBit(&board->castleMasks[sq], sq);
-        if (testBit(white & kings, sq)) board->castleMasks[sq] &= ~white;
-        if (testBit(black & kings, sq)) board->castleMasks[sq] &= ~black;
+        board.castleMasks[sq] = ~0ull;
+        if (testBit(board.castleRooks, sq)) clearBit(&board.castleMasks[sq], sq);
+        if (testBit(white & kings, sq)) board.castleMasks[sq] &= ~white;
+        if (testBit(black & kings, sq)) board.castleMasks[sq] &= ~black;
     }
 
-    rooks = board->castleRooks;
-    while (rooks) board->hash ^= ZobristCastleKeys[poplsb(&rooks)];
+    rooks = board.castleRooks;
+    while (rooks) board.hash ^= ZobristCastleKeys[poplsb(&rooks)];
 
     // En passant square
-    board->epSquare = stringToSquare(strtok_r(NULL, " ", &strPos));
-    if (board->epSquare != -1)
-        board->hash ^= ZobristEnpassKeys[fileOf(board->epSquare)];
+    board.epSquare = stringToSquare(strtok_r(NULL, " ", &strPos));
+    if (board.epSquare != -1)
+        board.hash ^= ZobristEnpassKeys[fileOf(board.epSquare)];
 
     // Half & Full Move Counters
-    board->halfMoveCounter = atoi(strtok_r(NULL, " ", &strPos));
-    board->fullMoveCounter = atoi(strtok_r(NULL, " ", &strPos));
+    board.halfMoveCounter = atoi(strtok_r(NULL, " ", &strPos));
+    board.fullMoveCounter = atoi(strtok_r(NULL, " ", &strPos));
 
     // Move count: ignore and use zero, as we count since root
-    board->numMoves = 0;
+    board.numMoves = 0;
 
     // Need king attackers for move generation
-    board->kingAttackers = attackersToKingSquare(board);
+    board.kingAttackers = attackersToKingSquare(&board);
 
     // We save the game mode in order to comply with the UCI rules for printing
     // moves. If chess960 is not enabled, but we have detected an unconventional
     // castle setup, then we set chess960 to be true on our own. Currently, this
     // is simply a hack so that FRC positions may be added to the bench.csv
-    board->chess960 = chess960 || (board->castleRooks & ~StandardCastles);
+    board.chess960 = chess960 || (board.castleRooks & ~StandardCastles);
 
     free(str);
 }
@@ -334,7 +334,7 @@ int boardDrawnByInsufficientMaterial(Board *board) {
             || (!board->pieces[BISHOP] && popcount(board->pieces[KNIGHT]) <= 2));
 }
 
-uint64_t perft(Board *board, int depth) {
+uint64_t perft(Board& board, int depth) {
 
     Undo undo[1];
     int size = 0;
@@ -349,9 +349,9 @@ uint64_t perft(Board *board, int depth) {
 
     // Recurse on all valid moves
     for(size -= 1; size >= 0; size--) {
-        applyMove(board, moves[size], undo);
-        if (moveWasLegal(board)) found += perft(board, depth-1);
-        revertMove(board, moves[size], undo);
+        applyMove(&board, moves[size], undo);
+        if (moveWasLegal(&board)) found += perft(board, depth-1);
+        revertMove(&board, moves[size], undo);
     }
 
     return found;
@@ -387,9 +387,9 @@ void runBenchmark(int argc, char** argv) {
 
     for (int i = 0; strcmp(Benchmarks[i], ""); ++i) {
         cout << "\nPosition #" << i + 1 << ": " << Benchmarks[i] << "\n";
-        boardFromFEN(&board, Benchmarks[i], 0);
+        boardFromFEN(board, Benchmarks[i], 0);
         limits.start = getRealTime();
-        getBestMove(threads, &board, &limits, &bestMove, &ponderMove);
+        getBestMove(threads, board, &limits, &bestMove, &ponderMove);
         nodes += nodesSearchedThreadPool(threads);
         clearTT(); // Reset TT for new search
     }
