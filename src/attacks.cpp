@@ -184,16 +184,16 @@ uint64_t pawnEnpassCaptures(uint64_t pawns, int epsq, int colour) {
     return epsq == -1 ? 0ull : pawnAttacks(!colour, epsq) & pawns;
 }
 
-int squareIsAttacked(Board *board, int colour, int sq) {
+int squareIsAttacked(Board& board, int colour, int sq) {
 
-    uint64_t enemy    = board->colours[!colour];
-    uint64_t occupied = board->colours[ colour] | enemy;
+    uint64_t enemy    = board.colours[!colour];
+    uint64_t occupied = board.colours[ colour] | enemy;
 
-    uint64_t enemyPawns   = enemy &  board->pieces[PAWN  ];
-    uint64_t enemyKnights = enemy &  board->pieces[KNIGHT];
-    uint64_t enemyBishops = enemy & (board->pieces[BISHOP] | board->pieces[QUEEN]);
-    uint64_t enemyRooks   = enemy & (board->pieces[ROOK  ] | board->pieces[QUEEN]);
-    uint64_t enemyKings   = enemy &  board->pieces[KING  ];
+    uint64_t enemyPawns   = enemy &  board.pieces[PAWN  ];
+    uint64_t enemyKnights = enemy &  board.pieces[KNIGHT];
+    uint64_t enemyBishops = enemy & (board.pieces[BISHOP] | board.pieces[QUEEN]);
+    uint64_t enemyRooks   = enemy & (board.pieces[ROOK  ] | board.pieces[QUEEN]);
+    uint64_t enemyKings   = enemy &  board.pieces[KING  ];
 
     // Check for attacks to this square. While this function has the same
     // result as using attackersToSquare(board, colour, sq) != 0ull, this
@@ -207,40 +207,40 @@ int squareIsAttacked(Board *board, int colour, int sq) {
         || (kingAttacks(sq) & enemyKings);
 }
 
-uint64_t attackersToSquare(Board *board, int colour, int sq) {
+uint64_t attackersToSquare(Board& board, int colour, int sq) {
 
-    uint64_t enemy    = board->colours[!colour];
-    uint64_t occupied = board->colours[ colour] | enemy;
+    uint64_t enemy    = board.colours[!colour];
+    uint64_t occupied = board.colours[ colour] | enemy;
 
     // Find all enemy pieces which are a threat to the given square. We may
     // go through the each piece type, pretend that the given square contains
     // this piece, and search for attacks of our opponents matching piece types
 
-    return (pawnAttacks(colour, sq) & enemy & board->pieces[PAWN])
-         | (knightAttacks(sq) & enemy & board->pieces[KNIGHT])
-         | (bishopAttacks(sq, occupied) & enemy & (board->pieces[BISHOP] | board->pieces[QUEEN]))
-         | (rookAttacks(sq, occupied) & enemy & (board->pieces[ROOK] | board->pieces[QUEEN]))
-         | (kingAttacks(sq) & enemy & board->pieces[KING]);
+    return (pawnAttacks(colour, sq) & enemy & board.pieces[PAWN])
+         | (knightAttacks(sq) & enemy & board.pieces[KNIGHT])
+         | (bishopAttacks(sq, occupied) & enemy & (board.pieces[BISHOP] | board.pieces[QUEEN]))
+         | (rookAttacks(sq, occupied) & enemy & (board.pieces[ROOK] | board.pieces[QUEEN]))
+         | (kingAttacks(sq) & enemy & board.pieces[KING]);
 }
 
-uint64_t allAttackersToSquare(Board *board, uint64_t occupied, int sq) {
+uint64_t allAttackersToSquare(Board& board, uint64_t occupied, int sq) {
 
     // When performing a static exchange evaluation we need to find all
     // attacks to a given square, but we also are given an updated occupied
     // bitboard, which will likely not match the actual board, as pieces are
     // removed during the iterations in the static exchange evaluation
 
-    return (pawnAttacks(WHITE, sq) & board->colours[BLACK] & board->pieces[PAWN])
-         | (pawnAttacks(BLACK, sq) & board->colours[WHITE] & board->pieces[PAWN])
-         | (knightAttacks(sq) & board->pieces[KNIGHT])
-         | (bishopAttacks(sq, occupied) & (board->pieces[BISHOP] | board->pieces[QUEEN]))
-         | (rookAttacks(sq, occupied) & (board->pieces[ROOK] | board->pieces[QUEEN]))
-         | (kingAttacks(sq) & board->pieces[KING]);
+    return (pawnAttacks(WHITE, sq) & board.colours[BLACK] & board.pieces[PAWN])
+         | (pawnAttacks(BLACK, sq) & board.colours[WHITE] & board.pieces[PAWN])
+         | (knightAttacks(sq) & board.pieces[KNIGHT])
+         | (bishopAttacks(sq, occupied) & (board.pieces[BISHOP] | board.pieces[QUEEN]))
+         | (rookAttacks(sq, occupied) & (board.pieces[ROOK] | board.pieces[QUEEN]))
+         | (kingAttacks(sq) & board.pieces[KING]);
 }
 
-uint64_t attackersToKingSquare(Board *board) {
+uint64_t attackersToKingSquare(Board& board) {
 
     // Wrapper for attackersToSquare() for use in check detection
-    int kingsq = getlsb(board->colours[board->turn] & board->pieces[KING]);
-    return attackersToSquare(board, board->turn, kingsq);
+    int kingsq = getlsb(board.colours[board.turn] & board.pieces[KING]);
+    return attackersToSquare(board, board.turn, kingsq);
 }

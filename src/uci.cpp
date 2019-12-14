@@ -151,7 +151,7 @@ void *uciGo(void *cargo) {
 	limits.multiPV = MIN(multiPV, legalMoveCount(board));
 
 	// Execute search, return best and ponder moves
-	getBestMove(threads, board, &limits, &bestMove, &ponderMove);
+	getBestMove(threads, board, &limits, bestMove, ponderMove);
 
 	// UCI spec does not want reports until out of pondering
 	while (IS_PONDERING);
@@ -261,7 +261,7 @@ void uciPosition(char *str, Board& board, int chess960) {
 		for (int i = 0; i < size; ++i) {
 				moveToString(moves[i], testStr, board.chess960);
 				if (strEquals(moveStr, testStr)) {
-					applyMove(&board, moves[i], undo);
+					applyMove(board, moves[i], undo);
 					break;
 				}
 		}
@@ -336,10 +336,10 @@ void uciReportTBRoot(Board& board, uint16_t move, unsigned wdl, unsigned dtz) {
 	fflush(stdout);
 }
 
-void uciReportCurrentMove(Board *board, uint16_t move, int currmove, int depth) {
+void uciReportCurrentMove(Board& board, uint16_t move, int currmove, int depth) {
 
 	char moveStr[6];
-	moveToString(move, moveStr, board->chess960);
+	moveToString(move, moveStr, board.chess960);
 	cout << "info depth " << depth << " currmove " << moveStr << " currmovenumber " << currmove << "\n";
 	fflush(stdout);
 
@@ -365,7 +365,7 @@ int main(int argc, char* argv[]) {
 	initTT(16);
 	threads = createThreadPool(1);
 	boardFromFEN(board, StartPosition, chess960);
-	nextr = new char[8192];	nextr.resize(8191);
+	nextr.resize(8191);
 	
 	// Allow the bench to be run from the command line
 	if (argc > 1 && (string)argv[1]=="bench") {
@@ -423,9 +423,8 @@ int main(int argc, char* argv[]) {
 		else if (equStart(str, "perft ", nextr))
 				cout << "%\n" << perft(board, stoi(nextr)), fflush(stdout);
 		else if (equStart(str, "print"))
-				printBoard(&board), fflush(stdout);
+				printBoard(board), fflush(stdout);
 	}
-	delete &nextr[0];
 	return 0;
 }
 

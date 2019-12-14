@@ -55,7 +55,7 @@ void initSearch() {
 				LMRTable[depth][played] = 0.75 + log(depth) * log(played) / 2.25;
 }
 
-void getBestMove(Thread *threads, Board& board, Limits *limits, uint16_t *best, uint16_t *ponder) {
+void getBestMove(Thread *threads, Board& board, Limits *limits, uint16_t& best, uint16_t& ponder) {
 
 	SearchInfo info = {};
 	pthread_t pthreads[threads->nthreads];
@@ -85,8 +85,8 @@ void getBestMove(Thread *threads, Board& board, Limits *limits, uint16_t *best, 
 		pthread_join(pthreads[i], nullptr);
 
 	// The main thread will update SearchInfo with results
-	*best = info.bestMoves[info.depth];
-	*ponder = info.ponderMoves[info.depth];
+	best = info.bestMoves[info.depth];
+	ponder = info.ponderMoves[info.depth];
 }
 
 void* iterativeDeepening(void *vthread) {
@@ -193,7 +193,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
 	const int PvNode   = (alpha != beta-1);
 	const int RootNode = (height == 0);
-	Board *const board = &thread->board;
+	Board& board = thread->board;
 
 	unsigned tbresult;
 	int hist = 0, cmhist = 0, fmhist = 0, quietsSeen = 0, quietsPlayed = 0, played = 0;
@@ -207,7 +207,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
 	// Step 1. Quiescence Search. Perform a search using mostly tactical
 	// moves to reach a more stable position for use as a static evaluation
-	if (depth <= 0 && !board->kingAttackers)
+	if (depth <= 0 && !board.kingAttackers)
 		return qsearch(thread, pv, alpha, beta, height);
 
 	// Ensure a fresh PV
@@ -247,7 +247,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 	}
 
 	// Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
-	if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
+	if ((ttHit = getTTEntry(board.hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
 		ttValue = valueFromTT(ttValue, height); // Adjust any MATE scores
 
@@ -286,7 +286,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 				|| (ttBound == BOUND_LOWER && value >= beta)
 				|| (ttBound == BOUND_UPPER && value <= alpha)) {
 
-				storeTTEntry(board->hash, NONE_MOVE, value, VALUE_NONE, MAX_PLY-1, ttBound);
+				storeTTEntry(board.hash, NONE_MOVE, value, VALUE_NONE, MAX_PLY-1, ttBound);
 				return value;
 		}
 	}
@@ -294,7 +294,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 	// Step 6. Initialize flags and values used by pruning and search methods
 
 	// We can grab in check based on the already computed king attackers bitboard
-	inCheck = !!board->kingAttackers;
+	inCheck = !!board.kingAttackers;
 
 	// Save a history of the static evaluations. We can reuse a TT entry if the given
 	// evaluation has been set. Also, if we made a nullptr move on the previous ply, we
@@ -346,7 +346,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 		&&  depth >= NullMovePruningDepth
 		&&  thread->moveStack[height-1] != NULL_MOVE
 		&&  thread->moveStack[height-2] != NULL_MOVE
-		&&  boardHasNonPawnMaterial(board, board->turn)
+		&&  boardHasNonPawnMaterial(board, board.turn)
 		&& (!ttHit || !(ttBound & BOUND_UPPER) || ttValue >= beta)) {
 
 		R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
@@ -468,7 +468,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 				R += !PvNode + !improving;
 
 				// Increase for King moves that evade checks
-				R += inCheck && pieceType(board->squares[MoveTo(move)]) == KING;
+				R += inCheck && pieceType(board.squares[MoveTo(move)]) == KING;
 
 				// Reduce for Killers and Counters
 				R -= movePicker.stage < STAGE_QUIET;
@@ -558,7 +558,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 	if (!RootNode || !thread->multiPV) {
 		ttBound = best >= beta    ? BOUND_LOWER
 					: best > oldAlpha ? BOUND_EXACT : BOUND_UPPER;
-		storeTTEntry(board->hash, bestMove, valueToTT(best, height), eval, depth, ttBound);
+		storeTTEntry(board.hash, bestMove, valueToTT(best, height), eval, depth, ttBound);
 	}
 
 	return best;
@@ -566,7 +566,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
 int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 
-	Board *const board = &thread->board;
+	Board& board = thread->board;
 
 	int eval, value, best, margin;
 	int ttHit, ttValue = 0, ttEval = 0, ttDepth = 0, ttBound = 0;
@@ -597,7 +597,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 		return evaluateBoard(board, &thread->pktable);
 
 	// Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
-	if ((ttHit = getTTEntry(board->hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
+	if ((ttHit = getTTEntry(board.hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
 		ttValue = valueFromTT(ttValue, height); // Adjust any MATE scores
 
@@ -663,7 +663,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 	return best;
 }
 
-int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
+int staticExchangeEvaluation(Board& board, uint16_t move, int threshold) {
 
 	int from, to, type, colour, balance, nextVictim;
 	uint64_t bishops, rooks, occupied, attackers, myAttackers;
@@ -675,7 +675,7 @@ int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
 
 	// Next victim is moved piece or promotion type
 	nextVictim = type != PROMOTION_MOVE
-					? pieceType(board->squares[from])
+					? pieceType(board.squares[from])
 					: MovePromoPiece(move);
 
 	// Balance is the value of the move minus threshold. Function
@@ -692,34 +692,34 @@ int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
 	if (balance >= 0) return 1;
 
 	// Grab sliders for updating revealed attackers
-	bishops = board->pieces[BISHOP] | board->pieces[QUEEN];
-	rooks   = board->pieces[ROOK  ] | board->pieces[QUEEN];
+	bishops = board.pieces[BISHOP] | board.pieces[QUEEN];
+	rooks   = board.pieces[ROOK  ] | board.pieces[QUEEN];
 
 	// Let occupied suppose that the move was actually made
-	occupied = (board->colours[WHITE] | board->colours[BLACK]);
+	occupied = (board.colours[WHITE] | board.colours[BLACK]);
 	occupied = (occupied ^ (1ull << from)) | (1ull << to);
-	if (type == ENPASS_MOVE) occupied ^= (1ull << board->epSquare);
+	if (type == ENPASS_MOVE) occupied ^= (1ull << board.epSquare);
 
 	// Get all pieces which attack the target square. And with occupied
 	// so that we do not let the same piece attack twice
 	attackers = allAttackersToSquare(board, occupied, to) & occupied;
 
 	// Now our opponents turn to recapture
-	colour = !board->turn;
+	colour = !board.turn;
 
 	while (1) {
 
 		// If we have no more attackers left we lose
-		myAttackers = attackers & board->colours[colour];
+		myAttackers = attackers & board.colours[colour];
 		if (myAttackers == 0ull) break;
 
 		// Find our weakest piece to attack with
 		for (nextVictim = PAWN; nextVictim <= QUEEN; ++nextVictim)
-				if (myAttackers & board->pieces[nextVictim])
+				if (myAttackers & board.pieces[nextVictim])
 					break;
 
 		// Remove this attacker from the occupied
-		occupied ^= (1ull << getlsb(myAttackers & board->pieces[nextVictim]));
+		occupied ^= (1ull << getlsb(myAttackers & board.pieces[nextVictim]));
 
 		// A diagonal move may reveal bishop or queen attackers
 		if (nextVictim == PAWN || nextVictim == BISHOP || nextVictim == QUEEN)
@@ -744,7 +744,7 @@ int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
 				// As a slide speed up for move legality checking, if our last attacking
 				// piece is a king, and our opponent still has attackers, then we've
 				// lost as the move we followed would be illegal
-				if (nextVictim == KING && (attackers & board->colours[colour]))
+				if (nextVictim == KING && (attackers & board.colours[colour]))
 					colour = !colour;
 
 				break;
@@ -752,12 +752,12 @@ int staticExchangeEvaluation(Board *board, uint16_t move, int threshold) {
 	}
 
 	// Side to move after the loop loses
-	return board->turn != colour;
+	return board.turn != colour;
 }
 
 int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int height) {
 
-	Board *const board = &thread->board;
+	Board& board = thread->board;
 
 	uint16_t move;
 	int skipQuiets = 0, quiets = 0, tacticals = 0;

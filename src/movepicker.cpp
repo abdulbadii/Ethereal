@@ -113,7 +113,7 @@ void initNoisyMovePicker(MovePicker *mp, Thread *thread, int threshold) {
     mp->type = NOISY_PICKER;
 }
 
-uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
+uint16_t selectNextMove(MovePicker *mp, Board& board, int skipQuiets) {
 
     int best; uint16_t bestMove;
 
@@ -134,7 +134,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
             // to seperate the noisy from the quiet moves, so that we can skip
             // some of the noisy moves during STAGE_GOOD_NOISY and return later
             mp->noisySize = 0;
-            genAllNoisyMoves(*board, mp->moves, mp->noisySize);
+            genAllNoisyMoves(board, mp->moves, mp->noisySize);
             evaluateNoisyMoves(mp);
             mp->split = mp->noisySize;
             mp->stage = STAGE_GOOD_NOISY;
@@ -225,7 +225,7 @@ uint16_t selectNextMove(MovePicker *mp, Board *board, int skipQuiets) {
             // Generate and evaluate all quiet moves when not skipping them
             if (!skipQuiets) {
                 mp->quietSize = 0;
-                genAllQuietMoves(*board, mp->moves + mp->split, mp->quietSize);
+                genAllQuietMoves(board, mp->moves + mp->split, mp->quietSize);
                 getHistoryScores(mp->thread, mp->moves, mp->values, mp->split, mp->quietSize, mp->height);
             }
 

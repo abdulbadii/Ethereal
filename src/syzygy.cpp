@@ -31,18 +31,18 @@
 unsigned TB_PROBE_DEPTH;    // Set by UCI options
 extern unsigned TB_LARGEST; // Set by Fathom in tb_init()
 
-unsigned tablebasesProbeWDL(Board *board, int depth, int height) {
+unsigned tablebasesProbeWDL(Board& board, int depth, int height) {
 
     // The basic rules for Syzygy assume that the last move was a zero'ing move,
     // there are no potential castling moves, and there is not an enpass square.
-    if (board->halfMoveCounter || board->castleRooks || board->epSquare != -1)
+    if (board.halfMoveCounter || board.castleRooks || board.epSquare != -1)
         return TB_RESULT_FAILED;
 
     // Root Nodes cannot take early exits, as we need a best move
     if (height == 0) return TB_RESULT_FAILED;
 
     // Count the remaining pieces to see if we fall into the scope of the Tables
-    int cardinality = popcount(board->colours[WHITE] | board->colours[BLACK]);
+    int cardinality = popcount(board.colours[WHITE] | board.colours[BLACK]);
 
     // Check to see if we are within the scope of the Tables. Also check the UCI
     // option TB_PROBE_DEPTH. We only probe when below TB_PROBE_DEPTH or when
@@ -60,15 +60,15 @@ unsigned tablebasesProbeWDL(Board *board, int depth, int height) {
     // as 0 in Fathom but -1 in Ethereal. Fathom sets WHITE=1 and BLACK=0.
 
     return tb_probe_wdl(
-        board->colours[WHITE], board->colours[BLACK],
-        board->pieces[KING  ], board->pieces[QUEEN ],
-        board->pieces[ROOK  ], board->pieces[BISHOP],
-        board->pieces[KNIGHT], board->pieces[PAWN  ],
-        0, 0, 0, board->turn == WHITE ? 1 : 0
+        board.colours[WHITE], board.colours[BLACK],
+        board.pieces[KING  ], board.pieces[QUEEN ],
+        board.pieces[ROOK  ], board.pieces[BISHOP],
+        board.pieces[KNIGHT], board.pieces[PAWN  ],
+        0, 0, 0, board.turn == WHITE ? 1 : 0
     );
 }
 
-int tablebasesProbeDTZ(Board& board, uint16_t *best, uint16_t *ponder) {
+int tablebasesProbeDTZ(Board& board, uint16_t& best, uint16_t& ponder) {
 
     int size = 0;
     uint16_t moves[MAX_MOVES];
@@ -115,31 +115,31 @@ int tablebasesProbeDTZ(Board& board, uint16_t *best, uint16_t *ponder) {
 
     // Normal Moves ( Syzygy does not support castling )
     if (ep == 0u && promo == 0u)
-        *best = MoveMake(from, to, NORMAL_MOVE);
+        best = MoveMake(from, to, NORMAL_MOVE);
 
     // Enpass Moves. Fathom returns a to square, but in Ethereal board.epSquare
     // is not the square of the captured pawn, but the square that the capturing
     // pawn will be moving to. Thus, we ignore Fathom's to value to be safe
     else if (ep != 0u)
-        *best = MoveMake(from, board.epSquare, ENPASS_MOVE);
+        best = MoveMake(from, board.epSquare, ENPASS_MOVE);
 
     // Promotion Moves. Fathom has the inverted order of our promotion
     // flags. Thus, four minus the flag converts to our representation.
     // Also, we shift by 14 to actually match the flags we use in Ethereal
     else if (promo != 0u)
-        *best = MoveMake(from, to, PROMOTION_MOVE | ((4 - promo) << 14));
+        best = MoveMake(from, to, PROMOTION_MOVE | ((4 - promo) << 14));
 
     // Unable to read back the move type. Setting the move to NONE_MOVE
     // ensures that we will not illegally return the move to the interface
     else
-        *best = NONE_MOVE, assert(0);
+        best = NONE_MOVE, assert(0);
 
     // Verify the legality of the parsed move as a final safety check
     genAllLegalMoves(board, moves, size);
     for (int i = 0; i < size; ++i) {
-        if (moves[i] == *best) {
-            uciReportTBRoot(board, *best, wdl, dtz);
-            *ponder = NONE_MOVE;
+        if (moves[i] == best) {
+            uciReportTBRoot(board, best, wdl, dtz);
+            ponder = NONE_MOVE;
             return 1;
         }
     }

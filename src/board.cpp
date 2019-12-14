@@ -46,16 +46,16 @@ const char *Benchmarks[] = {
     #include "bench.csv"
     ""
 };
-void clearBoard(Board *board) {
+void clearBoard(Board& board) {
 
     // Wipe the entire board structure, and also set all of
     // the pieces on the board to be EMPTY. Ideally, before
     // this board is used again we will call boardFromFEN()
 
-    memset(board, 0, sizeof(Board));
-    memset(&board->squares, EMPTY, sizeof(board->squares));
+    memset(&board, 0, sizeof(Board));
+    memset(&board.squares, EMPTY, sizeof(board.squares));
 }
-void setSquare(Board *board, int colour, int piece, int sq) {
+void setSquare(Board& board, int colour, int piece, int sq) {
 
     // Generate a piece on the given square. This serves as an aid
     // to setting up the board from a FEN. We make sure update any
@@ -65,14 +65,14 @@ void setSquare(Board *board, int colour, int piece, int sq) {
     assert(0 <= piece && piece < PIECE_NB);
     assert(0 <= sq && sq < SQUARE_NB);
 
-    board->squares[sq] = makePiece(piece, colour);
-    setBit(&board->colours[colour], sq);
-    setBit(&board->pieces[piece], sq);
+    board.squares[sq] = makePiece(piece, colour);
+    setBit(&board.colours[colour], sq);
+    setBit(&board.pieces[piece], sq);
 
-    board->psqtmat += PSQT[board->squares[sq]][sq];
-    board->hash ^= ZobristKeys[board->squares[sq]][sq];
+    board.psqtmat += PSQT[board.squares[sq]][sq];
+    board.hash ^= ZobristKeys[board.squares[sq]][sq];
     if (piece == PAWN || piece == KING)
-        board->pkhash ^= ZobristKeys[board->squares[sq]][sq];
+        board.pkhash ^= ZobristKeys[board.squares[sq]][sq];
 }
 int stringToSquare(char *str) {
 
@@ -112,7 +112,7 @@ void boardFromFEN(Board& board, const char *fen, int chess960) {
     char *token = strtok_r(str, " ", &strPos);
     uint64_t rooks, kings, white, black;
 
-    clearBoard(&board); // Zero out, set squares to EMPTY
+    clearBoard(board); // Zero out, set squares to EMPTY
 
     // Piece placement
     while ((ch = *token++)) {
@@ -125,7 +125,7 @@ void boardFromFEN(Board& board, const char *fen, int chess960) {
             const char *piece = strchr(PieceLabel[colour], ch);
 
             if (piece)
-                setSquare(&board, colour, piece - PieceLabel[colour], sq++);
+                setSquare(board, colour, piece - PieceLabel[colour], sq++);
         }
     }
 
@@ -174,7 +174,7 @@ void boardFromFEN(Board& board, const char *fen, int chess960) {
     board.numMoves = 0;
 
     // Need king attackers for move generation
-    board.kingAttackers = attackersToKingSquare(&board);
+    board.kingAttackers = attackersToKingSquare(board);
 
     // We save the game mode in order to comply with the UCI rules for printing
     // moves. If chess960 is not enabled, but we have detected an unconventional
@@ -185,7 +185,7 @@ void boardFromFEN(Board& board, const char *fen, int chess960) {
     free(str);
 }
 
-void boardToFEN(Board *board, char *fen) {
+void boardToFEN(Board& board, char *fen) {
 
     int sq;
     char str[3];
@@ -197,7 +197,7 @@ void boardToFEN(Board *board, char *fen) {
 
         for (int f = 0; f < FILE_NB; ++f) {
             const int s = square(r, f);
-            const int p = board->squares[s];
+            const int p = board.squares[s];
 
             if (p != EMPTY) {
                 if (cnt)
@@ -216,37 +216,37 @@ void boardToFEN(Board *board, char *fen) {
     }
 
     // Turn of play
-    *fen++ = board->turn == WHITE ? 'w' : 'b';
+    *fen++ = board.turn == WHITE ? 'w' : 'b';
     *fen++ = ' ';
 
     // Castle rights for White
-    castles = board->colours[WHITE] & board->castleRooks;
+    castles = board.colours[WHITE] & board.castleRooks;
     while (castles) {
         sq = popmsb(&castles);
-        if (board->chess960) *fen++ = 'A' + fileOf(sq);
+        if (board.chess960) *fen++ = 'A' + fileOf(sq);
         else if (testBit(FILE_H, sq)) *fen++ = 'K';
         else if (testBit(FILE_A, sq)) *fen++ = 'Q';
     }
 
     // Castle rights for Black
-    castles = board->colours[BLACK] & board->castleRooks;
+    castles = board.colours[BLACK] & board.castleRooks;
     while (castles) {
         sq = popmsb(&castles);
-        if (board->chess960) *fen++ = 'a' + fileOf(sq);
+        if (board.chess960) *fen++ = 'a' + fileOf(sq);
         else if (testBit(FILE_H, sq)) *fen++ = 'k';
         else if (testBit(FILE_A, sq)) *fen++ = 'q';
     }
 
     // Check for empty Castle rights
-    if (!board->castleRooks)
+    if (!board.castleRooks)
         *fen++ = '-';
 
     // En passant square, Half Move Counter, and Full Move Counter
-    squareToString(board->epSquare, str);
-    sprintf(fen, " %s %d %d", str, board->halfMoveCounter, board->fullMoveCounter);
+    squareToString(board.epSquare, str);
+    sprintf(fen, " %s %d %d", str, board.halfMoveCounter, board.fullMoveCounter);
 }
 
-void printBoard(Board *board) {
+void printBoard(Board& board) {
 
     char fen[256];
 
@@ -259,8 +259,8 @@ void printBoard(Board *board) {
         // Print each square in a row, starting from the left
         for(int i = 0; i < 8; ++i) {
 
-            int colour = pieceColour(board->squares[sq+i]);
-            int type = pieceType(board->squares[sq+i]);
+            int colour = pieceColour(board.squares[sq+i]);
+            int type = pieceType(board.squares[sq+i]);
 
             switch(colour){
                 case WHITE: cout << "| *" << PieceLabel[colour][type] << " "; break;
@@ -280,14 +280,14 @@ void printBoard(Board *board) {
     cout << "\n" << fen << "\n\n";
 }
 
-int boardHasNonPawnMaterial(Board *board, int turn) {
-    uint64_t friendly = board->colours[turn];
-    uint64_t kings = board->pieces[KING];
-    uint64_t pawns = board->pieces[PAWN];
+int boardHasNonPawnMaterial(Board& board, int turn) {
+    uint64_t friendly = board.colours[turn];
+    uint64_t kings = board.pieces[KING];
+    uint64_t pawns = board.pieces[PAWN];
     return (friendly & (kings | pawns)) != friendly;
 }
 
-int boardIsDrawn(Board *board, int height) {
+int boardIsDrawn(Board& board, int height) {
 
     // Drawn if any of the three possible cases
     return boardDrawnByFiftyMoveRule(board)
@@ -295,43 +295,43 @@ int boardIsDrawn(Board *board, int height) {
         || boardDrawnByInsufficientMaterial(board);
 }
 
-int boardDrawnByFiftyMoveRule(Board *board) {
+int boardDrawnByFiftyMoveRule(Board& board) {
 
     // Fifty move rule triggered. BUG: We do not account for the case
     // when the fifty move rule occurs as checkmate is delivered, which
     // should not be considered a drawn position, but a checkmated one.
-    return board->halfMoveCounter > 99;
+    return board.halfMoveCounter > 99;
 }
 
-int boardDrawnByRepetition(Board *board, int height) {
+int boardDrawnByRepetition(Board& board, int height) {
 
     int reps = 0;
 
     // Look through hash histories for our moves
-    for (int i = board->numMoves - 2; i >= 0; i -= 2) {
+    for (int i = board.numMoves - 2; i >= 0; i -= 2) {
 
         // No draw can occur before a zeroing move
-        if (i < board->numMoves - board->halfMoveCounter)
+        if (i < board.numMoves - board.halfMoveCounter)
             break;
 
         // Check for matching hash with a two fold after the root,
         // or a three fold which occurs in part before the root move
-        if (    board->history[i] == board->hash
-            && (i > board->numMoves - height || ++reps == 2))
+        if (    board.history[i] == board.hash
+            && (i > board.numMoves - height || ++reps == 2))
             return 1;
     }
 
     return 0;
 }
 
-int boardDrawnByInsufficientMaterial(Board *board) {
+int boardDrawnByInsufficientMaterial(Board& board) {
 
     // Check for KvK, KvN, KvB, and KvNN.
 
-    return !(board->pieces[PAWN] | board->pieces[ROOK] | board->pieces[QUEEN])
-        && (!several(board->colours[WHITE]) || !several(board->colours[BLACK]))
-        && (    !several(board->pieces[KNIGHT] | board->pieces[BISHOP])
-            || (!board->pieces[BISHOP] && popcount(board->pieces[KNIGHT]) <= 2));
+    return !(board.pieces[PAWN] | board.pieces[ROOK] | board.pieces[QUEEN])
+        && (!several(board.colours[WHITE]) || !several(board.colours[BLACK]))
+        && (    !several(board.pieces[KNIGHT] | board.pieces[BISHOP])
+            || (!board.pieces[BISHOP] && popcount(board.pieces[KNIGHT]) <= 2));
 }
 
 uint64_t perft(Board& board, int depth) {
@@ -349,9 +349,9 @@ uint64_t perft(Board& board, int depth) {
 
     // Recurse on all valid moves
     for(size -= 1; size >= 0; size--) {
-        applyMove(&board, moves[size], undo);
-        if (moveWasLegal(&board)) found += perft(board, depth-1);
-        revertMove(&board, moves[size], undo);
+        applyMove(board, moves[size], undo);
+        if (moveWasLegal(board)) found += perft(board, depth-1);
+        revertMove(board, moves[size], undo);
     }
 
     return found;
@@ -389,7 +389,7 @@ void runBenchmark(int argc, char** argv) {
         cout << "\nPosition #" << i + 1 << ": " << Benchmarks[i] << "\n";
         boardFromFEN(board, Benchmarks[i], 0);
         limits.start = getRealTime();
-        getBestMove(threads, board, &limits, &bestMove, &ponderMove);
+        getBestMove(threads, board, &limits, bestMove, ponderMove);
         nodes += nodesSearchedThreadPool(threads);
         clearTT(); // Reset TT for new search
     }

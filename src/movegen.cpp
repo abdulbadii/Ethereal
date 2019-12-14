@@ -97,9 +97,9 @@ void genAllLegalMoves(Board& board, uint16_t *moves, int& size) {
 
     // Check each move for legality before copying
     for (int i = 0; i < pseudoSize; ++i) {
-        applyMove(&board, pseudoMoves[i], undo);
-        if (moveWasLegal(&board)) moves[size++] = pseudoMoves[i];
-        revertMove(&board, pseudoMoves[i], undo);
+        applyMove(board, pseudoMoves[i], undo);
+        if (moveWasLegal(board)) moves[size++] = pseudoMoves[i];
+        revertMove(board, pseudoMoves[i], undo);
     }
 }
 
@@ -228,7 +228,7 @@ void genAllQuietMoves(Board& board, uint16_t *moves, int& size) {
         // Castle is illegal if we move through a checking threat
         mask = bitsBetweenMasks(king, kingTo);
         while (mask)
-            if (squareIsAttacked(&board, board.turn, poplsb(&mask)))
+            if (squareIsAttacked(board, board.turn, poplsb(&mask)))
                 { attacked = 1; break; }
         if (attacked) continue;
 

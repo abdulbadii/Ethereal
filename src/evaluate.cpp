@@ -340,7 +340,7 @@ const int Tempo = 20;
 
 #undef S
 
-int evaluateBoard(Board *board, PKTable *pktable) {
+int evaluateBoard(Board& board, PKTable *pktable) {
 
     EvalInfo ei;
     int phase, factor, eval, pkeval;
@@ -349,15 +349,15 @@ int evaluateBoard(Board *board, PKTable *pktable) {
     initEvalInfo(&ei, board, pktable);
     eval   = evaluatePieces(&ei, board);
     pkeval = ei.pkeval[WHITE] - ei.pkeval[BLACK];
-    eval  += pkeval + board->psqtmat;
+    eval  += pkeval + board.psqtmat;
     eval  += evaluateClosedness(&ei, board);
     eval  += evaluateComplexity(&ei, board, eval);
 
     // Calculate the game phase based on remaining material (Fruit Method)
-    phase = 24 - 4 * popcount(board->pieces[QUEEN ])
-               - 2 * popcount(board->pieces[ROOK  ])
-               - 1 * popcount(board->pieces[KNIGHT]
-                             |board->pieces[BISHOP]);
+    phase = 24 - 4 * popcount(board.pieces[QUEEN ])
+               - 2 * popcount(board.pieces[ROOK  ])
+               - 1 * popcount(board.pieces[KNIGHT]
+                             |board.pieces[BISHOP]);
     phase = (phase * 256 + 12) / 24;
 
     // Scale evaluation based on remaining material
@@ -370,17 +370,17 @@ int evaluateBoard(Board *board, PKTable *pktable) {
     // Factor in the Tempo after interpolation and scaling, so that
     // in the search we can assume that if a null move is made, then
     // then `eval = last_eval + 2 * Tempo`
-    eval += board->turn == WHITE ? Tempo : -Tempo;
+    eval += board.turn == WHITE ? Tempo : -Tempo;
 
     // Store a new Pawn King Entry if we did not have one
     if (ei.pkentry == nullptr && pktable != nullptr)
-        storePKEntry(pktable, board->pkhash, ei.passedPawns, pkeval);
+        storePKEntry(pktable, board.pkhash, ei.passedPawns, pkeval);
 
     // Return the evaluation relative to the side to move
-    return board->turn == WHITE ? eval : -eval;
+    return board.turn == WHITE ? eval : -eval;
 }
 
-int evaluatePieces(EvalInfo *ei, Board *board) {
+int evaluatePieces(EvalInfo *ei, Board& board) {
 
     int eval;
 
@@ -396,7 +396,7 @@ int evaluatePieces(EvalInfo *ei, Board *board) {
     return eval;
 }
 
-int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
+int evaluatePawns(EvalInfo *ei, Board& board, int colour) {
 
     const int US = colour, THEM = !colour;
     const int Forward = (colour == WHITE) ? 8 : -8;
@@ -416,9 +416,9 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     // Pawn hash holds the rest of the pawn evaluation
     if (ei->pkentry != nullptr) return eval;
 
-    pawns = board->pieces[PAWN];
-    myPawns = tempPawns = pawns & board->colours[US];
-    enemyPawns = pawns & board->colours[THEM];
+    pawns = board.pieces[PAWN];
+    myPawns = tempPawns = pawns & board.colours[US];
+    enemyPawns = pawns & board.colours[THEM];
 
     // Evaluate each pawn (but not for being passed)
     while (tempPawns) {
@@ -489,15 +489,15 @@ int evaluatePawns(EvalInfo *ei, Board *board, int colour) {
     return eval;
 }
 
-int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
+int evaluateKnights(EvalInfo *ei, Board& board, int colour) {
 
     const int US = colour, THEM = !colour;
 
     int sq, outside, defended, count, eval = 0;
     uint64_t attacks;
 
-    uint64_t enemyPawns  = board->pieces[PAWN  ] & board->colours[THEM];
-    uint64_t tempKnights = board->pieces[KNIGHT] & board->colours[US  ];
+    uint64_t enemyPawns  = board.pieces[PAWN  ] & board.colours[THEM];
+    uint64_t tempKnights = board.pieces[KNIGHT] & board.colours[US  ];
 
     ei->attackedBy[US][KNIGHT] = 0ull;
 
@@ -526,7 +526,7 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a bonus if the knight is behind a pawn
-        if (testBit(pawnAdvance(board->pieces[PAWN], 0ull, THEM), sq)) {
+        if (testBit(pawnAdvance(board.pieces[PAWN], 0ull, THEM), sq)) {
             eval += KnightBehindPawn;
             if (TRACE) T.KnightBehindPawn[US]++;
         }
@@ -547,15 +547,15 @@ int evaluateKnights(EvalInfo *ei, Board *board, int colour) {
     return eval;
 }
 
-int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
+int evaluateBishops(EvalInfo *ei, Board& board, int colour) {
 
     const int US = colour, THEM = !colour;
 
     int sq, outside, defended, count, eval = 0;
     uint64_t attacks;
 
-    uint64_t enemyPawns  = board->pieces[PAWN  ] & board->colours[THEM];
-    uint64_t tempBishops = board->pieces[BISHOP] & board->colours[US  ];
+    uint64_t enemyPawns  = board.pieces[PAWN  ] & board.colours[THEM];
+    uint64_t tempBishops = board.pieces[BISHOP] & board.colours[US  ];
 
     ei->attackedBy[US][BISHOP] = 0ull;
 
@@ -596,7 +596,7 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
         }
 
         // Apply a bonus if the bishop is behind a pawn
-        if (testBit(pawnAdvance(board->pieces[PAWN], 0ull, THEM), sq)) {
+        if (testBit(pawnAdvance(board.pieces[PAWN], 0ull, THEM), sq)) {
             eval += BishopBehindPawn;
             if (TRACE) T.BishopBehindPawn[US]++;
         }
@@ -617,16 +617,16 @@ int evaluateBishops(EvalInfo *ei, Board *board, int colour) {
     return eval;
 }
 
-int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
+int evaluateRooks(EvalInfo *ei, Board& board, int colour) {
 
     const int US = colour, THEM = !colour;
 
     int sq, open, count, eval = 0;
     uint64_t attacks;
 
-    uint64_t myPawns    = board->pieces[PAWN] & board->colours[  US];
-    uint64_t enemyPawns = board->pieces[PAWN] & board->colours[THEM];
-    uint64_t tempRooks  = board->pieces[ROOK] & board->colours[  US];
+    uint64_t myPawns    = board.pieces[PAWN] & board.colours[  US];
+    uint64_t enemyPawns = board.pieces[PAWN] & board.colours[THEM];
+    uint64_t tempRooks  = board.pieces[ROOK] & board.colours[  US];
 
     ei->attackedBy[US][ROOK] = 0ull;
 
@@ -676,14 +676,14 @@ int evaluateRooks(EvalInfo *ei, Board *board, int colour) {
     return eval;
 }
 
-int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
+int evaluateQueens(EvalInfo *ei, Board& board, int colour) {
 
     const int US = colour, THEM = !colour;
 
     int sq, count, eval = 0;
     uint64_t tempQueens, attacks;
 
-    tempQueens = board->pieces[QUEEN] & board->colours[US];
+    tempQueens = board.pieces[QUEEN] & board.colours[US];
 
     ei->attackedBy[US][QUEEN] = 0ull;
 
@@ -696,7 +696,7 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
         if (TRACE) T.QueenPSQT32[relativeSquare32(US, sq)][US]++;
 
         // Compute possible attacks and store off information for king safety
-        attacks = queenAttacks(sq, board->colours[WHITE] | board->colours[BLACK]);
+        attacks = queenAttacks(sq, board.colours[WHITE] | board.colours[BLACK]);
         ei->attackedBy2[US]       |= attacks & ei->attacked[US];
         ei->attacked[US]          |= attacks;
         ei->attackedBy[US][QUEEN] |= attacks;
@@ -717,19 +717,19 @@ int evaluateQueens(EvalInfo *ei, Board *board, int colour) {
     return eval;
 }
 
-int evaluateKings(EvalInfo *ei, Board *board, int colour) {
+int evaluateKings(EvalInfo *ei, Board& board, int colour) {
 
     const int US = colour, THEM = !colour;
 
     int count, dist, blocked, eval = 0;
 
-    uint64_t myPawns     = board->pieces[PAWN ] & board->colours[  US];
-    uint64_t enemyPawns  = board->pieces[PAWN ] & board->colours[THEM];
-    uint64_t enemyQueens = board->pieces[QUEEN] & board->colours[THEM];
+    uint64_t myPawns     = board.pieces[PAWN ] & board.colours[  US];
+    uint64_t enemyPawns  = board.pieces[PAWN ] & board.colours[THEM];
+    uint64_t enemyQueens = board.pieces[QUEEN] & board.colours[THEM];
 
-    uint64_t defenders  = (board->pieces[PAWN  ] & board->colours[US])
-                        | (board->pieces[KNIGHT] & board->colours[US])
-                        | (board->pieces[BISHOP] & board->colours[US]);
+    uint64_t defenders  = (board.pieces[PAWN  ] & board.colours[US])
+                        | (board.pieces[KNIGHT] & board.colours[US])
+                        | (board.pieces[BISHOP] & board.colours[US]);
 
     int kingSq = ei->kingSquare[US];
     if (TRACE) T.KingValue[US]++;
@@ -756,11 +756,11 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
 
         // Safe target squares are defended or are weak and attacked by two.
         // We exclude squares containing pieces which we cannot capture.
-        uint64_t safe =  ~board->colours[THEM]
+        uint64_t safe =  ~board.colours[THEM]
                       & (~ei->attacked[US] | (weak & ei->attackedBy2[THEM]));
 
         // Find square and piece combinations which would check our King
-        uint64_t occupied      = board->colours[WHITE] | board->colours[BLACK];
+        uint64_t occupied      = board.colours[WHITE] | board.colours[BLACK];
         uint64_t knightThreats = knightAttacks(kingSq);
         uint64_t bishopThreats = bishopAttacks(kingSq, occupied);
         uint64_t rookThreats   = rookAttacks(kingSq, occupied);
@@ -795,7 +795,7 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     // Evaluate based on the number of files between our King and the nearest
     // file-wise pawn. If there is no pawn, kingPawnFileDistance() returns the
     // same distance for both sides causing this evaluation term to be neutral
-    dist = kingPawnFileDistance(board->pieces[PAWN], kingSq);
+    dist = kingPawnFileDistance(board.pieces[PAWN], kingSq);
     ei->pkeval[US] += KingPawnFileProximity[dist];
     if (TRACE) T.KingPawnFileProximity[dist][US]++;
 
@@ -827,15 +827,15 @@ int evaluateKings(EvalInfo *ei, Board *board, int colour) {
     return eval;
 }
 
-int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
+int evaluatePassed(EvalInfo *ei, Board& board, int colour) {
 
     const int US = colour, THEM = !colour;
 
     int sq, rank, dist, flag, canAdvance, safeAdvance, eval = 0;
 
     uint64_t bitboard;
-    uint64_t tempPawns = board->colours[US] & ei->passedPawns;
-    uint64_t occupied  = board->colours[WHITE] | board->colours[BLACK];
+    uint64_t tempPawns = board.colours[US] & ei->passedPawns;
+    uint64_t occupied  = board.colours[WHITE] | board.colours[BLACK];
 
     // Evaluate each passed pawn
     while (tempPawns) {
@@ -863,7 +863,7 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
 
         // Apply a bonus when the path to promoting is uncontested
         bitboard = forwardRanksMasks(US, rankOf(sq)) & Files[fileOf(sq)];
-        flag = !(bitboard & (board->colours[THEM] | ei->attacked[THEM]));
+        flag = !(bitboard & (board.colours[THEM] | ei->attacked[THEM]));
         eval += flag * PassedSafePromotionPath;
         if (TRACE) T.PassedSafePromotionPath[US] += flag;
     }
@@ -871,22 +871,22 @@ int evaluatePassed(EvalInfo *ei, Board *board, int colour) {
     return eval;
 }
 
-int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
+int evaluateThreats(EvalInfo *ei, Board& board, int colour) {
 
     const int US = colour, THEM = !colour;
     const uint64_t Rank3Rel = US == WHITE ? RANK_3 : RANK_6;
 
     int count, eval = 0;
 
-    uint64_t friendly = board->colours[  US];
-    uint64_t enemy    = board->colours[THEM];
+    uint64_t friendly = board.colours[  US];
+    uint64_t enemy    = board.colours[THEM];
     uint64_t occupied = friendly | enemy;
 
-    uint64_t pawns   = friendly & board->pieces[PAWN  ];
-    uint64_t knights = friendly & board->pieces[KNIGHT];
-    uint64_t bishops = friendly & board->pieces[BISHOP];
-    uint64_t rooks   = friendly & board->pieces[ROOK  ];
-    uint64_t queens  = friendly & board->pieces[QUEEN ];
+    uint64_t pawns   = friendly & board.pieces[PAWN  ];
+    uint64_t knights = friendly & board.pieces[KNIGHT];
+    uint64_t bishops = friendly & board.pieces[BISHOP];
+    uint64_t rooks   = friendly & board.pieces[ROOK  ];
+    uint64_t queens  = friendly & board.pieces[QUEEN ];
 
     uint64_t attacksByPawns  = ei->attackedBy[THEM][PAWN  ];
     uint64_t attacksByMinors = ei->attackedBy[THEM][KNIGHT] | ei->attackedBy[THEM][BISHOP];
@@ -965,20 +965,20 @@ int evaluateThreats(EvalInfo *ei, Board *board, int colour) {
     return eval;
 }
 
-int evaluateClosedness(EvalInfo *ei, Board *board) {
+int evaluateClosedness(EvalInfo *ei, Board& board) {
 
     int closedness, count, eval = 0;
 
-    uint64_t white = board->colours[WHITE];
-    uint64_t black = board->colours[BLACK];
+    uint64_t white = board.colours[WHITE];
+    uint64_t black = board.colours[BLACK];
 
-    uint64_t knights = board->pieces[KNIGHT];
-    uint64_t rooks   = board->pieces[ROOK  ];
+    uint64_t knights = board.pieces[KNIGHT];
+    uint64_t rooks   = board.pieces[ROOK  ];
 
     // Compute Closedness factor for this position
-    closedness = 1 * popcount(board->pieces[PAWN])
+    closedness = 1 * popcount(board.pieces[PAWN])
                + 3 * popcount(ei->rammedPawns[WHITE])
-               - 4 * openFileCount(board->pieces[PAWN]);
+               - 4 * openFileCount(board.pieces[PAWN]);
     closedness = MAX(0, MIN(8, closedness / 3));
 
     // Evaluate Knights based on how Closed the position is
@@ -994,7 +994,7 @@ int evaluateClosedness(EvalInfo *ei, Board *board) {
     return eval;
 }
 
-int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
+int evaluateComplexity(EvalInfo *ei, Board& board, int eval) {
 
     // Adjust endgame evaluation based on features related to how
     // likely the stronger side is to convert the position.
@@ -1006,21 +1006,21 @@ int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
     int eg = ScoreEG(eval);
     int sign = (eg > 0) - (eg < 0);
 
-    int pawnsOnBothFlanks = (board->pieces[PAWN] & LEFT_FLANK )
-                         && (board->pieces[PAWN] & RIGHT_FLANK);
+    int pawnsOnBothFlanks = (board.pieces[PAWN] & LEFT_FLANK )
+                         && (board.pieces[PAWN] & RIGHT_FLANK);
 
-    uint64_t knights = board->pieces[KNIGHT];
-    uint64_t bishops = board->pieces[BISHOP];
-    uint64_t rooks   = board->pieces[ROOK  ];
-    uint64_t queens  = board->pieces[QUEEN ];
+    uint64_t knights = board.pieces[KNIGHT];
+    uint64_t bishops = board.pieces[BISHOP];
+    uint64_t rooks   = board.pieces[ROOK  ];
+    uint64_t queens  = board.pieces[QUEEN ];
 
     // Compute the initiative bonus or malus for the attacking side
-    complexity =  ComplexityTotalPawns  * popcount(board->pieces[PAWN])
+    complexity =  ComplexityTotalPawns  * popcount(board.pieces[PAWN])
                +  ComplexityPawnFlanks  * pawnsOnBothFlanks
                +  ComplexityPawnEndgame * !(knights | bishops | rooks | queens)
                +  ComplexityAdjustment;
 
-    if (TRACE) T.ComplexityTotalPawns[WHITE]  += sign * popcount(board->pieces[PAWN]);
+    if (TRACE) T.ComplexityTotalPawns[WHITE]  += sign * popcount(board.pieces[PAWN]);
     if (TRACE) T.ComplexityPawnFlanks[WHITE]  += sign * pawnsOnBothFlanks;
     if (TRACE) T.ComplexityPawnEndgame[WHITE] += sign * !(knights | bishops | rooks | queens);
     if (TRACE) T.ComplexityAdjustment[WHITE]  += sign;
@@ -1031,17 +1031,17 @@ int evaluateComplexity(EvalInfo *ei, Board *board, int eval) {
     return MakeScore(0, v);
 }
 
-int evaluateScaleFactor(Board *board, int eval) {
+int evaluateScaleFactor(Board& board, int eval) {
 
     // Scale endgames based on remaining material. Currently, we only
     // look for OCB endgames that include only one Knight or one Rook
 
-    uint64_t white   = board->colours[WHITE];
-    uint64_t black   = board->colours[BLACK];
-    uint64_t knights = board->pieces[KNIGHT];
-    uint64_t bishops = board->pieces[BISHOP];
-    uint64_t rooks   = board->pieces[ROOK  ];
-    uint64_t queens  = board->pieces[QUEEN ];
+    uint64_t white   = board.colours[WHITE];
+    uint64_t black   = board.colours[BLACK];
+    uint64_t knights = board.pieces[KNIGHT];
+    uint64_t bishops = board.pieces[BISHOP];
+    uint64_t rooks   = board.pieces[ROOK  ];
+    uint64_t queens  = board.pieces[QUEEN ];
 
     if (   onlyOne(white & bishops)
         && onlyOne(black & bishops)
@@ -1072,15 +1072,15 @@ int evaluateScaleFactor(Board *board, int eval) {
     return SCALE_NORMAL;
 }
 
-void initEvalInfo(EvalInfo *ei, Board *board, PKTable *pktable) {
+void initEvalInfo(EvalInfo *ei, Board& board, PKTable *pktable) {
 
-    uint64_t white   = board->colours[WHITE];
-    uint64_t black   = board->colours[BLACK];
+    uint64_t white   = board.colours[WHITE];
+    uint64_t black   = board.colours[BLACK];
 
-    uint64_t pawns   = board->pieces[PAWN  ];
-    uint64_t bishops = board->pieces[BISHOP] | board->pieces[QUEEN];
-    uint64_t rooks   = board->pieces[ROOK  ] | board->pieces[QUEEN];
-    uint64_t kings   = board->pieces[KING  ];
+    uint64_t pawns   = board.pieces[PAWN  ];
+    uint64_t bishops = board.pieces[BISHOP] | board.pieces[QUEEN];
+    uint64_t rooks   = board.pieces[ROOK  ] | board.pieces[QUEEN];
+    uint64_t kings   = board.pieces[KING  ];
 
     // Save some general information about the pawn structure for later
     ei->pawnAttacks[WHITE]  = pawnAttackSpan(white & pawns, ~0ull, WHITE);
@@ -1120,7 +1120,7 @@ void initEvalInfo(EvalInfo *ei, Board *board, PKTable *pktable) {
     ei->kingAttackersWeight[WHITE] = ei->kingAttackersWeight[BLACK] = 0;
 
     // Try to read a hashed Pawn King Eval. Otherwise, start from scratch
-    ei->pkentry       =     pktable == nullptr ? nullptr : getPKEntry(pktable, board->pkhash);
+    ei->pkentry       =     pktable == nullptr ? nullptr : getPKEntry(pktable, board.pkhash);
     ei->passedPawns   = ei->pkentry == nullptr ? 0ull : ei->pkentry->passed;
     ei->pkeval[WHITE] = ei->pkentry == nullptr ? 0    : ei->pkentry->eval;
     ei->pkeval[BLACK] = ei->pkentry == nullptr ? 0    : 0;

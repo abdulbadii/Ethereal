@@ -1065,7 +1065,7 @@ static uint64 encode_pawn(struct TBEntry_pawn *ptr, ubyte *norm, int *pos, int *
 
 static ubyte decompress_pairs(struct PairsData *d, uint64 index);
 
-// place k like pieces on n squares
+// place k like pieces on n & board
 static int subfactor(int k, int n)
 {
   int i, f, l;
