@@ -44,13 +44,12 @@ extern unsigned TB_PROBE_DEPTH;   // Defined by Syzygy.c
 extern volatile int ABORT_SIGNAL; // Defined by Search.c
 extern volatile int IS_PONDERING; // Defined by Search.c
 
+char WHITESPACE[]={" \n\r\t\f\v"};
 pthread_mutex_t READYLOCK = PTHREAD_MUTEX_INITIALIZER;
-const char *StartPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-WHITESPACE[]={" \n\r\t\f\v"};
-
 #include <iostream>
 using namespace std;
-string nextr;
+const string StartPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+string nextr(8191,0);
 
 inline string& strs(string& s, const char* key){
 	size_t f=s.find(key);	return s=f==string::npos? "": s.substr(f);}
@@ -76,13 +75,10 @@ inline bool strContains(string& s, const char* key) {
 	size_t f=s.find(key);
 	return f==string::npos? 0: 1;
 }
-inline string& noTrail(string& s){
+inline string& trTrail(string& s){
 	size_t p=s.find_last_not_of(WHITESPACE);
 	return s=p==string::npos? "": s.substr(0,p+1);}
-inline string noTrail(string s){
-		size_t p=s.find_last_not_of(WHITESPACE);
-		return p==string::npos? "": s.substr(0,p+1);}
-inline string& noLead(string& s){
+inline string& trLead(string& s){
 	size_t p=s.find_first_not_of(WHITESPACE);
 	return s=p==string::npos ? "": s.substr(p);}
 
@@ -117,11 +113,10 @@ void *uciGo(void *cargo) {
 
 	// Init the tokenizer with spaces
 	char* p = strtok(str, " ");
-	string ptr;
 
 	// Parse any time control and search method information that was sent
 	for (p = strtok(NULL, " "); p != nullptr; p = strtok(NULL, " ")) {
-		ptr=p;
+		string ptr=p;
 		if (ptr=="wtime") wtime = atoi(strtok(NULL, " "));
 		if (ptr=="btime") btime = atoi(strtok(NULL, " "));
 		if (ptr=="winc") winc = atoi(strtok(NULL, " "));
@@ -175,7 +170,7 @@ void *uciGo(void *cargo) {
 	return nullptr;
 }
 
-void uciSetOption(string str, Thread *threads, int& multiPV, int& chess960) {
+void uciSetOption(string& str, Thread *threads, int& multiPV, int& chess960) {
 
 	// Handle setting UCI options in Ethereal. Options include:
 	//  Hash             : Size of the Transposition Table in Megabyes
@@ -226,7 +221,7 @@ void uciSetOption(string str, Thread *threads, int& multiPV, int& chess960) {
 	fflush(stdout);
 }
 
-void uciPosition(char *str, Board& board, int chess960) {
+void uciPosition(string& str, Board& board, int chess960) {
 
 	int size;
 	uint16_t moves[MAX_MOVES];
@@ -234,15 +229,17 @@ void uciPosition(char *str, Board& board, int chess960) {
 	Undo undo[1];
 
 	// Position is defined by a FEN, X-FEN or Shredder-FEN
-	if (strContains(str, "fen"))
-		boardFromFEN(board, strstr(str, "fen") + strlen("fen "), chess960);
+	if (strContains(str, "fen ", nextr))
+		boardFromFEN(board, nextr, chess960);
 
 	// Position is simply the usual starting position
 	else if (strContains(str, "startpos"))
 		boardFromFEN(board, StartPosition, chess960);
 
+	char* s=&str[0];
+
 	// Position command may include a list of moves
-	ptr = strstr(str, "moves");
+	ptr = strstr(s, "moves");
 	if (ptr != nullptr)
 		ptr += strlen("moves ");
 
@@ -365,10 +362,9 @@ int main(int argc, char* argv[]) {
 	initTT(16);
 	threads = createThreadPool(1);
 	boardFromFEN(board, StartPosition, chess960);
-	nextr.resize(8191);
 	
 	// Allow the bench to be run from the command line
-	if (argc > 1 && (string)argv[1]=="bench") {
+	if (argc > 1 && string(argv[1])=="bench") {
 		runBenchmark(argc, argv);
 		return 0;
 	}
@@ -403,7 +399,7 @@ int main(int argc, char* argv[]) {
 				uciSetOption(str, threads, multiPV, chess960);
 
 		else if (equStart(str, "position"))
-				uciPosition(&str[0], board, chess960);
+				uciPosition(str, board, chess960);
 
 		else if (equStart(str, "go")) {
 				strncpy(uciGoStruct.str, &str[0], 512);
