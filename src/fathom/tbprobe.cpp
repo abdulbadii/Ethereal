@@ -1378,13 +1378,12 @@ static uint16_t probe_root(const struct pos *pos, int *score,
     }
 }
 
-bool tb_init_impl(const char *path)
-{
-    if (sizeof(uint64_t) != 8 ||        // Paranoid check
-            sizeof(uint32_t) != 4 ||
-            sizeof(uint16_t) != 2 ||
-            sizeof(uint8_t) != 1)
-        return false;
+bool tb_init_impl(const char *path){
+    // if (sizeof(uint64_t) != 8 ||        // Paranoid check
+            // sizeof(uint32_t) != 4 ||
+            // sizeof(uint16_t) != 2 ||
+            // sizeof(uint8_t) != 1)
+        // return false;
     if (path == nullptr)
         path = "";
     init_tablebases(path);

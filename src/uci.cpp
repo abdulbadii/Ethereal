@@ -207,8 +207,7 @@ void uciSetOption(string& str, Thread *threads, int& multiPV, int& chess960) {
 	}
 
 	if (equStart(str, "setoption name SyzygyPath value ", nextr)) {
-		char *ptr = &nextr[0];
-		tb_init(ptr); cout << "info string set SyzygyPath to " << ptr << "\n";
+		tb_init(&nextr[0]); cout << "info string set SyzygyPath to " << nextr << "\n";
 	}
 
 	if (equStart(str, "setoption name SyzygyProbeDepth value ", nextr)) {
@@ -244,7 +243,7 @@ void uciPosition(string& str, Board& board, int chess960) {
 	if (strContains(str, "moves ", nextr))
 	// Apply each move in the move list
 		while (trLead(nextr).size()>3) {
-			string w;
+			string w(5,0);
 
 			// UCI sends moves in long algebraic notation
 			moveStr = firstr(nextr, w);
