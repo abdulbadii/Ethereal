@@ -59,14 +59,16 @@ inline bool equStart(string& s, const char* key, string& nx){
 inline bool equStart(string& s, const char* key){	return !s.compare(0,strlen(key),key); }
 inline bool equStart(string& s, const char* key, size_t& l){	return !s.compare(0,l=strlen(key),key); }
 
-inline string& firstr(string& s, string& w){
-	size_t q,p=s.find_first_not_of(WHITESPACE);
+inline string& parse(string& s, string& w, const char* del=WHITESPACE){
+	size_t q,p=s.find_first_not_of(del);
 	return w=p==string::npos? "":
 	(w=s.substr(p),
-	q=w.find_first_of(WHITESPACE),
+	q=w.find_first_of(del),
 	s=q==string::npos? "":w.substr(q),
 	w.substr(0,q));
 }
+inline string& parse(string& s, string& w, const char* del,__attribute__((unused)) bool f){
+	char l[32];	return parse(s, w, strcat(strcpy(l,del),WHITESPACE));}
 
 inline bool strContains(string& s, const char* key, string& nx) {
 	size_t f=s.find(key), p;
@@ -240,13 +242,14 @@ void uciPosition(string& str, Board& board, int chess960) {
 	else if (strContains(str, "startpos"))
 		boardFromFEN(board, StartPosition, chess960);
 
-	if (strContains(str, "moves ", nextr))
+	if (strContains(str, "moves ", nextr)){
+		trLead(nextr);
 	// Apply each move in the move list
-		while (trLead(nextr).size()>3) {
+		while (nextr.size()>3) {
 			string w(5,0);
 
 			// UCI sends moves in long algebraic notation
-			moveStr = firstr(nextr, w);
+			moveStr = parse(nextr, w);
 
 			// Generate moves for this position
 			size = 0; genAllLegalMoves(board, moves, size);
@@ -265,6 +268,7 @@ void uciPosition(string& str, Board& board, int chess960) {
 			// are still able to use a fixed size for the history array (512)
 			if (board.halfMoveCounter == 0)
 					board.numMoves = 0;
+	}
 	}
 }
 

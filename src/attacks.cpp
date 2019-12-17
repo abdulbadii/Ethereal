@@ -46,11 +46,11 @@ void setSquare(uint64_t *bb, int rank, int file) {
     if (validCoordinate(rank, file))
         *bb |= 1ull << square(rank, file);
 }
-int sliderIndex(uint64_t occupied, Magic *table) {
+int sliderIndex(uint64_t occupied, Magic& table) {
 #ifdef USE_PEXT
-    return _pext_u64(occupied, table->mask);
+    return _pext_u64(occupied, table.mask);
 #else
-    return ((occupied & table->mask) * table->magic) >> table->shift;
+    return ((occupied & table.mask) * table.magic) >> table.shift;
 #endif
 }
 uint64_t sliderAttacks(int sq, uint64_t occupied, const int delta[4][2]) {
@@ -88,7 +88,7 @@ void initSliderAttacks(int sq, Magic *table, uint64_t magic, const int delta[4][
         table[sq+1].offset = table[sq].offset + (1 << popcount(table[sq].mask));
 
     do { // Init attacks for all occupancy variations
-        int index = sliderIndex(occupied, &table[sq]);
+        int index = sliderIndex(occupied, table[sq]);
         table[sq].offset[index] = sliderAttacks(sq, occupied, delta);
         occupied = (occupied - table[sq].mask) & table[sq].mask;
     } while (occupied);
@@ -143,12 +143,12 @@ uint64_t knightAttacks(int sq) {
 
 uint64_t bishopAttacks(int sq, uint64_t occupied) {
     assert(0 <= sq && sq < SQUARE_NB);
-    return BishopTable[sq].offset[sliderIndex(occupied, &BishopTable[sq])];
+    return BishopTable[sq].offset[sliderIndex(occupied, BishopTable[sq])];
 }
 
 uint64_t rookAttacks(int sq, uint64_t occupied) {
     assert(0 <= sq && sq < SQUARE_NB);
-    return RookTable[sq].offset[sliderIndex(occupied, &RookTable[sq])];
+    return RookTable[sq].offset[sliderIndex(occupied, RookTable[sq])];
 }
 
 uint64_t queenAttacks(int sq, uint64_t occupied) {
