@@ -53,23 +53,27 @@ string nextr(8191,0);
 
 inline string& strs(string& s, const char* key){
 	size_t f=s.find(key);	return s=f==string::npos? "": s.substr(f);}
-inline string& strs(string& s, const char* key, size_t& u){
-	size_t f=s.find(key);	return s=f==string::npos? "": (u=strlen(key),s.substr(f));}
-inline string& strs(string& s, string& key, size_t& u){
-	size_t f=s.find(key);	return s=f==string::npos? "": (u=key.size(), s.substr(f));}
 
-inline bool equStart(string& s, const char* key, string& nxstr){
-	uint16_t l=strlen(key);	return !s.compare(0,l,key)? nxstr=s.substr(l), 1: 0;}
+inline bool equStart(string& s, const char* key, string& nx){
+	uint16_t l=strlen(key);	return !s.compare(0,l,key)? nx=s.substr(l), 1: 0;}
 inline bool equStart(string& s, const char* key){	return !s.compare(0,strlen(key),key); }
 inline bool equStart(string& s, const char* key, size_t& l){	return !s.compare(0,l=strlen(key),key); }
 
-inline bool strContains(string& s, const char* key, string& nxstr, size_t len) {
-	size_t f=s.find(key), b;
-	return f==string::npos? (nxstr="", 0): (nxstr=s.substr(b=f+strlen(key), len), s=s.substr(b+len), 1);
+inline string& firstr(string& s, string& w){
+	size_t q,p=s.find_first_not_of(WHITESPACE);
+	return w=p==string::npos? "":
+	(w=s.substr(p),
+	q=w.find_first_of(WHITESPACE),
+	s=q==string::npos? "":w.substr(q),
+	w.substr(0,q));
 }
-inline bool strContains(string& s, const char* key, string& nxstr) {
-	size_t f=s.find(key);
-	return f==string::npos? (nxstr="", 0): (nxstr=s.substr(f+strlen(key)), 1);
+
+inline bool strContains(string& s, const char* key, string& nx) {
+	size_t f=s.find(key), p;
+	return f==string::npos? 0: 
+	(nx=s.substr(f+strlen(key)),
+	p=nx.find_first_not_of(WHITESPACE),
+	nx=p==string::npos? "": nx.substr(p), 1);
 }
 inline bool strContains(string& s, const char* key) {
 	size_t f=s.find(key);
@@ -225,7 +229,8 @@ void uciPosition(string& str, Board& board, int chess960) {
 
 	int size;
 	uint16_t moves[MAX_MOVES];
-	char *ptr, moveStr[6],testStr[6];
+	string moveStr(6,0);
+	char testStr[6];
 	Undo undo[1];
 
 	// Position is defined by a FEN, X-FEN or Shredder-FEN
@@ -236,41 +241,31 @@ void uciPosition(string& str, Board& board, int chess960) {
 	else if (strContains(str, "startpos"))
 		boardFromFEN(board, StartPosition, chess960);
 
-	char* s=&str[0];
-
-	// Position command may include a list of moves
-	ptr = strstr(s, "moves");
-	if (ptr != nullptr)
-		ptr += strlen("moves ");
-
+	if (strContains(str, "moves ", nextr))
 	// Apply each move in the move list
-	while (ptr != nullptr && *ptr != '\0') {
+		while (trLead(nextr).size()>3) {
+			string w;
 
-		// UCI sends moves in long algebraic notation
-		for (int i = 0; i < 4; ++i) moveStr[i] = *ptr++;
-		moveStr[4] = *ptr == '\0' || *ptr == ' ' ? '\0' : *ptr++;
-		moveStr[5] = '\0';
+			// UCI sends moves in long algebraic notation
+			moveStr = firstr(nextr, w);
 
-		// Generate moves for this position
-		size = 0; genAllLegalMoves(board, moves, size);
+			// Generate moves for this position
+			size = 0; genAllLegalMoves(board, moves, size);
 
-		// Find and apply the given move
-		for (int i = 0; i < size; ++i) {
-				moveToString(moves[i], testStr, board.chess960);
-				if (strEquals(moveStr, testStr)) {
-					applyMove(board, moves[i], undo);
-					break;
-				}
-		}
+			// Find and apply the given move
+			for (int i = 0; i < size; ++i) {
+					moveToString(moves[i], testStr, board.chess960);
+					if (moveStr==testStr) {
+						applyMove(board, moves[i], undo);
+						break;
+					}
+			}
 
-		// Reset move history whenever we reset the fifty move rule. This way
-		// we can track all positions that are candidates for repetitions, and
-		// are still able to use a fixed size for the history array (512)
-		if (board.halfMoveCounter == 0)
-				board.numMoves = 0;
-
-		// Skip over all white space
-		while (*ptr == ' ') ptr++;
+			// Reset move history whenever we reset the fifty move rule. This way
+			// we can track all positions that are candidates for repetitions, and
+			// are still able to use a fixed size for the history array (512)
+			if (board.halfMoveCounter == 0)
+					board.numMoves = 0;
 	}
 }
 
@@ -377,7 +372,7 @@ int main(int argc, char* argv[]) {
 
 	while (getline(cin,str)) {
 		if (str=="uci") {
-			cout << "id name Ethereal  ETHEREAL_VERSION \n";
+			cout << "id name Ethereal " << ETHEREAL_VERSION <<"\n";
 			cout << "id author Andrew Grant & Laldon\n";
 			cout << "option name Hash type spin default 16 min 1 max 65536\n";
 			cout << "option name Threads type spin default 1 min 1 max 2048\n";
