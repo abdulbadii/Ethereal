@@ -66,8 +66,8 @@ void setSquare(Board& board, int colour, int piece, int sq) {
 	assert(0 <= sq && sq < SQUARE_NB);
 
 	board.squares[sq] = makePiece(piece, colour);
-	setBit(&board.colours[colour], sq);
-	setBit(&board.pieces[piece], sq);
+	setBit(board.colours[colour], sq);
+	setBit(board.pieces[piece], sq);
 
 	board.psqtmat += PSQT[board.squares[sq]][sq];
 	board.hash ^= ZobristKeys[board.squares[sq]][sq];
@@ -144,16 +144,16 @@ void boardFromFEN(Board& board,const string& fen, int chess960) {
 	black = board.colours[BLACK];
 
 	while ((ch = *token++)) {
-		if (ch == 'K') setBit(&board.castleRooks, getmsb(white & rooks & RANK_1));
-		if (ch == 'Q') setBit(&board.castleRooks, getlsb(white & rooks & RANK_1));
-		if (ch == 'k') setBit(&board.castleRooks, getmsb(black & rooks & RANK_8));
-		if (ch == 'q') setBit(&board.castleRooks, getlsb(black & rooks & RANK_8));
-		if ('A' <= ch && ch <= 'H') setBit(&board.castleRooks, square(0, ch - 'A'));
-		if ('a' <= ch && ch <= 'h') setBit(&board.castleRooks, square(7, ch - 'a'));
+		if (ch == 'K') setBit(board.castleRooks, getmsb(white & rooks & RANK_1));
+		if (ch == 'Q') setBit(board.castleRooks, getlsb(white & rooks & RANK_1));
+		if (ch == 'k') setBit(board.castleRooks, getmsb(black & rooks & RANK_8));
+		if (ch == 'q') setBit(board.castleRooks, getlsb(black & rooks & RANK_8));
+		if ('A' <= ch && ch <= 'H') setBit(board.castleRooks, square(0, ch - 'A'));
+		if ('a' <= ch && ch <= 'h') setBit(board.castleRooks, square(7, ch - 'a'));
 	}
 
 	for (sq = 0; sq < SQUARE_NB; ++sq) {
-		board.castleMasks[sq] = ~0ull;
+		board.castleMasks[sq] = allON;
 		if (testBit(board.castleRooks, sq)) clearBit(&board.castleMasks[sq], sq);
 		if (testBit(white & kings, sq)) board.castleMasks[sq] &= ~white;
 		if (testBit(black & kings, sq)) board.castleMasks[sq] &= ~black;
@@ -337,7 +337,7 @@ int boardDrawnByInsufficientMaterial(Board& board) {
 
 uint64_t perft(Board& board, int depth) {
 
-	Undo undo[1];
+	Undo undo;
 	int size = 0;
 	uint64_t found = 0ull;
 	uint16_t moves[MAX_MOVES];

@@ -63,7 +63,7 @@ uint64_t sliderAttacks(int sq, uint64_t occupied, const int delta[4][2]) {
         dr = delta[i][0], df = delta[i][1];
 
         for (rank = rankOf(sq) + dr, file = fileOf(sq) + df; validCoordinate(rank, file); rank += dr, file += df) {
-            setBit(&result, square(rank, file));
+            setBit(result, square(rank, file));
             if (testBit(occupied, square(rank, file)))
                 break;
         }

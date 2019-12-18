@@ -78,9 +78,8 @@ inline bool strContains(string& s, const char* key, string& nx) {
 	nx=p==string::npos? "": nx.substr(p), 1);
 }
 inline bool strContains(string& s, const char* key) {
-	size_t f=s.find(key);
-	return f==string::npos? 0: 1;
-}
+	size_t f=s.find(key);	return f==string::npos? 0: 1;}
+
 inline string& trTrail(string& s){
 	size_t p=s.find_last_not_of(WHITESPACE);
 	return s=p==string::npos? "": s.substr(0,p+1);}
@@ -88,9 +87,6 @@ inline string& trLead(string& s){
 	size_t p=s.find_first_not_of(WHITESPACE);
 	return s=p==string::npos ? "": s.substr(p);}
 
-int strEquals(char *str1, const char *str2) {	return !strcmp(str1, str2);}
-int strStartsWith(char *str, const char *key) {	return strstr(str, key) == str;}
-int strContains(char *str, const char *key) {	return strstr(str, key) != nullptr;}
 
 void *uciGo(void *cargo) {
 
@@ -229,7 +225,7 @@ void uciPosition(string& str, Board& board, int chess960) {
 	uint16_t moves[MAX_MOVES];
 	string moveStr(6,0);
 	char testStr[6];
-	Undo undo[1];
+	Undo undo;
 
 	// Position is defined by a FEN, X-FEN or Shredder-FEN
 	if (strContains(str, "fen ", nextr))

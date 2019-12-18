@@ -52,6 +52,7 @@ enum {
 	PHASE_NB  =  2, PIECE_NB  = 6,
 	CONT_NB   =  2
 };
+constexpr uint64_t allON = ~0ull;
 
 static inline int pieceType(int piece) {
 	assert(0 <= piece / 4 && piece / 4 <= PIECE_NB);
@@ -94,7 +95,6 @@ typedef struct Limits Limits;
 typedef class UCIGoStruct UCIGoStruct;
 
 // Renamings, currently for move ordering
-
 typedef uint16_t KillerTable[MAX_PLY+1][2];
 typedef uint16_t CounterMoveTable[COLOUR_NB][PIECE_NB][SQUARE_NB];
 typedef int16_t HistoryTable[COLOUR_NB][SQUARE_NB][SQUARE_NB];

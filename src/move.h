@@ -42,16 +42,16 @@ int castleRookTo(int king, int rook);
 
 int apply(Thread *thread, Board& board, uint16_t move, int height);
 void applyLegal(Thread *thread, Board& board, uint16_t move, int height);
-void applyMove(Board& board, uint16_t move, Undo *undo);
-void applyNormalMove(Board& board, uint16_t move, Undo *undo);
-void applyCastleMove(Board& board, uint16_t move, Undo *undo);
-void applyEnpassMove(Board& board, uint16_t move, Undo *undo);
-void applyPromotionMove(Board& board, uint16_t move, Undo *undo);
-void applyNullMove(Board& board, Undo *undo);
+void applyMove(Board& board, uint16_t move, Undo& undo);
+void applyNormalMove(Board& board, uint16_t move, Undo& undo);
+void applyCastleMove(Board& board, uint16_t move, Undo& undo);
+void applyEnpassMove(Board& board, uint16_t move, Undo& undo);
+void applyPromotionMove(Board& board, uint16_t move, Undo& undo);
+void applyNullMove(Board& board, Undo& undo);
 
 void revert(Thread *thread, Board& board, uint16_t move, int height);
-void revertMove(Board& board, uint16_t move, Undo *undo);
-void revertNullMove(Board& board, Undo *undo);
+void revertMove(Board& board, uint16_t move, Undo& undo);
+void revertNullMove(Board& board, Undo& undo);
 
 int legalMoveCount(Board& board);
 int moveExaminedByMultiPV(Thread *thread, uint16_t move);
