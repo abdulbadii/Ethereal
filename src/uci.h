@@ -35,7 +35,7 @@
 class UCIGoStruct {
 public:
 	int multiPV;
-	char str[512];
+	string str{string(512,0)};
 	Board board;
 	Thread *threads;
 };

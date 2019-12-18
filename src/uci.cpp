@@ -44,12 +44,12 @@ extern unsigned TB_PROBE_DEPTH;   // Defined by Syzygy.c
 extern volatile int ABORT_SIGNAL; // Defined by Search.c
 extern volatile int IS_PONDERING; // Defined by Search.c
 
-char WHITESPACE[]={" \n\r\t\f\v"};
+const char WHITESPACE[]={" \n\r\t\f\v"};
 pthread_mutex_t READYLOCK = PTHREAD_MUTEX_INITIALIZER;
 #include <iostream>
 using namespace std;
 const string StartPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-string nextr(8191,0);
+string nextr(8192,0);
 
 inline string& strs(string& s, const char* key){
 	size_t f=s.find(key);	return s=f==string::npos? "": s.substr(f);}
@@ -107,7 +107,7 @@ void *uciGo(void *cargo) {
 	mtg = -1;
 
 	int multiPV     = ((UCIGoStruct*)cargo)->multiPV;
-	char *str       = ((UCIGoStruct*)cargo)->str;
+	string str       = ((UCIGoStruct*)cargo)->str;
 	Board board    = ((UCIGoStruct*)cargo)->board;
 	Thread *threads = ((UCIGoStruct*)cargo)->threads;
 
@@ -117,21 +117,18 @@ void *uciGo(void *cargo) {
 	// Reset global signals
 	IS_PONDERING = 0;
 
-	// Init the tokenizer with spaces
-	char* p = strtok(str, " ");
-
+	string w(9,0);
 	// Parse any time control and search method information that was sent
-	for (p = strtok(NULL, " "); p != nullptr; p = strtok(NULL, " ")) {
-		string ptr=p;
-		if (ptr=="wtime") wtime = atoi(strtok(NULL, " "));
-		if (ptr=="btime") btime = atoi(strtok(NULL, " "));
-		if (ptr=="winc") winc = atoi(strtok(NULL, " "));
-		if (ptr=="binc") binc = atoi(strtok(NULL, " "));
-		if (ptr=="movestogo") mtg = atoi(strtok(NULL, " "));
-		if (ptr=="depth") depth = atoi(strtok(NULL, " "));
-		if (ptr=="movetime") movetime = atoi(strtok(NULL, " "));
-		if (ptr=="infinite") infinite = 1;
-		if (ptr=="ponder") IS_PONDERING = 1;
+	while (parse(str,w), w[0]) {
+		if (w=="wtime") wtime = stoi(parse(str,w));
+		else if (w=="btime") btime = stoi(parse(str,w));
+		else if (w=="winc") winc = stoi(parse(str,w));
+		else if (w=="binc") binc = stoi(parse(str,w));
+		else if (w=="movestogo") mtg = stoi(parse(str,w));
+		else if (w=="depth") depth = stoi(parse(str,w));
+		else if (w=="movetime") movetime = stoi(parse(str,w));
+		else if (w=="infinite") infinite = 1;
+		else if (w=="ponder") IS_PONDERING = 1;
 	}
 
 	// Initialize limits for the search
@@ -242,14 +239,11 @@ void uciPosition(string& str, Board& board, int chess960) {
 	else if (strContains(str, "startpos"))
 		boardFromFEN(board, StartPosition, chess960);
 
-	if (strContains(str, "moves ", nextr)){
-		trLead(nextr);
-	// Apply each move in the move list
-		while (nextr.size()>3) {
-			string w(5,0);
-
-			// UCI sends moves in long algebraic notation
-			moveStr = parse(nextr, w);
+	string w(5,0);
+	if (strContains(str, "moves ", nextr))
+		
+	// Apply each move in the move list. UCI sends moves in long algebraic notation
+		while (moveStr[4] =0, moveStr = parse(nextr, w), w.size() > 3) {
 
 			// Generate moves for this position
 			size = 0; genAllLegalMoves(board, moves, size);
@@ -262,13 +256,10 @@ void uciPosition(string& str, Board& board, int chess960) {
 						break;
 					}
 			}
-
 			// Reset move history whenever we reset the fifty move rule. This way
 			// we can track all positions that are candidates for repetitions, and
 			// are still able to use a fixed size for the history array (512)
-			if (board.halfMoveCounter == 0)
-					board.numMoves = 0;
-	}
+			if (board.halfMoveCounter == 0)	board.numMoves = 0;
 	}
 }
 
@@ -400,7 +391,7 @@ int main(int argc, char* argv[]) {
 				uciPosition(str, board, chess960);
 
 		else if (equStart(str, "go")) {
-				strncpy(uciGoStruct.str, &str[0], 512);
+				uciGoStruct.str.assign(str,0,511);
 				uciGoStruct.multiPV = multiPV;
 				uciGoStruct.board   = board;
 				uciGoStruct.threads = threads;
