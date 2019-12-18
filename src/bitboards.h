@@ -19,7 +19,6 @@
 #pragma once
 
 #include <cstdint>
-
 #include "types.h"
 
 enum {
@@ -76,12 +75,12 @@ void setBit(uint64_t& bb, int i);
 void clearBit(uint64_t *bb, int i);
 bool testBit(uint64_t bb, int i);
  */
-void printBitboard(uint64_t b);
 #include <cassert>
 
 const uint64_t Files[FILE_NB] = {FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H};
 const uint64_t Ranks[RANK_NB] = {RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8};
 
+void printBitboard(uint64_t b);
 inline bool testBit(uint64_t bb, int i) {
     assert(0 <= i && i < SQUARE_NB);
     return bb & (1ull << i);

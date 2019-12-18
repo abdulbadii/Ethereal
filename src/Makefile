@@ -549,7 +549,7 @@ icc-profile-use:
 	all
 
 .depend:
-	@echo -n Logging dependencies...
-	-@$(CXX) $(DEPENDFLAGS) -M $(OBJS:.o=.cpp)>$@ 2> /dev/null &&echo " successfully written on '.depend' file"
+	@echo -n Logging dependency...
+	-@$(CXX) $(DEPENDFLAGS) -MM $(OBJS:.o=.cpp)>$@ 2> /dev/null &&echo " successfully written on '.depend' file"
 
 # -include .depend

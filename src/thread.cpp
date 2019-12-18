@@ -68,7 +68,7 @@ void resetThreadPool(Thread *threads) {
     }
 }
 
-void newSearchThreadPool(Thread *threads, Board& board, Limits *limits, SearchInfo *info) {
+void newSearchThreadPool(Thread *threads, Board& board, Limits *limits, SearchInfo& info) {
 
     // Initialize each Thread in the Thread Pool. We need a reference
     // to the UCI seach parameters, access to the timing information,

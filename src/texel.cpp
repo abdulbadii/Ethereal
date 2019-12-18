@@ -163,7 +163,7 @@ void runTexelTuning(Thread *thread) {
 
 void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
-    Undo undo[1];
+    Undo undo;
     Limits limits;
     char line[128];
     int i, j, k, searchEval, coeffs[NTERMS];
@@ -197,7 +197,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
         // Resolve FEN to a quiet position
         boardFromFEN(thread->board, line, 0);
-        qsearch(thread, &thread->pv, -MATE, MATE, 0);
+        qsearch(thread, thread->pv, -MATE, MATE, 0);
         for (j = 0; j < thread->pv.length; ++j)
             applyMove(thread->board, thread->pv.line[j], undo);
 
