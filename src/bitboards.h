@@ -49,38 +49,10 @@ enum {
     PROMOTION_RANKS = RANK_1 | RANK_8
 };
 
-/* extern const uint64_t Files[FILE_NB];
+extern const uint64_t Files[FILE_NB];
 extern const uint64_t Ranks[RANK_NB];
 
-int fileOf(int sq);
-int mirrorFile(int file);
-int rankOf(int sq);
-int relativeRankOf(int colour, int sq);
-int square(int rank, int file);
-int relativeSquare32(int colour, int sq);
-uint64_t squaresOfMatchingColour(int sq);
 
-int frontmost(int colour, uint64_t bb);
-int backmost(int colour, uint64_t bb);
-
-int popcount(uint64_t bb);
-int getlsb(uint64_t bb);
-int getmsb(uint64_t bb);
-int poplsb(uint64_t *bb);
-int popmsb(uint64_t *bb);
-bool several(uint64_t bb);
-bool onlyOne(uint64_t bb);
-
-void setBit(uint64_t& bb, int i);
-void clearBit(uint64_t *bb, int i);
-bool testBit(uint64_t bb, int i);
- */
-#include <cassert>
-
-const uint64_t Files[FILE_NB] = {FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H};
-const uint64_t Ranks[RANK_NB] = {RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8};
-
-void printBitboard(uint64_t b);
 inline bool testBit(uint64_t bb, int i) {
     assert(0 <= i && i < SQUARE_NB);
     return bb & (1ull << i);
@@ -178,3 +150,21 @@ inline void clearBit(uint64_t *bb, int i) {
     *bb ^= 1ull << i;
 }
 
+uint64_t squaresOfMatchingColour(int sq);
+
+int frontmost(int colour, uint64_t bb);
+int backmost(int colour, uint64_t bb);
+
+int popcount(uint64_t bb);
+int getlsb(uint64_t bb);
+int getmsb(uint64_t bb);
+int poplsb(uint64_t *bb);
+int popmsb(uint64_t *bb);
+bool several(uint64_t bb);
+bool onlyOne(uint64_t bb);
+
+void setBit(uint64_t& bb, int i);
+void clearBit(uint64_t *bb, int i);
+bool testBit(uint64_t bb, int i);
+
+void printBitboard(uint64_t b);

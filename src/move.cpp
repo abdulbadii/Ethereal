@@ -32,7 +32,7 @@
 #include "types.h"
 #include "zobrist.h"
 
-static inline void updateCastleZobrist(Board& board, uint64_t oldRooks, uint64_t newRooks) {
+static void updateCastleZobrist(Board& board, uint64_t oldRooks, uint64_t newRooks) {
 	uint64_t diff = oldRooks ^ newRooks;
 	while (diff)
 		board.hash ^= ZobristCastleKeys[poplsb(&diff)];
@@ -44,17 +44,6 @@ int castleKingTo(int king, int rook) {
 
 int castleRookTo(int king, int rook) {
 	return square(rankOf(king), (rook > king) ? 5 : 3);
-}
-
-void applyLegal(Thread *thread, Board& board, uint16_t move, int height) {
-
-	// Track some move information for history lookups
-	thread->moveStack[height] = move;
-	thread->pieceStack[height] = pieceType(board.squares[MoveFrom(move)]);
-
-	// Assumed that this move is legal
-	applyMove(board, move, thread->undoStack[height]);
-	assert(moveWasLegal(board));
 }
 
 int apply(Thread *thread, Board& board, uint16_t move, int height) {
@@ -76,6 +65,17 @@ int apply(Thread *thread, Board& board, uint16_t move, int height) {
 		return revertMove(board, move, thread->undoStack[height]), 0;
 
 	return 1;
+}
+
+void applyLegal(Thread *thread, Board& board, uint16_t move, int height) {
+
+	// Track some move information for history lookups
+	thread->moveStack[height] = move;
+	thread->pieceStack[height] = pieceType(board.squares[MoveFrom(move)]);
+
+	// Assumed that this move is legal
+	applyMove(board, move, thread->undoStack[height]);
+	assert(moveWasLegal(board));
 }
 
 void applyMove(Board& board, uint16_t move, Undo& undo) {

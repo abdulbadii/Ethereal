@@ -68,8 +68,8 @@ void getBestMove(Thread *threads, Board& board, Limits *limits, uint16_t& best, 
 	// Minor house keeping for starting a search
 	updateTT(); // Table has an age component
 	ABORT_SIGNAL = 0; // Otherwise Threads will exit
-	initTimeManagment(info, limits);
-	newSearchThreadPool(threads, board, limits, info);
+	initTimeManagment(&info, limits);
+	newSearchThreadPool(threads, board, limits, &info);
 
 	// Create a new thread for each of the helpers and reuse the current
 	// thread for the main thread, which avoids some overhead and saves
@@ -92,7 +92,7 @@ void getBestMove(Thread *threads, Board& board, Limits *limits, uint16_t& best, 
 void* iterativeDeepening(void *vthread) {
 
 	Thread *const thread   = (Thread*) vthread;
-	SearchInfo& info = thread->info;
+	SearchInfo *const info = thread->info;
 	Limits *const limits   = thread->limits;
 	const int mainThread   = thread->index == 0;
 	const int cycle        = thread->index % SMPCycles;
@@ -119,10 +119,10 @@ void* iterativeDeepening(void *vthread) {
 		if (!mainThread) continue;
 
 		// Update SearchInfo and report some results
-		info.depth                    = thread->depth;
-		info.values[info.depth]      = thread->values[0];
-		info.bestMoves[info.depth]   = thread->bestMoves[0];
-		info.ponderMoves[info.depth] = thread->ponderMoves[0];
+		info->depth                    = thread->depth;
+		info->values[info->depth]      = thread->values[0];
+		info->bestMoves[info->depth]   = thread->bestMoves[0];
+		info->ponderMoves[info->depth] = thread->ponderMoves[0];
 
 		// Update time allocation based on score and pv changes
 		updateTimeManagment(info, limits);
@@ -132,7 +132,7 @@ void* iterativeDeepening(void *vthread) {
 
 		// Check for termination by any of the possible limits
 		if (   (limits->limitedBySelf  && terminateTimeManagment(info))
-				|| (limits->limitedBySelf  && elapsedTime(info) > info.maxUsage)
+				|| (limits->limitedBySelf  && elapsedTime(info) > info->maxUsage)
 				|| (limits->limitedByTime  && elapsedTime(info) > limits->timeLimit)
 				|| (limits->limitedByDepth && thread->depth >= limits->depthLimit))
 				break;
@@ -143,7 +143,7 @@ void* iterativeDeepening(void *vthread) {
 
 void aspirationWindow(Thread *thread) {
 
-	PVariation& pv = thread->pv;
+	PVariation *const pv = &thread->pv;
 	const int multiPV    = thread->multiPV;
 	const int mainThread = thread->index == 0;
 
@@ -169,8 +169,8 @@ void aspirationWindow(Thread *thread) {
 		// the PV, we set to NONE_MOVE to avoid printing an illegal PV line
 		if (value > alpha && value < beta) {
 				thread->values[multiPV]      = value;
-				thread->bestMoves[multiPV]   = pv.line[0];
-				thread->ponderMoves[multiPV] = pv.length > 1 ? pv.line[1] : (int)NONE_MOVE;
+				thread->bestMoves[multiPV]   = pv->line[0];
+				thread->ponderMoves[multiPV] = pv->length > 1 ? pv->line[1] : (int)NONE_MOVE;
 				return;
 		}
 
@@ -189,7 +189,7 @@ void aspirationWindow(Thread *thread) {
 	}
 }
 
-int search(Thread *thread, PVariation& pv, int alpha, int beta, int depth, int height) {
+int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int height) {
 
 	const int PvNode   = (alpha != beta-1);
 	const int RootNode = (height == 0);
@@ -211,7 +211,7 @@ int search(Thread *thread, PVariation& pv, int alpha, int beta, int depth, int h
 		return qsearch(thread, pv, alpha, beta, height);
 
 	// Ensure a fresh PV
-	pv.length = 0;
+	pv->length = 0;
 
 	// Ensure positive depth
 	depth = MAX(0, depth);
@@ -352,7 +352,7 @@ int search(Thread *thread, PVariation& pv, int alpha, int beta, int depth, int h
 		R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
 
 		apply(thread, board, NULL_MOVE, height);
-		value = -search(thread, lpv, -beta, -beta+1, depth-R, height+1);
+		value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
 		revert(thread, board, NULL_MOVE, height);
 
 		if (value >= beta) return beta;
@@ -368,12 +368,12 @@ int search(Thread *thread, PVariation& pv, int alpha, int beta, int depth, int h
 
 		// Try tactical moves which maintain rBeta
 		rBeta = MIN(beta + ProbCutMargin, MATE - MAX_PLY - 1);
-		initNoisyMovePicker(movePicker, thread, rBeta - eval);
-		while ((move = selectNextMove(movePicker, board, 1)) != NONE_MOVE) {
+		initNoisyMovePicker(&movePicker, thread, rBeta - eval);
+		while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
 				// Perform a reduced depth verification search
 				if (!apply(thread, board, move, height)) continue;
-				value = -search(thread, lpv, -rBeta, -rBeta+1, depth-4, height+1);
+				value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
 				revert(thread, board, move, height);
 
 				// Probcut failed high
@@ -383,8 +383,8 @@ int search(Thread *thread, PVariation& pv, int alpha, int beta, int depth, int h
 
 	// Step 11. Initialize the Move Picker and being searching through each
 	// move one at a time, until we run out or a move generates a cutoff
-	initMovePicker(movePicker, thread, ttMove, height);
-	while ((move = selectNextMove(movePicker, board, skipQuiets)) != NONE_MOVE) {
+	initMovePicker(&movePicker, thread, ttMove, height);
+	while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
 
 		// In MultiPV mode, skip over already examined lines
 		if (RootNode && moveExaminedByMultiPV(thread, move))
@@ -502,21 +502,21 @@ int search(Thread *thread, PVariation& pv, int alpha, int beta, int depth, int h
 		// Step 16A. If we triggered the LMR conditions (which we know by the value of R),
 		// then we will perform a reduced search on the null alpha window, as we have no
 		// expectation that this move will be worth looking into deeper
-		if (R != 1) value = -search(thread, lpv, -alpha-1, -alpha, newDepth-R, height+1);
+		if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R, height+1);
 
 		// Step 16B. There are two situations in which we will search again on a null window,
 		// but without a depth reduction R. First, if the LMR search happened, and failed
 		// high, secondly, if we did not try an LMR search, and this is not the first move
 		// we have tried in a PvNode, we will research with the normally reduced depth
 		if ((R != 1 && value > alpha) || (R == 1 && !(PvNode && played == 1)))
-				value = -search(thread, lpv, -alpha-1, -alpha, newDepth-1, height+1);
+				value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1, height+1);
 
 		// Step 16C. Finally, if we are in a PvNode and a move beat alpha while being
 		// search on a reduced depth, we will search again on the normal window. Also,
 		// if we did not perform Step 18B, we will search for the first time on the
 		// normal window. This happens only for the first move in a PvNode
 		if (PvNode && (played == 1 || value > alpha))
-				value = -search(thread, lpv, -beta, -alpha, newDepth-1, height+1);
+				value = -search(thread, &lpv, -beta, -alpha, newDepth-1, height+1);
 
 		// Revert the board state
 		revert(thread, board, move, height);
@@ -532,9 +532,9 @@ int search(Thread *thread, PVariation& pv, int alpha, int beta, int depth, int h
 					alpha = value;
 
 					// Copy our child's PV and prepend this move to it
-					pv.length = 1 + lpv.length;
-					pv.line[0] = move;
-					memcpy(pv.line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
+					pv->length = 1 + lpv.length;
+					pv->line[0] = move;
+					memcpy(pv->line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
 
 					// Search failed high
 					if (alpha >= beta) break;
@@ -564,7 +564,7 @@ int search(Thread *thread, PVariation& pv, int alpha, int beta, int depth, int h
 	return best;
 }
 
-int qsearch(Thread *thread, PVariation& pv, int alpha, int beta, int height) {
+int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 
 	Board& board = thread->board;
 
@@ -575,7 +575,7 @@ int qsearch(Thread *thread, PVariation& pv, int alpha, int beta, int height) {
 	PVariation lpv;
 
 	// Ensure a fresh PV
-	pv.length = 0;
+	pv->length = 0;
 
 	// Updates for UCI reporting
 	thread->seldepth = MAX(thread->seldepth, height);
@@ -632,12 +632,12 @@ int qsearch(Thread *thread, PVariation& pv, int alpha, int beta, int height) {
 	// Step 7. Move Generation and Looping. Generate all tactical moves
 	// and return those which are winning via SEE, and also strong enough
 	// to beat the margin computed in the Delta Pruning step found above
-	initNoisyMovePicker(movePicker, thread, MAX(QSEEMargin, margin));
-	while ((move = selectNextMove(movePicker, board, 1)) != NONE_MOVE) {
+	initNoisyMovePicker(&movePicker, thread, MAX(QSEEMargin, margin));
+	while ((move = selectNextMove(&movePicker, board, 1)) != NONE_MOVE) {
 
 		// Search the next ply if the move is legal
 		if (!apply(thread, board, move, height)) continue;
-		value = -qsearch(thread, lpv, -beta, -alpha, height+1);
+		value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
 		revert(thread, board, move, height);
 
 		// Improved current value
@@ -649,9 +649,9 @@ int qsearch(Thread *thread, PVariation& pv, int alpha, int beta, int height) {
 					alpha = value;
 
 					// Update the Principle Variation
-					pv.length = 1 + lpv.length;
-					pv.line[0] = move;
-					memcpy(pv.line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
+					pv->length = 1 + lpv.length;
+					pv->line[0] = move;
+					memcpy(pv->line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
 				}
 		}
 
@@ -769,14 +769,14 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
 	revert(thread, board, ttMove, height);
 
 	// Iterate over each move, except for the table move
-	initSingularMovePicker(movePicker, thread, ttMove, height);
-	while ((move = selectNextMove(movePicker, board, skipQuiets)) != NONE_MOVE) {
+	initSingularMovePicker(&movePicker, thread, ttMove, height);
+	while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
 
 		assert(move != ttMove); // Skip the table move
 
 		// Perform a reduced depth search on a null rbeta window
 		if (!apply(thread, board, move, height)) continue;
-		value = -search(thread, lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1);
+		value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1);
 		revert(thread, board, move, height);
 
 		// Move failed high, thus ttMove is not singular

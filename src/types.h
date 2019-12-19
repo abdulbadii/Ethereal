@@ -19,7 +19,9 @@
 #pragma once
 
 #include <cassert>
-#include <cstdint>
+#include <cstring>
+#include <iostream>
+using namespace std;
 
 enum { MG, EG };
 
@@ -52,25 +54,9 @@ enum {
 	PHASE_NB  =  2, PIECE_NB  = 6,
 	CONT_NB   =  2
 };
+
+const char WHITESPACE[]={" \n\r\t\f\v"};
 constexpr uint64_t allON = ~0ull;
-
-static inline int pieceType(int piece) {
-	assert(0 <= piece / 4 && piece / 4 <= PIECE_NB);
-	assert(piece % 4 <= COLOUR_NB);
-	return piece / 4;
-}
-
-static inline int pieceColour(int piece) {
-	assert(0 <= piece / 4 && piece / 4 <= PIECE_NB);
-	assert(piece % 4 <= COLOUR_NB);
-	return piece % 4;
-}
-
-static inline int makePiece(int type, int colour) {
-	assert(0 <= type && type < PIECE_NB);
-	assert(0 <= colour && colour <= COLOUR_NB);
-	return type * 4 + colour;
-}
 
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 #define MAX(A, B) ((A) > (B) ? (A) : (B))
@@ -99,3 +85,54 @@ typedef uint16_t KillerTable[MAX_PLY+1][2];
 typedef uint16_t CounterMoveTable[COLOUR_NB][PIECE_NB][SQUARE_NB];
 typedef int16_t HistoryTable[COLOUR_NB][SQUARE_NB][SQUARE_NB];
 typedef int16_t ContinuationTable[CONT_NB][PIECE_NB][SQUARE_NB][PIECE_NB][SQUARE_NB];
+
+static inline int pieceType(int piece) {
+	assert(0 <= piece / 4 && piece / 4 <= PIECE_NB);
+	assert(piece % 4 <= COLOUR_NB);
+	return piece / 4;
+}
+
+static inline int pieceColour(int piece) {
+	assert(0 <= piece / 4 && piece / 4 <= PIECE_NB);
+	assert(piece % 4 <= COLOUR_NB);
+	return piece % 4;
+}
+
+static inline int makePiece(int type, int colour) {
+	assert(0 <= type && type < PIECE_NB);
+	assert(0 <= colour && colour <= COLOUR_NB);
+	return type * 4 + colour;
+}
+
+inline bool equStart(string& s, const char* key, string& nx){
+	uint16_t l=strlen(key);	return !s.compare(0,l,key)? nx=s.substr(l), 1: 0;}
+inline bool equStart(string& s, const char* key){	return !s.compare(0,strlen(key),key); }
+inline bool equStart(string& s, const char* key, size_t& l){	return !s.compare(0,l=strlen(key),key); }
+
+inline string& parse(string& s, string& w, const char* del=WHITESPACE){
+	size_t q,p=s.find_first_not_of(del);
+	return w=p==string::npos? "":
+	(w=s.substr(p),
+	q=w.find_first_of(del),
+	s=q==string::npos? "":w.substr(q),
+	w.substr(0,q));
+}
+inline string& parse(string& s, string& w, const char* del,__attribute__((unused)) bool f){
+	char l[32];	return parse(s, w, strcat(strcpy(l,del),WHITESPACE));}
+
+inline bool strContains(string& s, const char* key, string& nx) {
+	size_t f=s.find(key), p;
+	return f==string::npos? 0: 
+	(nx=s.substr(f+strlen(key)),
+	p=nx.find_first_not_of(WHITESPACE),
+	nx=p==string::npos? "": nx.substr(p), 1);
+}
+inline bool strContains(string& s, const char* key) {
+	size_t f=s.find(key);	return f==string::npos? 0: 1;}
+
+inline string& trTrail(string& s){
+	size_t p=s.find_last_not_of(WHITESPACE);
+	return s=p==string::npos? "": s.substr(0,p+1);}
+inline string& trLead(string& s){
+	size_t p=s.find_first_not_of(WHITESPACE);
+	return s=p==string::npos ? "": s.substr(p);}
