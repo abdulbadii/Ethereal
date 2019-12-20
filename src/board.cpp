@@ -109,12 +109,12 @@ void boardFromFEN(Board& board,const string& fens, int chess960) {
 	int sq = 56;
 	char ch;
 	string word(43,0), fen=fens;
-	uint16_t i=0;
 	uint64_t rooks, kings, white, black;
-	parse(fen, word);
 
 	clearBoard(board); // Zero out, set squares to EMPTY
 
+	parse(fen, word);
+	uint16_t i=0;
 	// Piece placement
 	while ((ch = word[i++])) {
 		if (isdigit(ch))
@@ -197,7 +197,7 @@ void boardToFEN(Board& board, string& fen) {
 	uint16_t i=0, cnt;
 
 	// Piece placement
-	for (int r = RANK_NB-1; r >= 0; r--) {
+	for (int r = RANK_NB-1; r >= 0; --r) {
 		cnt = 0;
 
 		for (int f = 0; f < FILE_NB; ++f) {
@@ -353,7 +353,7 @@ uint64_t perft(Board& board, int depth) {
 	genAllQuietMoves(board, moves, size);
 
 	// Recurse on all valid moves
-	for(size -= 1; size >= 0; size--) {
+	for(size -= 1; size >= 0; --size) {
 		applyMove(board, moves[size], undo);
 		if (moveWasLegal(board)) found += perft(board, depth-1);
 		revertMove(board, moves[size], undo);

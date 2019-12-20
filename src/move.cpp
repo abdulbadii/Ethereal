@@ -499,7 +499,7 @@ int moveBestCaseValue(Board& board) {
 	int value = SEEPieceValues[PAWN];
 
 	// Check for a higher value target
-	for (int piece = QUEEN; piece > PAWN; piece--)
+	for (int piece = QUEEN; piece > PAWN; --piece)
 		if (board.pieces[piece] & board.colours[!board.turn])
 			{ value = SEEPieceValues[piece]; break; }
 

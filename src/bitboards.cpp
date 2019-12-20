@@ -28,7 +28,7 @@ const uint64_t Ranks[RANK_NB] = {RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6,
 
 void printBitboard(uint64_t bb) {
 
-    for (int rank = 7; rank >= 0; rank--) {
+    for (int rank = 7; rank >= 0; --rank) {
         char line[] = ". . . . . . . .";
 
         for (int file = 0; file < FILE_NB; ++file)

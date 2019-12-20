@@ -188,7 +188,7 @@ void uciPosition(string& str, Board& board, int chess960) {
 
 	int size;
 	uint16_t moves[MAX_MOVES];
-	string moveStr(6,0);
+	string moveStr(6,0), w(5,0);
 	char testStr[6];
 	Undo undo;
 
@@ -200,7 +200,6 @@ void uciPosition(string& str, Board& board, int chess960) {
 	else if (strContains(str, "startpos"))
 		boardFromFEN(board, StartPosition, chess960);
 
-	string w(5,0);
 	if (strContains(str, "moves ", nextr))
 		
 	// Apply each move in the move list. UCI sends moves in long algebraic notation
