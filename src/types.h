@@ -55,7 +55,7 @@ enum {
 	CONT_NB   =  2
 };
 
-const char WHITESPACE[]={" \n\r\t\f\v"};
+const char WHITESPACE[]=" \n\r\t\f\v";
 constexpr uint64_t allON = ~0ull;
 
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
@@ -86,22 +86,24 @@ typedef uint16_t CounterMoveTable[COLOUR_NB][PIECE_NB][SQUARE_NB];
 typedef int16_t HistoryTable[COLOUR_NB][SQUARE_NB][SQUARE_NB];
 typedef int16_t ContinuationTable[CONT_NB][PIECE_NB][SQUARE_NB][PIECE_NB][SQUARE_NB];
 
-static inline int pieceType(int piece) {
+namespace {
+inline int pieceType(int piece) {
 	assert(0 <= piece / 4 && piece / 4 <= PIECE_NB);
 	assert(piece % 4 <= COLOUR_NB);
 	return piece / 4;
 }
 
-static inline int pieceColour(int piece) {
+inline int pieceColour(int piece) {
 	assert(0 <= piece / 4 && piece / 4 <= PIECE_NB);
 	assert(piece % 4 <= COLOUR_NB);
 	return piece % 4;
 }
 
-static inline int makePiece(int type, int colour) {
+inline int makePiece(int type, int colour) {
 	assert(0 <= type && type < PIECE_NB);
 	assert(0 <= colour && colour <= COLOUR_NB);
 	return type * 4 + colour;
+}
 }
 
 inline bool equStart(string& s, const char* key, string& nx){
