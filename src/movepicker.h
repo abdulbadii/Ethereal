@@ -40,7 +40,7 @@ struct MovePicker {
     Thread *thread;
 };
 
-void initMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int height);
-void initSingularMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int height);
-void initNoisyMovePicker(MovePicker *mp, Thread *thread, int threshold);
-uint16_t selectNextMove(MovePicker *mp, Board& board, int skipQuiets);
+void initMovePicker(MovePicker& mp, Thread *thread, uint16_t ttMove, int height);
+void initSingularMovePicker(MovePicker& mp, Thread *thread, uint16_t ttMove, int height);
+void initNoisyMovePicker(MovePicker& mp, Thread *thread, int threshold);
+uint16_t selectNextMove(MovePicker& mp, Board& board, int skipQuiets);

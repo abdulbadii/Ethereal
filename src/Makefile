@@ -569,5 +569,5 @@ icc-profile-use:
 	@echo -n Logging dependencies...
 	-@$(CXX) $(DEPENDFLAGS) -MM $(OBJS:.o=.cpp)>$@ 2> /dev/null &&echo " successfully written on '.depend' file"
 	@read -p 'Logging more detailed dependencies?' p \
-	@[ $$p = 'n' ] && quit \
+	@[ "$$p:" = y ]
 	-@$(CXX) $(DEPENDFLAGS) -M $(OBJS:.o=.cpp)>$@ 2> /dev/null &&echo " successfully written on '.depend_' file"

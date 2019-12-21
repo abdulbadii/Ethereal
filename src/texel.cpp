@@ -110,10 +110,10 @@ void runTexelTuning(Thread *thread) {
     cout << "\n\nSETTING TABLE SIZE TO 1MB FOR SPEED...";
     initTT(1);
 
-    cout << "\n\nALLOCATING MEMORY FOR TEXEL ENTRIES [" << (int)(NPOSITIONS * sizeof(TexelEntry) / (1024 * 1024)) << "MB]...";
+    cout << "\n\nALLOCATING MEMORY FOR TEXEL ENTRIES [" << int(NPOSITIONS * sizeof(TexelEntry) / (1024 * 1024)) << "MB]...";
     tes = calloc(NPOSITIONS, sizeof(TexelEntry));
 
-    cout << "\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [" << (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)) << "MB]...";
+    cout << "\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [" << int(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)) << "MB]...";
     TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
 
     cout << "\n\nINITIALIZING TEXEL ENTRIES FROM FENS...";
@@ -230,7 +230,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
             k += coeffs[j] != 0;
 
         // Allocate Tuples
-        updateMemory(&tes[i], k);
+        updateMemory(tes[i], k);
 
         // Initialize the Texel Tuples
         for (k = 0, j = 0; j < NTERMS; ++j) {
@@ -280,18 +280,18 @@ void initPhaseManager(TexelVector phases) {
     }
 }
 
-void updateMemory(TexelEntry *te, int size) {
+void updateMemory(TexelEntry& te, int size) {
 
     // First ensure we have enough Tuples left for this TexelEntry
     if (size > TupleStackSize) {
-        cout << "\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [" << (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)) << "MB]...\n\n";
+        cout << "\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [" << int(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)) << "MB]...\n\n";
         TupleStackSize = STACKSIZE;
         TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
     }
 
     // Allocate Tuples for the given TexelEntry
-    te->tuples = TupleStack;
-    te->ntuples = size;
+    te.tuples = TupleStack;
+    te.ntuples = size;
 
     // Update internal memory manager
     TupleStack += size;
@@ -306,7 +306,7 @@ void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, T
         #pragma omp for schedule(static, BATCHSIZE / NPARTITIONS)
         for (int i = batch * BATCHSIZE; i < (batch + 1) * BATCHSIZE; ++i) {
 
-            double error = singleLinearError(&tes[i], params, K);
+            double error = singleLinearError(tes[i], params, K);
 
             for (int j = 0; j < tes[i].ntuples; ++j)
                 for (int k = MG; k <= EG; ++k)
@@ -379,28 +379,28 @@ double completeLinearError(TexelEntry *tes, TexelVector params, double K) {
     {
         #pragma omp for schedule(static, NPOSITIONS / NPARTITIONS) reduction(+:total)
         for (int i = 0; i < NPOSITIONS; ++i)
-            total += pow(tes[i].result - sigmoid(K, linearEvaluation(&tes[i], params)), 2);
+            total += pow(tes[i].result - sigmoid(K, linearEvaluation(tes[i], params)), 2);
     }
 
     return total / (double)NPOSITIONS;
 }
 
-double singleLinearError(TexelEntry *te, TexelVector params, double K) {
+double singleLinearError(TexelEntry& te, TexelVector params, double K) {
     double sigm = sigmoid(K, linearEvaluation(te, params));
     double sigmprime = sigm * (1 - sigm);
-    return (te->result - sigm) * sigmprime;
+    return (te.result - sigm) * sigmprime;
 }
 
-double linearEvaluation(TexelEntry *te, TexelVector params) {
+double linearEvaluation(TexelEntry& te, TexelVector params) {
 
     double mg = 0, eg = 0;
 
-    for (int i = 0; i < te->ntuples; ++i) {
-        mg += te->tuples[i].coeff * params[te->tuples[i].index][MG];
-        eg += te->tuples[i].coeff * params[te->tuples[i].index][EG];
+    for (int i = 0; i < te.ntuples; ++i) {
+        mg += te.tuples[i].coeff * params[te.tuples[i].index][MG];
+        eg += te.tuples[i].coeff * params[te.tuples[i].index][EG];
     }
 
-    return te->eval + ((mg * (256 - te->phase) + eg * te->phase) / 256.0);
+    return te.eval + ((mg * (256 - te.phase) + eg * te.phase) / 256.0);
 }
 
 double sigmoid(double K, double S) {

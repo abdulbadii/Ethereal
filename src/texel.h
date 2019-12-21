@@ -35,7 +35,7 @@
 #define STATICWEIGHT (   0.50) // Weight of the Static Evaluation
 #define SEARCHWEIGHT (   0.50) // Weight of the Depth 10 Search
 
-#define STACKSIZE ((int)((double) NPOSITIONS * NTERMS / 8))
+#define STACKSIZE (int((double) NPOSITIONS * NTERMS / 8))
 
 #define TunePawnValue                   (0)
 #define TuneKnightValue                 (0)
@@ -114,15 +114,15 @@ void initCoefficients(int coeffs[NTERMS]);
 void initCurrentParameters(TexelVector cparams);
 void initPhaseManager(TexelVector phases);
 
-void updateMemory(TexelEntry *te, int size);
+void updateMemory(TexelEntry& te, int size);
 void updateGradient(TexelEntry *tes, TexelVector gradient, TexelVector params, TexelVector phases, double K, int batch);
 void shuffleTexelEntries(TexelEntry *tes);
 
 double computeOptimalK(TexelEntry *tes);
 double completeEvaluationError(TexelEntry *tes, double K);
 double completeLinearError(TexelEntry *tes, TexelVector params, double K);
-double singleLinearError(TexelEntry *te, TexelVector params, double K);
-double linearEvaluation(TexelEntry *te, TexelVector params);
+double singleLinearError(TexelEntry& te, TexelVector params, double K);
+double linearEvaluation(TexelEntry& te, TexelVector params);
 double sigmoid(double K, double S);
 
 void printParameters(TexelVector params, TexelVector cparams);

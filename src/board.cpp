@@ -399,9 +399,9 @@ void runBenchmark(int argc, char** argv) {
 		clearTT(); // Reset TT for new search
 	}
 
-	cout << "Time  : " << (int)(getRealTime() - start) << "ms\n";
+	cout << "Time  : " << int(getRealTime() - start) << "ms\n";
 	cout << "Nodes : " << nodes << "\n";
-	cout << "NPS   : " << (int)(nodes / ((getRealTime() - start) / 1000.0)) << "\n";
+	cout << "NPS   : " << int(nodes / ((getRealTime() - start) / 1000.0)) << "\n";
 
 	free(threads);
 }
