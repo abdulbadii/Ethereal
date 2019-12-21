@@ -21,6 +21,7 @@
 #include <cstdint>
 
 #include "types.h"
+#include "bitboards.h"
 
 enum {
     NONE_MOVE = 0, NULL_MOVE = 11,
@@ -37,11 +38,33 @@ enum {
     QUEEN_PROMO_MOVE  = PROMOTION_MOVE | PROMOTE_TO_QUEEN
 };
 
-int castleKingTo(int king, int rook);
-int castleRookTo(int king, int rook);
+extern uint64_t ZobristCastleKeys[SQUARE_NB];
+static inline void updateCastleZobrist(Board& board, uint64_t oldRooks, uint64_t newRooks) {
+	uint64_t diff = oldRooks ^ newRooks;
+	while (diff)	board.hash ^= ZobristCastleKeys[poplsb(diff)];
+}
 
+inline int castleKingTo(int king, int rook) {
+	return square(rankOf(king), (rook > king) ? 6 : 2);
+}
+
+inline int castleRookTo(int king, int rook) {
+	return square(rankOf(king), (rook > king) ? 5 : 3);
+}
+/* 
+inline void applyLegal(Thread *thread, Board& board, uint16_t move, int height) {
+
+	// Track some move information for history lookups
+	thread->moveStack[height] = move;
+	thread->pieceStack[height] = pieceType(board.squares[MoveFrom(move)]);
+
+	// Assumed that this move is legal
+	applyMove(board, move, thread->undoStack[height]);
+	assert(moveWasLegal(board));
+} */
+
+inline void applyLegal(Thread *thread, Board& board, uint16_t move, int height);
 int apply(Thread *thread, Board& board, uint16_t move, int height);
-void applyLegal(Thread *thread, Board& board, uint16_t move, int height);
 void applyMove(Board& board, uint16_t move, Undo& undo);
 void applyNormalMove(Board& board, uint16_t move, Undo& undo);
 void applyCastleMove(Board& board, uint16_t move, Undo& undo);
