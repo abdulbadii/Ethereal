@@ -158,13 +158,13 @@ void boardFromFEN(Board& board,const string& fens, int chess960) {
 
 	for (sq = 0; sq < SQUARE_NB; ++sq) {
 		board.castleMasks[sq] = allON;
-		if (testBit(board.castleRooks, sq)) clearBit(&board.castleMasks[sq], sq);
+		if (testBit(board.castleRooks, sq)) clearBit(board.castleMasks[sq], sq);
 		if (testBit(white & kings, sq)) board.castleMasks[sq] &= ~white;
 		if (testBit(black & kings, sq)) board.castleMasks[sq] &= ~black;
 	}
 
 	rooks = board.castleRooks;
-	while (rooks) board.hash ^= ZobristCastleKeys[poplsb(&rooks)];
+	while (rooks) board.hash ^= ZobristCastleKeys[poplsb(rooks)];
 
 	// En passant square
 	board.epSquare = stringToSquare(parse(fen, word));
@@ -227,7 +227,7 @@ void boardToFEN(Board& board, string& fen) {
 	// Castle rights for White
 	castles = board.colours[WHITE] & board.castleRooks;
 	while (castles) {
-		sq = popmsb(&castles);
+		sq = popmsb(castles);
 		if (board.chess960) fen[i++] = 'A' + fileOf(sq);
 		else if (testBit(FILE_H, sq)) fen[i++] = 'K';
 		else if (testBit(FILE_A, sq)) fen[i++] = 'Q';
@@ -236,7 +236,7 @@ void boardToFEN(Board& board, string& fen) {
 	// Castle rights for Black
 	castles = board.colours[BLACK] & board.castleRooks;
 	while (castles) {
-		sq = popmsb(&castles);
+		sq = popmsb(castles);
 		if (board.chess960) fen[i++] = 'a' + fileOf(sq);
 		else if (testBit(FILE_H, sq)) fen[i++] = 'k';
 		else if (testBit(FILE_A, sq)) fen[i++] = 'q';
@@ -394,7 +394,7 @@ void runBenchmark(int argc, char** argv) {
 		cout << "\nPosition #" << i + 1 << ": " << Benchmarks[i] << "\n";
 		boardFromFEN(board, Benchmarks[i], 0);
 		limits.start = getRealTime();
-		getBestMove(threads, board, &limits, bestMove, ponderMove);
+		getBestMove(threads, board, limits, bestMove, ponderMove);
 		nodes += nodesSearchedThreadPool(threads);
 		clearTT(); // Reset TT for new search
 	}

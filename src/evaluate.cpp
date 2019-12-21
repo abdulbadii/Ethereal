@@ -424,7 +424,7 @@ int evaluatePawns(EvalInfo& ei, Board& board, int colour) {
     while (tempPawns) {
 
         // Pop off the next pawn
-        sq = poplsb(&tempPawns);
+        sq = poplsb(tempPawns);
         if (TRACE) T.PawnValue[US]++;
         if (TRACE) T.PawnPSQT32[relativeSquare32(US, sq)][US]++;
 
@@ -505,7 +505,7 @@ int evaluateKnights(EvalInfo& ei, Board& board, int colour) {
     while (tempKnights) {
 
         // Pop off the next knight
-        sq = poplsb(&tempKnights);
+        sq = poplsb(tempKnights);
         if (TRACE) T.KnightValue[US]++;
         if (TRACE) T.KnightPSQT32[relativeSquare32(US, sq)][US]++;
 
@@ -569,7 +569,7 @@ int evaluateBishops(EvalInfo& ei, Board& board, int colour) {
     while (tempBishops) {
 
         // Pop off the next Bishop
-        sq = poplsb(&tempBishops);
+        sq = poplsb(tempBishops);
         if (TRACE) T.BishopValue[US]++;
         if (TRACE) T.BishopPSQT32[relativeSquare32(US, sq)][US]++;
 
@@ -634,7 +634,7 @@ int evaluateRooks(EvalInfo& ei, Board& board, int colour) {
     while (tempRooks) {
 
         // Pop off the next rook
-        sq = poplsb(&tempRooks);
+        sq = poplsb(tempRooks);
         if (TRACE) T.RookValue[US]++;
         if (TRACE) T.RookPSQT32[relativeSquare32(US, sq)][US]++;
 
@@ -691,7 +691,7 @@ int evaluateQueens(EvalInfo& ei, Board& board, int colour) {
     while (tempQueens) {
 
         // Pop off the next queen
-        sq = poplsb(&tempQueens);
+        sq = poplsb(tempQueens);
         if (TRACE) T.QueenValue[US]++;
         if (TRACE) T.QueenPSQT32[relativeSquare32(US, sq)][US]++;
 
@@ -841,7 +841,7 @@ int evaluatePassed(EvalInfo& ei, Board& board, int colour) {
     while (tempPawns) {
 
         // Pop off the next passed Pawn
-        sq = poplsb(&tempPawns);
+        sq = poplsb(tempPawns);
         rank = relativeRankOf(US, sq);
         bitboard = pawnAdvance(1ull << sq, 0ull, US);
 

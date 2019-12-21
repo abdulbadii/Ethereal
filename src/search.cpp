@@ -55,10 +55,10 @@ void initSearch() {
 				LMRTable[depth][played] = 0.75 + log(depth) * log(played) / 2.25;
 }
 
-void getBestMove(Thread *threads, Board& board, Limits *limits, uint16_t& best, uint16_t& ponder) {
+void getBestMove(Thread *threads, Board& board, Limits& limits, uint16_t& best, uint16_t& ponder) {
 
 	SearchInfo info = {};
-	pthread_t pthreads[threads->nthreads];
+	pthread_t *pthreads = new pthread_t[threads->nthreads];
 
 	// If the root position can be found in the DTZ tablebases,
 	// then we simply return the move recommended by Syzygy/Fathom.
@@ -143,7 +143,7 @@ void* iterativeDeepening(void *vthread) {
 
 void aspirationWindow(Thread *thread) {
 
-	PVariation *const pv = &thread->pv;
+	PVariation& pv = thread->pv;
 	const int multiPV    = thread->multiPV;
 	const int mainThread = thread->index == 0;
 
@@ -169,8 +169,8 @@ void aspirationWindow(Thread *thread) {
 		// the PV, we set to NONE_MOVE to avoid printing an illegal PV line
 		if (value > alpha && value < beta) {
 				thread->values[multiPV]      = value;
-				thread->bestMoves[multiPV]   = pv->line[0];
-				thread->ponderMoves[multiPV] = pv->length > 1 ? pv->line[1] : (int)NONE_MOVE;
+				thread->bestMoves[multiPV]   = pv.line[0];
+				thread->ponderMoves[multiPV] = pv.length > 1 ? pv.line[1] : (int)NONE_MOVE;
 				return;
 		}
 
@@ -189,7 +189,7 @@ void aspirationWindow(Thread *thread) {
 	}
 }
 
-int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int height) {
+int search(Thread *thread, PVariation& pv, int alpha, int beta, int depth, int height) {
 
 	const int PvNode   = (alpha != beta-1);
 	const int RootNode = (height == 0);
@@ -211,7 +211,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 		return qsearch(thread, pv, alpha, beta, height);
 
 	// Ensure a fresh PV
-	pv->length = 0;
+	pv.length = 0;
 
 	// Ensure positive depth
 	depth = MAX(0, depth);
@@ -352,7 +352,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 		R = 4 + depth / 6 + MIN(3, (eval - beta) / 200);
 
 		apply(thread, board, NULL_MOVE, height);
-		value = -search(thread, &lpv, -beta, -beta+1, depth-R, height+1);
+		value = -search(thread, lpv, -beta, -beta+1, depth-R, height+1);
 		revert(thread, board, NULL_MOVE, height);
 
 		if (value >= beta) return beta;
@@ -373,7 +373,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 
 				// Perform a reduced depth verification search
 				if (!apply(thread, board, move, height)) continue;
-				value = -search(thread, &lpv, -rBeta, -rBeta+1, depth-4, height+1);
+				value = -search(thread, lpv, -rBeta, -rBeta+1, depth-4, height+1);
 				revert(thread, board, move, height);
 
 				// Probcut failed high
@@ -502,21 +502,21 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 		// Step 16A. If we triggered the LMR conditions (which we know by the value of R),
 		// then we will perform a reduced search on the null alpha window, as we have no
 		// expectation that this move will be worth looking into deeper
-		if (R != 1) value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-R, height+1);
+		if (R != 1) value = -search(thread, lpv, -alpha-1, -alpha, newDepth-R, height+1);
 
 		// Step 16B. There are two situations in which we will search again on a null window,
 		// but without a depth reduction R. First, if the LMR search happened, and failed
 		// high, secondly, if we did not try an LMR search, and this is not the first move
 		// we have tried in a PvNode, we will research with the normally reduced depth
 		if ((R != 1 && value > alpha) || (R == 1 && !(PvNode && played == 1)))
-				value = -search(thread, &lpv, -alpha-1, -alpha, newDepth-1, height+1);
+				value = -search(thread, lpv, -alpha-1, -alpha, newDepth-1, height+1);
 
 		// Step 16C. Finally, if we are in a PvNode and a move beat alpha while being
 		// search on a reduced depth, we will search again on the normal window. Also,
 		// if we did not perform Step 18B, we will search for the first time on the
 		// normal window. This happens only for the first move in a PvNode
 		if (PvNode && (played == 1 || value > alpha))
-				value = -search(thread, &lpv, -beta, -alpha, newDepth-1, height+1);
+				value = -search(thread, lpv, -beta, -alpha, newDepth-1, height+1);
 
 		// Revert the board state
 		revert(thread, board, move, height);
@@ -532,9 +532,9 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 					alpha = value;
 
 					// Copy our child's PV and prepend this move to it
-					pv->length = 1 + lpv.length;
-					pv->line[0] = move;
-					memcpy(pv->line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
+					pv.length = 1 + lpv.length;
+					pv.line[0] = move;
+					memcpy(pv.line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
 
 					// Search failed high
 					if (alpha >= beta) break;
@@ -564,7 +564,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth, int h
 	return best;
 }
 
-int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
+int qsearch(Thread *thread, PVariation& pv, int alpha, int beta, int height) {
 
 	Board& board = thread->board;
 
@@ -575,7 +575,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 	PVariation lpv;
 
 	// Ensure a fresh PV
-	pv->length = 0;
+	pv.length = 0;
 
 	// Updates for UCI reporting
 	thread->seldepth = MAX(thread->seldepth, height);
@@ -637,7 +637,7 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 
 		// Search the next ply if the move is legal
 		if (!apply(thread, board, move, height)) continue;
-		value = -qsearch(thread, &lpv, -beta, -alpha, height+1);
+		value = -qsearch(thread, lpv, -beta, -alpha, height+1);
 		revert(thread, board, move, height);
 
 		// Improved current value
@@ -649,9 +649,9 @@ int qsearch(Thread *thread, PVariation *pv, int alpha, int beta, int height) {
 					alpha = value;
 
 					// Update the Principle Variation
-					pv->length = 1 + lpv.length;
-					pv->line[0] = move;
-					memcpy(pv->line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
+					pv.length = 1 + lpv.length;
+					pv.line[0] = move;
+					memcpy(pv.line + 1, lpv.line, sizeof(uint16_t) * lpv.length);
 				}
 		}
 
@@ -776,7 +776,7 @@ int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int 
 
 		// Perform a reduced depth search on a null rbeta window
 		if (!apply(thread, board, move, height)) continue;
-		value = -search(thread, &lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1);
+		value = -search(thread, lpv, -rBeta-1, -rBeta, depth / 2 - 1, height+1);
 		revert(thread, board, move, height);
 
 		// Move failed high, thus ttMove is not singular

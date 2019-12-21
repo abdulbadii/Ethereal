@@ -71,6 +71,6 @@ public:
 
 Thread* createThreadPool(int nthreads);
 void resetThreadPool(Thread *threads);
-void newSearchThreadPool(Thread *threads, Board& board, Limits *limits, SearchInfo *info);
+void newSearchThreadPool(Thread *threads, Board& board, Limits& limits, SearchInfo *info);
 uint64_t nodesSearchedThreadPool(Thread *threads);
 uint64_t tbhitsThreadPool(Thread *threads);

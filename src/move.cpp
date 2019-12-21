@@ -35,7 +35,7 @@
 static void updateCastleZobrist(Board& board, uint64_t oldRooks, uint64_t newRooks) {
 	uint64_t diff = oldRooks ^ newRooks;
 	while (diff)
-		board.hash ^= ZobristCastleKeys[poplsb(&diff)];
+		board.hash ^= ZobristCastleKeys[poplsb(diff)];
 }
 
 int castleKingTo(int king, int rook) {
@@ -611,7 +611,7 @@ int moveIsPseudoLegal(Board& board, uint16_t move) {
 	while (castles && !board.kingAttackers) {
 
 		// Figure out which pieces are moving to which squares
-		rook = poplsb(&castles), king = from;
+		rook = poplsb(castles), king = from;
 		rookTo = castleRookTo(king, rook);
 		kingTo = castleKingTo(king, rook);
 
@@ -627,7 +627,7 @@ int moveIsPseudoLegal(Board& board, uint16_t move) {
 		// Castle is illegal if we move through a checking threat
 		mask = bitsBetweenMasks(king, kingTo);
 		while (mask)
-				if (squareIsAttacked(board, board.turn, poplsb(&mask)))
+				if (squareIsAttacked(board, board.turn, poplsb(mask)))
 					return 0;
 
 		return 1; // All requirments are met

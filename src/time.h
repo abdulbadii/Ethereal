@@ -28,7 +28,7 @@
 
 double getRealTime();
 double elapsedTime(SearchInfo *info);
-void initTimeManagment(SearchInfo *info, Limits *limits);
+void initTimeManagment(SearchInfo *info, Limits& limits);
 void updateTimeManagment(SearchInfo *info, Limits *limits);
 int terminateTimeManagment(SearchInfo *info);
 int terminateSearchEarly(Thread *thread);

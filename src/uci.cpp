@@ -110,7 +110,7 @@ void *uciGo(void *cargo) {
 	limits.multiPV = MIN(multiPV, legalMoveCount(board));
 
 	// Execute search, return best and ponder moves
-	getBestMove(threads, board, &limits, bestMove, ponderMove);
+	getBestMove(threads, board, limits, bestMove, ponderMove);
 
 	// UCI spec does not want reports until out of pondering
 	while (IS_PONDERING);

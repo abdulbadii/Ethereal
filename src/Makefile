@@ -68,6 +68,8 @@ prefetch := no
 popcnt := no
 sse := no
 pext := no
+cpp:=
+ped:=
 dep:=
 COMP := gcc
 
@@ -139,10 +141,25 @@ endif
 
 ### 3.1 Selecting compiler (default=gcc)
 
-#
-CXXFLAGS += -Wcast-qual -fno-exceptions -Wall -std=c++11 -march=native -lpthread -lm $(EXTRACXXFLAGS)
+ifeq ($(cpp),)
+	CXXFLAGS +=	-std=c++11
+else
+	ifeq ($(cpp),14)
+		CXXFLAGS +=	-std=c++14
+	else
+	ifeq ($(cpp),17)
+		CXXFLAGS +=	-std=c++17
+	endif
+	endif
+endif
+ifeq ($(ped),1)
+	CXXFLAGS +=	-pedantic
+endif
+
+CXXFLAGS += -Wall -Wcast-qual -fno-exceptions -march=native -lpthread -lm $(EXTRACXXFLAGS)
 DEPENDFLAGS += -std=c++11
 LDFLAGS += $(EXTRALDFLAGS)
+
 
 ifneq ($(filter $(dep),1 yes),)
 	dep:=.depend
@@ -549,7 +566,8 @@ icc-profile-use:
 	all
 
 .depend:
-	@echo -n Logging dependency...
+	@echo -n Logging dependencies...
 	-@$(CXX) $(DEPENDFLAGS) -MM $(OBJS:.o=.cpp)>$@ 2> /dev/null &&echo " successfully written on '.depend' file"
-
-# -include .depend
+	@read -p 'Logging more detailed dependencies?' p \
+	@[ $$p = 'n' ] && quit \
+	-@$(CXX) $(DEPENDFLAGS) -M $(OBJS:.o=.cpp)>$@ 2> /dev/null &&echo " successfully written on '.depend_' file"
