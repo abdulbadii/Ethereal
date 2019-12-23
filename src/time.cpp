@@ -28,13 +28,13 @@ int MoveOverhead = 250; // Set by UCI options
 
 double getRealTime() {
 #if defined(_WIN32) || defined(_WIN64)
-    return double(GetTickCount());
+    return (double)(GetTickCount());
 #else
     struct timeval tv;
     double secsInMilli, usecsInMilli;
 
     gettimeofday(&tv, nullptr);
-    secsInMilli = (double(tv.tv_sec)) * 1000;
+    secsInMilli = ((double)tv.tv_sec) * 1000;
     usecsInMilli = tv.tv_usec / 1000;
 
     return secsInMilli + usecsInMilli;

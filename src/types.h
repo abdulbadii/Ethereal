@@ -120,7 +120,7 @@ inline string& parse(string& s, string& w, const char* del=WHITESPACE){
 	w.substr(0,q));
 }
 inline string& parse(string& s, string& w, const char* del,__attribute__((unused)) bool f){
-	char l[32];	return parse(s, w, strcat(strcpy(l,del),WHITESPACE));}
+	char t[32];	return parse(s, w, strcat(strcpy(t,del),WHITESPACE));}
 
 inline bool strContains(string& s, const char* key, string& nx) {
 	size_t f=s.find(key), p;

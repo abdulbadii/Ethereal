@@ -20,7 +20,7 @@
 ### ==========================================================================
 
 ### Executable name
-EXE := Ethereal
+EXE := EtherealC++
 
 ### Installation dir definitions
 PREFIX := /usr/local
@@ -68,9 +68,12 @@ prefetch := no
 popcnt := no
 sse := no
 pext := no
+ped:=yes
 cpp:=
-ped:=
+sta:=yes
 dep:=
+tune:=
+pro:=
 COMP := gcc
 
 ### 2.2 Architecture specific
@@ -141,46 +144,34 @@ endif
 
 ### 3.1 Selecting compiler (default=gcc)
 
-ifeq ($(cpp),)
-	CXXFLAGS +=	-std=c++11
+ifeq ($(cpp),14)
+	CXXFLAGS +=	-std=c++14
 else
-	ifeq ($(cpp),14)
-		CXXFLAGS +=	-std=c++14
-	else
 	ifeq ($(cpp),17)
 		CXXFLAGS +=	-std=c++17
-	endif
+	else
+		CXXFLAGS +=	-std=c++11
 	endif
 endif
-ifeq ($(ped),1)
-	CXXFLAGS +=	-pedantic
-endif
-
-CXXFLAGS += -Wall -Wcast-qual -fno-exceptions -march=native -lpthread -lm $(EXTRACXXFLAGS)
+ # -march=native
+CXXFLAGS += -Wall -Wcast-qual -fno-exceptions $(EXTRACXXFLAGS)
 DEPENDFLAGS += -std=c++11
-LDFLAGS += $(EXTRALDFLAGS)
+LDFLAGS += -lm $(EXTRALDFLAGS)
 
 
 ifneq ($(filter $(dep),1 yes),)
 	dep:=.depend
-else
-ifneq ($(filter $(DEP),1 YES),)
-	dep:=.depend
-endif
 endif
 
-ifneq ($(filter $(deb),1 yes),)
+ifneq ($(filter $(debug),1 yes),)
 	debug:=yes
 endif
 
-ifneq ($(filter $(MODE),TEX TEXEL tex),)
+ifneq ($(filter $(tune),1 yes),)
 	CXXFLAGS += -fopenmp -DTUNE
 endif
-ifneq ($(filter $(MODE),PRO PROFILE pro),)
+ifneq ($(filter $(pro),1 yes),)
 	CXXFLAGS += -p -pg
-endif
-ifneq ($(filter $(MODE),REL RELEASE rel),)
-	LDFLAGS += -static
 endif
 
 ifeq ($(COMP),gcc)
@@ -226,6 +217,14 @@ ifeq ($(COMP),mingw)
 	endif
 
 	CXXFLAGS += -Wextra -Wshadow
+	ifeq ($(ped),yes)
+		CXXFLAGS +=	-pedantic
+	else
+		ped:=no
+	endif
+	ifeq ($(sta),yes)
+		LDFLAGS += -static
+	endif
 endif
 
 ifeq ($(COMP),icc)
@@ -284,14 +283,11 @@ ifdef COMPCXX
 	CXX := $(COMPCXX)
 endif
 
-### On mingw use Windows threads, otherwise POSIX
-ifneq ($(comp),mingw)
-	# On Android Bionic's C library comes with its own pthread implementation bundled in
-	ifneq ($(OS),Android)
-		# Haiku has pthreads in its libroot, so only link it in on other platforms
-		ifneq ($(KERNEL),Haiku)
-			LDFLAGS += -lpthread
-		endif
+# On Android Bionic's C library comes with its own pthread implementation bundled in
+ifneq ($(OS),Android)
+	# Haiku has pthreads in its libroot, so only link it in on other platforms
+	ifneq ($(KERNEL),Haiku)
+		LDFLAGS += -lpthread
 	endif
 endif
 
@@ -370,8 +366,8 @@ ifeq ($(debug), no)
 	endif
 
 	ifeq ($(comp),mingw)
-	CXXFLAGS += -flto
 	ifeq ($(KERNEL),Linux)
+		CXXFLAGS += -flto
 		LDFLAGS += $(CXXFLAGS)
 	endif
 	endif
@@ -396,7 +392,7 @@ help:
 	@echo ""
 	@echo "To compile Ethereal, type: "
 	@echo ""
-	@echo "make target ARCH = arch [COMP = compiler] [COMPCXX = cxx] [dep=1]"
+	@echo "make target ARCH = arch [COMP = compiler] [COMPCXX = cxx]  [sta=]  [deb=1] [dep=1]"
 	@echo ""
 	@echo "Supported targets:"
 	@echo ""
@@ -425,7 +421,10 @@ help:
 	@echo "mingw                   > Gnu compiler with MinGW under Windows"
 	@echo "clang                   > LLVM Clang compiler"
 	@echo "icc                     > Intel compiler"
-	@echo "DEP | dep = 1   > make a dependency log file"
+	@echo "sta=           > prevent static library linking (defaults to static binary build)"
+	@echo "ped=           > don't compile only standard syntax (defaults to strict)"
+	@echo "debug= 1 or yes           > build with a debuggable feature"
+	@echo "dep= 1 or yes          > make a dependency log file"
 	@echo ""
 	@echo "Simple examples. If you don't know what to do, you likely want to run: "
 	@echo ""
@@ -436,7 +435,7 @@ help:
 	@echo ""
 	@echo "make build ARCH = x86-64 COMP = clang"
 	@echo "make profile-build ARCH = x86-64-bmi2 COMP=gcc COMPCXX = g++-4.8"
-	@echo "make profile-build ARCH = x86-64-modern COMP =gcc dep=1"
+	@echo "make profile-build ARCH = x86-64-modern COMP=gcc deb=1 dep=1"
 	@echo ""
 
 
@@ -506,6 +505,8 @@ config-sanity:
 	@echo "popcnt: '$(popcnt)'"
 	@echo "sse: '$(sse)'"
 	@echo "pext: '$(pext)'"
+	@if [ "$(sta)" ] ;then echo "Releasing static library linked binary";else echo "The released binary requires OS' shared library";fi
+	@if [ "$(dep)" ] ;then echo "dependencies list will be written in $(dep) file";else echo "no dependencies list is to be written";fi
 	@echo ""
 	@echo "Flags:"
 	@echo "CXX: $(CXX)"
@@ -568,6 +569,6 @@ icc-profile-use:
 .depend:
 	@echo -n Logging dependencies...
 	-@$(CXX) $(DEPENDFLAGS) -MM $(OBJS:.o=.cpp)>$@ 2> /dev/null &&echo " successfully written on '.depend' file"
-	@read -p 'Logging more detailed dependencies?' p \
-	@[ "$$p:" = y ]
+	@read -p 'Logging more detailed dependencies?' p; \
+	@[ "$$p:" = y ]; \
 	-@$(CXX) $(DEPENDFLAGS) -M $(OBJS:.o=.cpp)>$@ 2> /dev/null &&echo " successfully written on '.depend_' file"

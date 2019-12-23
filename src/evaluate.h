@@ -129,9 +129,9 @@ int evaluateScaleFactor(Board& board, int eval);
 void initEvalInfo(EvalInfo& ei, Board& board, PKTable& pktable);
 void initEval();
 
-#define MakeScore(mg, eg) (int((unsigned int)(eg) << 16) + (mg))
-#define ScoreMG(s) (int16_t(uint16_t((unsigned)((s)))))
-#define ScoreEG(s) (int16_t(uint16_t((unsigned)((s) + 0x8000) >> 16)))
+#define MakeScore(mg, eg) ((int)((unsigned int)(eg) << 16) + (mg))
+#define ScoreMG(s) ((int16_t)((uint16_t)((unsigned)((s)))))
+#define ScoreEG(s) ((int16_t)((uint16_t)((unsigned)((s) + 0x8000) >> 16)))
 
 extern int PSQT[32][SQUARE_NB];
 extern const int Tempo;

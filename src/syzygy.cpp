@@ -49,8 +49,8 @@ unsigned tablebasesProbeWDL(Board& board, int depth, int height) {
     // the cardinality is below TB_LARGEST. The purpose here is that we may set
     // TB_PROBE_DEPTH to reduce hardware latency, however if the cardinality is
     // even lower than TB_LARGEST, we assume the table has already been cached.
-    if (    cardinality > int(TB_LARGEST)
-        || (cardinality == int(TB_LARGEST) && depth < int(TB_PROBE_DEPTH)))
+    if (    cardinality > (int)TB_LARGEST
+        || (cardinality == (int)TB_LARGEST && depth < (int)TB_PROBE_DEPTH))
         return TB_RESULT_FAILED;
 
     // Tap into Fathom's API, which takes in the board representation, followed
@@ -75,7 +75,7 @@ int tablebasesProbeDTZ(Board& board, uint16_t& best, uint16_t& ponder) {
     unsigned wdl, dtz, to, from, ep, promo;
 
     // Check to make sure we expect to be within the Syzygy tables
-    if (board.castleRooks || popcount(board.colours[WHITE] | board.colours[BLACK]) > int(TB_LARGEST))
+    if (board.castleRooks || popcount(board.colours[WHITE] | board.colours[BLACK]) > (int)TB_LARGEST)
         return 0;
 
     // Tap into Fathom's API routines
