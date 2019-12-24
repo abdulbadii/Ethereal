@@ -163,10 +163,6 @@ ifneq ($(filter $(dep),1 yes),)
 	dep:=.depend
 endif
 
-ifneq ($(filter $(debug),1 yes),)
-	debug:=yes
-endif
-
 ifneq ($(filter $(tune),1 yes),)
 	CXXFLAGS += -fopenmp -DTUNE
 endif
@@ -292,11 +288,12 @@ ifneq ($(OS),Android)
 endif
 
 ### 3.2.1 Debugging
-ifeq ($(debug),no)
-	CXXFLAGS += -DNDEBUG
-else
+ifneq ($(filter $(debug),1 yes),)
 	optimize :=no
 	CXXFLAGS += -g -O0
+	debug:=yes
+else
+	CXXFLAGS += -DNDEBUG
 endif
 
 ### 3.2.2 Debugging with undefined behavior sanitizers
@@ -359,17 +356,18 @@ endif
 ### This is a mix of compile and link time options because the lto link phase
 ### needs access to the optimization flags.
 ifeq ($(optimize),yes)
-ifeq ($(debug), no)
-	ifeq ($(comp),$(filter $(comp),gcc clang))
+ifneq ($(filter $(debug),1 yes),)
+	debug:=yes
+else
+	ifneq ($(filter $(comp),gcc clang),)
 		CXXFLAGS += -flto
 		LDFLAGS += $(CXXFLAGS)
 	endif
-
 	ifeq ($(comp),mingw)
-	ifeq ($(KERNEL),Linux)
-		CXXFLAGS += -flto
-		LDFLAGS += $(CXXFLAGS)
-	endif
+		ifeq ($(KERNEL),Linux)
+			CXXFLAGS += -flto
+			LDFLAGS += $(CXXFLAGS)
+		endif
 	endif
 endif
 endif
@@ -437,8 +435,8 @@ help:
 	@echo ""
 	@echo "make build ARCH = x86-64 COMP = clang"
 	@echo "make profile-build ARCH = x86-64-bmi2 COMP=gcc COMPCXX = g++-4.8"
-	@echo "make profile-build ARCH = x86-64-modern COMP=gcc deb=1 dep=1"
-	@echo "make profile-build ARCH = x86-64-modern COMP=gcc deb=1 dep=1"
+	@echo "make profile-build ARCH = x86-64-modern COMP=gcc deb=yes dep=1"
+	@echo "make profile-build ARCH = x86-64-modern COMP=gcc tune=1"
 	@echo ""
 
 
