@@ -42,9 +42,9 @@ int validCoordinate(int rank, int file) {
     return 0 <= rank && rank < RANK_NB
         && 0 <= file && file < FILE_NB;
 }
-void setSquare(uint64_t *bb, int rank, int file) {
+void setSquare(uint64_t& bb, int rank, int file) {
     if (validCoordinate(rank, file))
-        *bb |= 1ull << square(rank, file);
+        bb |= 1ull << square(rank, file);
 }
 int sliderIndex(uint64_t occupied, Magic& table) {
 #ifdef USE_PEXT
@@ -110,16 +110,16 @@ void initAttacks() {
     // Init attack tables for Pawns
     for (int sq = 0; sq < 64; ++sq) {
         for (int dir = 0; dir < 2; ++dir) {
-            setSquare(&PawnAttacks[WHITE][sq], rankOf(sq) + PawnDelta[dir][0], fileOf(sq) + PawnDelta[dir][1]);
-            setSquare(&PawnAttacks[BLACK][sq], rankOf(sq) - PawnDelta[dir][0], fileOf(sq) - PawnDelta[dir][1]);
+            setSquare(PawnAttacks[WHITE][sq], rankOf(sq) + PawnDelta[dir][0], fileOf(sq) + PawnDelta[dir][1]);
+            setSquare(PawnAttacks[BLACK][sq], rankOf(sq) - PawnDelta[dir][0], fileOf(sq) - PawnDelta[dir][1]);
         }
     }
 
     // Init attack tables for Knights & Kings
     for (int sq = 0; sq < 64; ++sq) {
         for (int dir = 0; dir < 8; ++dir) {
-            setSquare(&KnightAttacks[sq], rankOf(sq) + KnightDelta[dir][0], fileOf(sq) + KnightDelta[dir][1]);
-            setSquare(  &KingAttacks[sq], rankOf(sq) +   KingDelta[dir][0], fileOf(sq) +   KingDelta[dir][1]);
+            setSquare(KnightAttacks[sq], rankOf(sq) + KnightDelta[dir][0], fileOf(sq) + KnightDelta[dir][1]);
+            setSquare( KingAttacks[sq], rankOf(sq) +   KingDelta[dir][0], fileOf(sq) +   KingDelta[dir][1]);
         }
     }
 
