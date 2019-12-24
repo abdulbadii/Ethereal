@@ -74,7 +74,7 @@ void setSquare(Board& board, int colour, int piece, int sq) {
 	if (piece == PAWN || piece == KING)
 		board.pkhash ^= ZobristKeys[board.squares[sq]][sq];
 }
-int stringToSquare(string& str) {
+int stringToSquare(char *str) {
 
 	// Helper for reading the enpass square from a FEN. If no square
 	// is provided, Ethereal will use -1 to represent this internally
@@ -101,22 +101,22 @@ void squareToString(int sq, char *str) {
 	*str++ = '\0';
 }
 
-void boardFromFEN(Board& board,const string& fens, int chess960) {
+void boardFromFEN(Board& board,const string& fen, int chess960) {
 
 	static const uint64_t StandardCastles = (1ull <<  0) | (1ull <<  7)
 														| (1ull << 56) | (1ull << 63);
 
 	int sq = 56;
-	char ch;
-	string word(43,0), fen=fens;
+	 
+	char *str = new char[fen.size()+1];
+	strcpy(str, &fen[0]);
+	char ch, *strPos = nullptr, *token = strtok_r(str, " ", &strPos);
 	uint64_t rooks, kings, white, black;
 
 	clearBoard(board); // Zero out, set squares to EMPTY
 
-	parse(fen, word);
-	uint16_t i=0;
 	// Piece placement
-	while ((ch = word[i++])) {
+	while ((ch = *token++)) {
 		if (isdigit(ch))
 				sq += ch - '0';
 		else if (ch == '/')
@@ -131,49 +131,45 @@ void boardFromFEN(Board& board,const string& fens, int chess960) {
 	}
 
 	// Turn of play
-	parse(fen, word);
-	board.turn = word[0] == 'w' ? WHITE : BLACK;
+	token = strtok_r(NULL, " ", &strPos);
+	board.turn = token[0] == 'w' ? WHITE : BLACK;
 	if (board.turn == BLACK) board.hash ^= ZobristTurnKey;
 
 	// Castling rights
-	parse(fen, word);
+	token = strtok_r(NULL, " ", &strPos);
 
 	rooks = board.pieces[ROOK];
 	kings = board.pieces[KING];
 	white = board.colours[WHITE];
 	black = board.colours[BLACK];
-	i=0;
-	while ((ch = word[i++])) {
-		switch(ch) {
-		case 'K': setBit(board.castleRooks, getmsb(white & rooks & RANK_1)); break;
-		case 'Q': setBit(board.castleRooks, getlsb(white & rooks & RANK_1));  break;
-		case 'k': setBit(board.castleRooks, getmsb(black & rooks & RANK_8)); break;
-		case 'q': setBit(board.castleRooks, getlsb(black & rooks & RANK_8));   break;
-		default:
+
+	while ((ch = *token++)) {
+		if (ch == 'K') setBit(board.castleRooks, getmsb(white & rooks & RANK_1));
+		if (ch == 'Q') setBit(board.castleRooks, getlsb(white & rooks & RANK_1));
+		if (ch == 'k') setBit(board.castleRooks, getmsb(black & rooks & RANK_8));
+		if (ch == 'q') setBit(board.castleRooks, getlsb(black & rooks & RANK_8));
 		if ('A' <= ch && ch <= 'H') setBit(board.castleRooks, square(0, ch - 'A'));
-		else if ('a' <= ch && ch <= 'h') setBit(board.castleRooks, square(7, ch - 'a'));
-		break;
-		}
+		if ('a' <= ch && ch <= 'h') setBit(board.castleRooks, square(7, ch - 'a'));
 	}
 
 	for (sq = 0; sq < SQUARE_NB; ++sq) {
 		board.castleMasks[sq] = allON;
-		if (testBit(board.castleRooks, sq)) clearBit(board.castleMasks[sq], sq);
+		if (testBit(board.castleRooks, sq)) clearBit(&board.castleMasks[sq], sq);
 		if (testBit(white & kings, sq)) board.castleMasks[sq] &= ~white;
 		if (testBit(black & kings, sq)) board.castleMasks[sq] &= ~black;
 	}
 
 	rooks = board.castleRooks;
-	while (rooks) board.hash ^= ZobristCastleKeys[poplsb(rooks)];
+	while (rooks) board.hash ^= ZobristCastleKeys[poplsb(&rooks)];
 
 	// En passant square
-	board.epSquare = stringToSquare(parse(fen, word));
+	board.epSquare = stringToSquare(strtok_r(NULL, " ", &strPos));
 	if (board.epSquare != -1)
 		board.hash ^= ZobristEnpassKeys[fileOf(board.epSquare)];
 
 	// Half & Full Move Counters
-	board.halfMoveCounter = stoi(parse(fen, word));
-	board.fullMoveCounter = stoi(parse(fen, word));
+	board.halfMoveCounter = atoi(strtok_r(NULL, " ", &strPos));
+	board.fullMoveCounter = atoi(strtok_r(NULL, " ", &strPos));
 
 	// Move count: ignore and use zero, as we count since root
 	board.numMoves = 0;
@@ -187,18 +183,18 @@ void boardFromFEN(Board& board,const string& fens, int chess960) {
 	// is simply a hack so that FRC positions may be added to the bench.csv
 	board.chess960 = chess960 || (board.castleRooks & ~StandardCastles);
 
+	delete str;
 }
 
-void boardToFEN(Board& board, string& fen) {
+void boardToFEN(Board& board, char *fen) {
 
 	int sq;
 	char str[3];
 	uint64_t castles;
-	uint16_t i=0, cnt;
 
 	// Piece placement
-	for (int r = RANK_NB-1; r >= 0; --r) {
-		cnt = 0;
+	for (int r = RANK_NB-1; r >= 0; r--) {
+		int cnt = 0;
 
 		for (int f = 0; f < FILE_NB; ++f) {
 				const int s = square(r, f);
@@ -206,54 +202,54 @@ void boardToFEN(Board& board, string& fen) {
 
 				if (p != EMPTY) {
 					if (cnt)
-						fen[i++] = cnt + '0';
+						*fen++ = cnt + '0';
 
-					fen[i++] = PieceLabel[pieceColour(p)][pieceType(p)];
+					*fen++ = PieceLabel[pieceColour(p)][pieceType(p)];
 					cnt = 0;
 				} else
 					cnt++;
 		}
 
 		if (cnt)
-				fen[i++] = cnt + '0';
+				*fen++ = cnt + '0';
 
-		fen[i++] = r == 0 ? ' ' : '/';
+		*fen++ = r == 0 ? ' ' : '/';
 	}
 
 	// Turn of play
-	fen[i++] = board.turn == WHITE ? 'w' : 'b';
-	fen[i++] = ' ';
+	*fen++ = board.turn == WHITE ? 'w' : 'b';
+	*fen++ = ' ';
 
 	// Castle rights for White
 	castles = board.colours[WHITE] & board.castleRooks;
 	while (castles) {
-		sq = popmsb(castles);
-		if (board.chess960) fen[i++] = 'A' + fileOf(sq);
-		else if (testBit(FILE_H, sq)) fen[i++] = 'K';
-		else if (testBit(FILE_A, sq)) fen[i++] = 'Q';
+		sq = popmsb(&castles);
+		if (board.chess960) *fen++ = 'A' + fileOf(sq);
+		else if (testBit(FILE_H, sq)) *fen++ = 'K';
+		else if (testBit(FILE_A, sq)) *fen++ = 'Q';
 	}
 
 	// Castle rights for Black
 	castles = board.colours[BLACK] & board.castleRooks;
 	while (castles) {
-		sq = popmsb(castles);
-		if (board.chess960) fen[i++] = 'a' + fileOf(sq);
-		else if (testBit(FILE_H, sq)) fen[i++] = 'k';
-		else if (testBit(FILE_A, sq)) fen[i++] = 'q';
+		sq = popmsb(&castles);
+		if (board.chess960) *fen++ = 'a' + fileOf(sq);
+		else if (testBit(FILE_H, sq)) *fen++ = 'k';
+		else if (testBit(FILE_A, sq)) *fen++ = 'q';
 	}
 
 	// Check for empty Castle rights
 	if (!board.castleRooks)
-		fen[i++] = '-';
+		*fen++ = '-';
 
 	// En passant square, Half Move Counter, and Full Move Counter
 	squareToString(board.epSquare, str);
-	sprintf(&fen[0], " %s %d %d", str, board.halfMoveCounter, board.fullMoveCounter);
+	sprintf(fen, " %s %d %d", str, board.halfMoveCounter, board.fullMoveCounter);
 }
 
 void printBoard(Board& board) {
 
-	string fen(256,0);
+	char fen[256];
 
 	// Print each row of the board, starting from the top
 	for(int sq = square(RANK_NB-1, 0); sq >= 0; sq -= FILE_NB) {
@@ -341,7 +337,7 @@ int boardDrawnByInsufficientMaterial(Board& board) {
 
 uint64_t perft(Board& board, int depth) {
 
-	Undo undo;
+	Undo undo[1];
 	int size = 0;
 	uint64_t found = 0ull;
 	uint16_t moves[MAX_MOVES];
@@ -353,7 +349,7 @@ uint64_t perft(Board& board, int depth) {
 	genAllQuietMoves(board, moves, size);
 
 	// Recurse on all valid moves
-	for(size -= 1; size >= 0; --size) {
+	for(size -= 1; size >= 0; size--) {
 		applyMove(board, moves[size], undo);
 		if (moveWasLegal(board)) found += perft(board, depth-1);
 		revertMove(board, moves[size], undo);
@@ -394,7 +390,7 @@ void runBenchmark(int argc, char** argv) {
 		cout << "\nPosition #" << i + 1 << ": " << Benchmarks[i] << "\n";
 		boardFromFEN(board, Benchmarks[i], 0);
 		limits.start = getRealTime();
-		getBestMove(threads, board, limits, bestMove, ponderMove);
+		getBestMove(threads, board, &limits, bestMove, ponderMove);
 		nodes += nodesSearchedThreadPool(threads);
 		clearTT(); // Reset TT for new search
 	}

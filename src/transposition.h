@@ -78,5 +78,5 @@ int valueToTT(int value, int height);
 int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth, int *bound);
 void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, int bound);
 
-PKEntry* getPKEntry(PKTable& pktable, uint64_t pkhash);
-void storePKEntry(PKTable& pktable, uint64_t pkhash, uint64_t passed, int eval);
+PKEntry* getPKEntry(PKTable *pktable, uint64_t pkhash);
+void storePKEntry(PKTable *pktable, uint64_t pkhash, uint64_t passed, int eval);

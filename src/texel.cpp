@@ -111,10 +111,10 @@ void runTexelTuning(Thread *thread) {
     initTT(1);
 
     cout << "\n\nALLOCATING MEMORY FOR TEXEL ENTRIES [" << (int)(NPOSITIONS * sizeof(TexelEntry) / (1024 * 1024)) << "MB]...";
-    tes = new TexelEntry[NPOSITIONS]();
+    tes = calloc(NPOSITIONS, sizeof(TexelEntry));
 
     cout << "\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [" << (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)) << "MB]...";
-    TupleStack = new TexelTuple[STACKSIZE]();
+    TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
 
     cout << "\n\nINITIALIZING TEXEL ENTRIES FROM FENS...";
     initTexelEntries(tes, thread);
@@ -199,7 +199,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
         boardFromFEN(thread->board, line, 0);
         qsearch(thread, &thread->pv, -MATE, MATE, 0);
         for (j = 0; j < thread->pv.length; ++j)
-            applyMove(thread->board, thread->pv.line[j], undo);
+            applyMove(&thread->board, thread->pv.line[j], undo);
 
         // Determine the game phase based on remaining material
         tes[i].phase = 24 - 4 * popcount(thread->board.pieces[QUEEN ])
@@ -286,7 +286,7 @@ void updateMemory(TexelEntry *te, int size) {
     if (size > TupleStackSize) {
         cout << "\n\nALLOCATING MEMORY FOR TEXEL TUPLE STACK [" << (int)(STACKSIZE * sizeof(TexelTuple) / (1024 * 1024)) << "MB]...\n\n";
         TupleStackSize = STACKSIZE;
-        TupleStack = new TexelTuple[STACKSIZE]();
+        TupleStack = calloc(STACKSIZE, sizeof(TexelTuple));
     }
 
     // Allocate Tuples for the given TexelEntry

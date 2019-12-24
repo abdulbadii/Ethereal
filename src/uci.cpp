@@ -44,6 +44,7 @@ extern unsigned TB_PROBE_DEPTH;   // Defined by Syzygy.c
 extern volatile int ABORT_SIGNAL; // Defined by Search.c
 extern volatile int IS_PONDERING; // Defined by Search.c
 
+const char WHITESPACE[]={" \n\r\t\f\v"};
 pthread_mutex_t READYLOCK = PTHREAD_MUTEX_INITIALIZER;
 #include <iostream>
 using namespace std;
@@ -52,6 +53,40 @@ string nextr(8192,0);
 
 inline string& strs(string& s, const char* key){
 	size_t f=s.find(key);	return s=f==string::npos? "": s.substr(f);}
+
+inline bool equStart(string& s, const char* key, string& nx){
+	uint16_t l=strlen(key);	return !s.compare(0,l,key)? nx=s.substr(l), 1: 0;}
+inline bool equStart(string& s, const char* key){	return !s.compare(0,strlen(key),key); }
+inline bool equStart(string& s, const char* key, size_t& l){	return !s.compare(0,l=strlen(key),key); }
+
+inline string& parse(string& s, string& w, const char* del=WHITESPACE){
+	size_t q,p=s.find_first_not_of(del);
+	return w=p==string::npos? "":
+	(w=s.substr(p),
+	q=w.find_first_of(del),
+	s=q==string::npos? "":w.substr(q),
+	w.substr(0,q));
+}
+inline string& parse(string& s, string& w, const char* del,__attribute__((unused)) bool f){
+	char l[32];	return parse(s, w, strcat(strcpy(l,del),WHITESPACE));}
+
+inline bool strContains(string& s, const char* key, string& nx) {
+	size_t f=s.find(key), p;
+	return f==string::npos? 0: 
+	(nx=s.substr(f+strlen(key)),
+	p=nx.find_first_not_of(WHITESPACE),
+	nx=p==string::npos? "": nx.substr(p), 1);
+}
+inline bool strContains(string& s, const char* key) {
+	size_t f=s.find(key);	return f==string::npos? 0: 1;}
+
+inline string& trTrail(string& s){
+	size_t p=s.find_last_not_of(WHITESPACE);
+	return s=p==string::npos? "": s.substr(0,p+1);}
+inline string& trLead(string& s){
+	size_t p=s.find_first_not_of(WHITESPACE);
+	return s=p==string::npos ? "": s.substr(p);}
+
 
 void *uciGo(void *cargo) {
 
@@ -110,7 +145,7 @@ void *uciGo(void *cargo) {
 	limits.multiPV = MIN(multiPV, legalMoveCount(board));
 
 	// Execute search, return best and ponder moves
-	getBestMove(threads, board, limits, bestMove, ponderMove);
+	getBestMove(threads, board, &limits, bestMove, ponderMove);
 
 	// UCI spec does not want reports until out of pondering
 	while (IS_PONDERING);
@@ -188,9 +223,9 @@ void uciPosition(string& str, Board& board, int chess960) {
 
 	int size;
 	uint16_t moves[MAX_MOVES];
-	string moveStr(6,0), w(5,0);
+	string moveStr(6,0);
 	char testStr[6];
-	Undo undo;
+	Undo undo[1];
 
 	// Position is defined by a FEN, X-FEN or Shredder-FEN
 	if (strContains(str, "fen ", nextr))
@@ -200,6 +235,7 @@ void uciPosition(string& str, Board& board, int chess960) {
 	else if (strContains(str, "startpos"))
 		boardFromFEN(board, StartPosition, chess960);
 
+	string w(5,0);
 	if (strContains(str, "moves ", nextr))
 		
 	// Apply each move in the move list. UCI sends moves in long algebraic notation
@@ -355,7 +391,7 @@ int main(int argc, char* argv[]) {
 				uciGoStruct.multiPV = multiPV;
 				uciGoStruct.board   = board;
 				uciGoStruct.threads = threads;
-				pthread_create(&pthreadsgo, nullptr, uciGo, &uciGoStruct);
+				pthread_create(&pthreadsgo, nullptr, &uciGo, &uciGoStruct);
 		}
 		else if (str=="ponderhit")	IS_PONDERING = 0;
 
