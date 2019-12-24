@@ -225,7 +225,7 @@ void uciPosition(string& str, Board& board, int chess960) {
 	uint16_t moves[MAX_MOVES];
 	string moveStr(6,0);
 	char testStr[6];
-	Undo undo[1];
+	Undo undo;
 
 	// Position is defined by a FEN, X-FEN or Shredder-FEN
 	if (strContains(str, "fen ", nextr))

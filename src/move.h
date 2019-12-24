@@ -40,14 +40,21 @@ enum {
 int castleKingTo(int king, int rook);
 int castleRookTo(int king, int rook);
 
+#define MoveFrom(move)         (((move) >> 0) & 63)
+#define MoveTo(move)           (((move) >> 6) & 63)
+#define MoveType(move)         ((move) & (3 << 12))
+#define MovePromoType(move)    ((move) & (3 << 14))
+#define MovePromoPiece(move)   (1 + ((move) >> 14))
+#define MoveMake(from,to,flag) ((from) | ((to) << 6) | (flag))
+
 int apply(Thread *thread, Board& board, uint16_t move, int height);
 void applyLegal(Thread *thread, Board& board, uint16_t move, int height);
-void applyMove(Board& board, uint16_t move, Undo *undo);
-void applyNormalMove(Board& board, uint16_t move, Undo *undo);
-void applyCastleMove(Board& board, uint16_t move, Undo *undo);
-void applyEnpassMove(Board& board, uint16_t move, Undo *undo);
-void applyPromotionMove(Board& board, uint16_t move, Undo *undo);
-void applyNullMove(Board& board, Undo *undo);
+void applyMove(Board& board, uint16_t move, Undo& undo);
+void applyNormalMove(Board& board, uint16_t move, Undo& undo);
+void applyCastleMove(Board& board, uint16_t move, Undo& undo);
+void applyEnpassMove(Board& board, uint16_t move, Undo& undo);
+void applyPromotionMove(Board& board, uint16_t move, Undo& undo);
+void applyNullMove(Board& board, Undo& undo);
 
 void revert(Thread *thread, Board& board, uint16_t move, int height);
 void revertMove(Board& board, uint16_t move, Undo *undo);
@@ -61,10 +68,3 @@ int moveBestCaseValue(Board& board);
 int moveIsPseudoLegal(Board& board, uint16_t move);
 int moveWasLegal(Board& board);
 void moveToString(uint16_t move, char *str, int chess960);
-
-#define MoveFrom(move)         (((move) >> 0) & 63)
-#define MoveTo(move)           (((move) >> 6) & 63)
-#define MoveType(move)         ((move) & (3 << 12))
-#define MovePromoType(move)    ((move) & (3 << 14))
-#define MovePromoPiece(move)   (1 + ((move) >> 14))
-#define MoveMake(from,to,flag) ((from) | ((to) << 6) | (flag))

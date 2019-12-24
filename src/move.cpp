@@ -51,7 +51,7 @@ int apply(Thread *thread, Board& board, uint16_t move, int height) {
 	// nullptr moves are only tried when legal
 	if (move == NULL_MOVE) {
 		thread->moveStack[height] = NULL_MOVE;
-		applyNullMove(board, &thread->undoStack[height]);
+		applyNullMove(board, thread->undoStack[height]);
 		return 1;
 	}
 
@@ -60,7 +60,7 @@ int apply(Thread *thread, Board& board, uint16_t move, int height) {
 	thread->pieceStack[height] = pieceType(board.squares[MoveFrom(move)]);
 
 	// Apply the move and reject if illegal
-	applyMove(board, move, &thread->undoStack[height]);
+	applyMove(board, move, thread->undoStack[height]);
 	if (!moveWasLegal(board))
 		return revertMove(board, move, &thread->undoStack[height]), 0;
 
@@ -74,25 +74,25 @@ void applyLegal(Thread *thread, Board& board, uint16_t move, int height) {
 	thread->pieceStack[height] = pieceType(board.squares[MoveFrom(move)]);
 
 	// Assumed that this move is legal
-	applyMove(board, move, &thread->undoStack[height]);
+	applyMove(board, move, thread->undoStack[height]);
 	assert(moveWasLegal(board));
 }
 
-void applyMove(Board& board, uint16_t move, Undo *undo) {
+void applyMove(Board& board, uint16_t move, Undo& undo) {
 
-	static void (*table[4])(Board&, uint16_t, Undo*) = {
+	static void (*table[4])(Board&, uint16_t, Undo&) = {
 		applyNormalMove, applyCastleMove,
 		applyEnpassMove, applyPromotionMove
 	};
 
 	// Save information which is hard to recompute
-	undo->hash            = board.hash;
-	undo->pkhash          = board.pkhash;
-	undo->kingAttackers   = board.kingAttackers;
-	undo->castleRooks     = board.castleRooks;
-	undo->epSquare        = board.epSquare;
-	undo->halfMoveCounter = board.halfMoveCounter;
-	undo->psqtmat         = board.psqtmat;
+	undo.hash            = board.hash;
+	undo.pkhash          = board.pkhash;
+	undo.kingAttackers   = board.kingAttackers;
+	undo.castleRooks     = board.castleRooks;
+	undo.epSquare        = board.epSquare;
+	undo.halfMoveCounter = board.halfMoveCounter;
+	undo.psqtmat         = board.psqtmat;
 
 	// Store hash history for repetition checking
 	board.history[board.numMoves++] = board.hash;
@@ -106,7 +106,7 @@ void applyMove(Board& board, uint16_t move, Undo *undo) {
 	table[MoveType(move) >> 12](board, move, undo);
 
 	// No function updated epsquare so we reset
-	if (board.epSquare == undo->epSquare)
+	if (board.epSquare == undo.epSquare)
 		board.epSquare = -1;
 
 	// No function updates this so we do it here
@@ -116,7 +116,7 @@ void applyMove(Board& board, uint16_t move, Undo *undo) {
 	board.kingAttackers = attackersToKingSquare(board);
 }
 
-void applyNormalMove(Board& board, uint16_t move, Undo *undo) {
+void applyNormalMove(Board& board, uint16_t move, Undo& undo) {
 
 	const int from = MoveFrom(move);
 	const int to = MoveTo(move);
@@ -141,11 +141,11 @@ void applyNormalMove(Board& board, uint16_t move, Undo *undo) {
 
 	board.squares[from] = EMPTY;
 	board.squares[to]   = fromPiece;
-	undo->capturePiece   = toPiece;
+	undo.capturePiece   = toPiece;
 
 	board.castleRooks &= board.castleMasks[from];
 	board.castleRooks &= board.castleMasks[to];
-	updateCastleZobrist(board, undo->castleRooks, board.castleRooks);
+	updateCastleZobrist(board, undo.castleRooks, board.castleRooks);
 
 	board.psqtmat += PSQT[fromPiece][to]
 						-  PSQT[fromPiece][from]
@@ -176,7 +176,7 @@ void applyNormalMove(Board& board, uint16_t move, Undo *undo) {
 	}
 }
 
-void applyCastleMove(Board& board, uint16_t move, Undo *undo) {
+void applyCastleMove(Board& board, uint16_t move, Undo& undo) {
 
 	const int from = MoveFrom(move);
 	const int rFrom = MoveTo(move);
@@ -202,7 +202,7 @@ void applyCastleMove(Board& board, uint16_t move, Undo *undo) {
 	board.squares[rTo]   = rFromPiece;
 
 	board.castleRooks &= board.castleMasks[from];
-	updateCastleZobrist(board, undo->castleRooks, board.castleRooks);
+	updateCastleZobrist(board, undo.castleRooks, board.castleRooks);
 
 	board.psqtmat += PSQT[fromPiece][to]
 						-  PSQT[fromPiece][from]
@@ -220,10 +220,10 @@ void applyCastleMove(Board& board, uint16_t move, Undo *undo) {
 
 	assert(pieceType(fromPiece) == KING);
 
-	undo->capturePiece = EMPTY;
+	undo.capturePiece = EMPTY;
 }
 
-void applyEnpassMove(Board& board, uint16_t move, Undo *undo) {
+void applyEnpassMove(Board& board, uint16_t move, Undo& undo) {
 
 	const int from = MoveFrom(move);
 	const int to = MoveTo(move);
@@ -243,7 +243,7 @@ void applyEnpassMove(Board& board, uint16_t move, Undo *undo) {
 	board.squares[from] = EMPTY;
 	board.squares[to]   = fromPiece;
 	board.squares[ep]   = EMPTY;
-	undo->capturePiece   = enpassPiece;
+	undo.capturePiece   = enpassPiece;
 
 	board.psqtmat += PSQT[fromPiece][to]
 						-  PSQT[fromPiece][from]
@@ -262,7 +262,7 @@ void applyEnpassMove(Board& board, uint16_t move, Undo *undo) {
 	assert(pieceType(enpassPiece) == PAWN);
 }
 
-void applyPromotionMove(Board& board, uint16_t move, Undo *undo) {
+void applyPromotionMove(Board& board, uint16_t move, Undo& undo) {
 
 	const int from = MoveFrom(move);
 	const int to = MoveTo(move);
@@ -286,10 +286,10 @@ void applyPromotionMove(Board& board, uint16_t move, Undo *undo) {
 
 	board.squares[from] = EMPTY;
 	board.squares[to]   = promoPiece;
-	undo->capturePiece   = toPiece;
+	undo.capturePiece   = toPiece;
 
 	board.castleRooks &= board.castleMasks[to];
-	updateCastleZobrist(board, undo->castleRooks, board.castleRooks);
+	updateCastleZobrist(board, undo.castleRooks, board.castleRooks);
 
 	board.psqtmat += PSQT[promoPiece][to]
 						-  PSQT[fromPiece][from]
@@ -307,13 +307,13 @@ void applyPromotionMove(Board& board, uint16_t move, Undo *undo) {
 	assert(pieceType(toPiece) != KING);
 }
 
-void applyNullMove(Board& board, Undo *undo) {
+void applyNullMove(Board& board, Undo& undo) {
 
 	// Save information which is hard to recompute
 	// Some information is certain to stay the same
-	undo->hash            = board.hash;
-	undo->epSquare        = board.epSquare;
-	undo->halfMoveCounter = board.halfMoveCounter++;
+	undo.hash            = board.hash;
+	undo.epSquare        = board.epSquare;
+	undo.halfMoveCounter = board.halfMoveCounter++;
 
 	// nullptr moves simply swap the turn only
 	board.turn = !board.turn;

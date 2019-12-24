@@ -18,7 +18,7 @@
 
 #ifdef TUNE
 
-#include <math.h>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 
@@ -163,7 +163,7 @@ void runTexelTuning(Thread *thread) {
 
 void initTexelEntries(TexelEntry *tes, Thread *thread) {
 
-    Undo undo[1];
+    Undo undo;
     Limits limits;
     char line[128];
     int i, j, k, searchEval, coeffs[NTERMS];

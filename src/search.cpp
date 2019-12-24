@@ -18,12 +18,12 @@
 
 #include <cassert>
 #include <cinttypes>
-#include <math.h>
+#include <cmath>
 #include <pthread.h>
 #include <csetjmp>
 #include <cstdlib>
 #include <cstring>
-#include <time.h>
+#include <ctime>
 
 #include "attacks.h"
 #include "bitboards.h"

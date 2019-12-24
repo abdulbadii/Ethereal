@@ -87,7 +87,7 @@ void buildKingMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t target
 
 void genAllLegalMoves(Board& board, uint16_t *moves, int& size) {
 
-    Undo undo[1];
+    Undo undo;
     int pseudoSize = 0;
     uint16_t pseudoMoves[MAX_MOVES];
 
@@ -99,7 +99,7 @@ void genAllLegalMoves(Board& board, uint16_t *moves, int& size) {
     for (int i = 0; i < pseudoSize; ++i) {
         applyMove(board, pseudoMoves[i], undo);
         if (moveWasLegal(board)) moves[size++] = pseudoMoves[i];
-        revertMove(board, pseudoMoves[i], undo);
+        revertMove(board, pseudoMoves[i], &undo);
     }
 }
 
