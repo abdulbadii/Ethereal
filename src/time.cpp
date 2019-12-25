@@ -45,40 +45,40 @@ double elapsedTime(SearchInfo *info) {
     return getRealTime() - info->startTime;
 }
 
-void initTimeManagment(SearchInfo *info, Limits *limits) {
+void initTimeManagment(SearchInfo *info, Limits& limits) {
 
-    info->startTime = limits->start; // Save off the start time of the search
+    info->startTime = limits.start; // Save off the start time of the search
 
     info->pvFactor = 0; // Clear our stability time usage heuristic
 
     // Allocate time if Ethereal is handling the clock
-    if (limits->limitedBySelf) {
+    if (limits.limitedBySelf) {
 
         // Playing using X / Y + Z time control
-        if (limits->mtg >= 0) {
-            info->idealUsage =  0.75 * limits->time / (limits->mtg +  5) + limits->inc;
-            info->maxAlloc   =  4.00 * limits->time / (limits->mtg +  7) + limits->inc;
-            info->maxUsage   = 10.00 * limits->time / (limits->mtg + 10) + limits->inc;
+        if (limits.mtg >= 0) {
+            info->idealUsage =  0.75 * limits.time / (limits.mtg +  5) + limits.inc;
+            info->maxAlloc   =  4.00 * limits.time / (limits.mtg +  7) + limits.inc;
+            info->maxUsage   = 10.00 * limits.time / (limits.mtg + 10) + limits.inc;
         }
 
         // Playing using X + Y time controls
         else {
-            info->idealUsage =  1.00 * (limits->time + 25 * limits->inc) / 50;
-            info->maxAlloc   =  5.00 * (limits->time + 25 * limits->inc) / 50;
-            info->maxUsage   = 10.00 * (limits->time + 25 * limits->inc) / 50;
+            info->idealUsage =  1.00 * (limits.time + 25 * limits.inc) / 50;
+            info->maxAlloc   =  5.00 * (limits.time + 25 * limits.inc) / 50;
+            info->maxUsage   = 10.00 * (limits.time + 25 * limits.inc) / 50;
         }
 
         // Cap time allocations using the move overhead
-        info->idealUsage = MIN(info->idealUsage, limits->time - MoveOverhead);
-        info->maxAlloc   = MIN(info->maxAlloc,   limits->time - MoveOverhead);
-        info->maxUsage   = MIN(info->maxUsage,   limits->time - MoveOverhead);
+        info->idealUsage = MIN(info->idealUsage, limits.time - MoveOverhead);
+        info->maxAlloc   = MIN(info->maxAlloc,   limits.time - MoveOverhead);
+        info->maxUsage   = MIN(info->maxUsage,   limits.time - MoveOverhead);
     }
 
     // Interface told us to search for a predefined duration
-    if (limits->limitedByTime) {
-        info->idealUsage = limits->timeLimit;
-        info->maxAlloc   = limits->timeLimit;
-        info->maxUsage   = limits->timeLimit;
+    if (limits.limitedByTime) {
+        info->idealUsage = limits.timeLimit;
+        info->maxAlloc   = limits.timeLimit;
+        info->maxUsage   = limits.timeLimit;
     }
 }
 

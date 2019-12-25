@@ -389,7 +389,7 @@ void runBenchmark(int argc, char** argv) {
 		cout << "\nPosition #" << i + 1 << ": " << Benchmarks[i] << "\n";
 		boardFromFEN(board, Benchmarks[i], 0);
 		limits.start = getRealTime();
-		getBestMove(threads, board, &limits, bestMove, ponderMove);
+		getBestMove(threads, board, limits, bestMove, ponderMove);
 		nodes += nodesSearchedThreadPool(threads);
 		clearTT(); // Reset TT for new search
 	}

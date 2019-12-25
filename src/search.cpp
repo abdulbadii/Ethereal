@@ -55,7 +55,7 @@ void initSearch() {
 				LMRTable[depth][played] = 0.75 + log(depth) * log(played) / 2.25;
 }
 
-void getBestMove(Thread *threads, Board& board, Limits *limits, uint16_t& best, uint16_t& ponder) {
+void getBestMove(Thread *threads, Board& board, Limits& limits, uint16_t& best, uint16_t& ponder) {
 
 	SearchInfo info = {};
 	// pthread_t pthreads[threads->nthreads];
@@ -70,7 +70,7 @@ void getBestMove(Thread *threads, Board& board, Limits *limits, uint16_t& best, 
 	updateTT(); // Table has an age component
 	ABORT_SIGNAL = 0; // Otherwise Threads will exit
 	initTimeManagment(&info, limits);
-	newSearchThreadPool(threads, board, limits, &info);
+	newSearchThreadPool(threads, board, &limits, &info);
 
 	// Create a new thread for each of the helpers and reuse the current
 	// thread for the main thread, which avoids some overhead and saves
