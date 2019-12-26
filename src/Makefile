@@ -507,7 +507,7 @@ config-sanity:
 	@echo "sse: '$(sse)'"
 	@echo "pext: '$(pext)'"
 	@if [ "$(sta)" ] ;then echo "Releasing static library linked binary";else echo "The released binary requires OS' shared library";fi
-	@if [ "$(dep)" ] ;then echo "dependencies list will be written in $(dep) file";else echo "no dependencies list is to be written";fi
+	@if [ "$(dep)" ] ;then echo "Dependencies list will be written in $(dep) file";else echo "No dependencies list is to be written";fi
 	@echo ""
 	@echo "Flags:"
 	@echo "CXX: $(CXX)"

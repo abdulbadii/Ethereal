@@ -85,7 +85,7 @@ void buildKingMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t target
 }
 }
 
-void genAllLegalMoves(Board& board, uint16_t *moves, int& size) {
+void genAllLegalMoves(Board& board, uint16_t (&moves)[MAX_MOVES], int& size) {
 
     Undo undo;
     int pseudoSize = 0;
@@ -103,7 +103,7 @@ void genAllLegalMoves(Board& board, uint16_t *moves, int& size) {
     }
 }
 
-void genAllNoisyMoves(Board& board, uint16_t *moves, int& size) {
+void genAllNoisyMoves(Board& board, uint16_t (&moves)[MAX_MOVES], int& size) {
 
     const int Forward = board.turn == WHITE ? -8 : 8;
     const int Left    = board.turn == WHITE ? -7 : 7;

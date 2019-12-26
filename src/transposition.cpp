@@ -164,14 +164,14 @@ void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, 
     replace->hash16     = (uint16_t)hash16;
 }
 
-PKEntry* getPKEntry(PKTable *pktable, uint64_t pkhash) {
-    PKEntry *pkentry = &pktable->entries[pkhash >> PKT_HASH_SHIFT];
-    return pkentry->pkhash == pkhash ? pkentry : nullptr;
+PKEntry* getPKEntry(PKTable& pktable, uint64_t pkhash) {
+    PKEntry& pkentry =pktable.entries[pkhash >> PKT_HASH_SHIFT];
+    return pkentry.pkhash == pkhash ? &pkentry : nullptr;
 }
 
-void storePKEntry(PKTable *pktable, uint64_t pkhash, uint64_t passed, int eval) {
-    PKEntry *pkentry = &pktable->entries[pkhash >> PKT_HASH_SHIFT];
-    pkentry->pkhash = pkhash;
-    pkentry->passed = passed;
-    pkentry->eval   = eval;
+void storePKEntry(PKTable& pktable, uint64_t pkhash, uint64_t passed, int eval) {
+    PKEntry& pkentry = pktable.entries[pkhash >> PKT_HASH_SHIFT];
+    pkentry.pkhash = pkhash;
+    pkentry.passed = passed;
+    pkentry.eval   = eval;
 }
