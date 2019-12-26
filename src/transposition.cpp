@@ -106,7 +106,7 @@ int valueToTT(int value, int height) {
          : value <= MATED_IN_MAX ? value - height : value;
 }
 
-int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth, int *bound) {
+int getTTEntry(uint64_t hash, uint16_t& move, int& value, int& eval, int& depth, int& bound) {
 
     const uint16_t hash16 = hash >> 48;
     TTEntry *slots = Table.buckets[hash & Table.hashMask].slots;
@@ -119,11 +119,11 @@ int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth,
             slots[i].generation = Table.generation | (slots[i].generation & TT_MASK_BOUND);
 
             // Copy over the TTEntry and signal success
-            *move  = slots[i].move;
-            *value = slots[i].value;
-            *eval  = slots[i].eval;
-            *depth = slots[i].depth;
-            *bound = slots[i].generation & TT_MASK_BOUND;
+            move  = slots[i].move;
+            value = slots[i].value;
+            eval  = slots[i].eval;
+            depth = slots[i].depth;
+            bound = slots[i].generation & TT_MASK_BOUND;
             return 1;
         }
     }
@@ -164,10 +164,10 @@ void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, 
     replace->hash16     = (uint16_t)hash16;
 }
 
-PKEntry* getPKEntry(PKTable& pktable, uint64_t pkhash) {
-    PKEntry& pkentry =pktable.entries[pkhash >> PKT_HASH_SHIFT];
-    return pkentry.pkhash == pkhash ? &pkentry : nullptr;
-}
+// PKEntry* getPKEntry(PKTable& pktable, uint64_t pkhash) {
+    // PKEntry& pkentry =pktable.entries[pkhash >> PKT_HASH_SHIFT];
+    // return pkentry.pkhash == pkhash ? &pkentry : nullptr;
+// }
 
 void storePKEntry(PKTable& pktable, uint64_t pkhash, uint64_t passed, int eval) {
     PKEntry& pkentry = pktable.entries[pkhash >> PKT_HASH_SHIFT];
