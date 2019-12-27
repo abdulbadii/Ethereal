@@ -75,8 +75,32 @@ void clearTT();
 int hashfullTT();
 int valueFromTT(int value, int height);
 int valueToTT(int value, int height);
-int getTTEntry(uint64_t hash, uint16_t& move, int& value, int& eval, int& depth, int& bound);
 void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, int bound);
-
 // PKEntry* getPKEntry(PKTable& pktable, uint64_t pkhash);
 void storePKEntry(PKTable& pktable, uint64_t pkhash, uint64_t passed, int eval);
+
+extern TTable Table;
+inline int getTTEntry(uint64_t hash, uint16_t& move, int& value, int& eval, int& depth, int& bound) {
+
+    const uint16_t hash16 = hash >> 48;
+    TTEntry *slots = Table.buckets[hash & Table.hashMask].slots;
+
+    // Search for a matching hash signature
+    for (int i = 0; i < TT_BUCKET_NB; ++i) {
+        if (slots[i].hash16 == hash16) {
+
+            // Update age but retain bound type
+            slots[i].generation = Table.generation | (slots[i].generation & TT_MASK_BOUND);
+
+            // Copy over the TTEntry and signal success
+            move  = slots[i].move;
+            value = slots[i].value;
+            eval  = slots[i].eval;
+            depth = slots[i].depth;
+            bound = slots[i].generation & TT_MASK_BOUND;
+            return 1;
+        }
+    }
+
+    return 0;
+}

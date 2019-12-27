@@ -69,7 +69,7 @@ popcnt := no
 sse := no
 pext := no
 ped:=yes
-cpp:=
+cpp:=14
 sta:=yes
 dep:=
 tune:=
@@ -144,15 +144,7 @@ endif
 
 ### 3.1 Selecting compiler (default=gcc)
 
-ifeq ($(cpp),14)
-	CXXFLAGS +=	-std=c++14
-else
-	ifeq ($(cpp),17)
-		CXXFLAGS +=	-std=c++17
-	else
-		CXXFLAGS +=	-std=c++11
-	endif
-endif
+CXXFLAGS +=	-std=c++$(cpp)
  # -march=native
 CXXFLAGS += -Wall -Wcast-qual -fno-exceptions $(EXTRACXXFLAGS)
 DEPENDFLAGS += -std=c++11

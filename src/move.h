@@ -21,6 +21,7 @@
 #include <cstdint>
 
 #include "types.h"
+#include "thread.h"
 
 enum {
     NONE_MOVE = 0, NULL_MOVE = 11,
@@ -68,3 +69,25 @@ int moveBestCaseValue(Board& board);
 int moveIsPseudoLegal(Board& board, uint16_t move);
 int moveWasLegal(Board& board);
 void moveToString(uint16_t move, char *str, int chess960);
+
+
+inline int apply(Thread *thread, Board& board, uint16_t move, int height) {
+
+	// nullptr moves are only tried when legal
+	if (move == NULL_MOVE) {
+		thread->moveStack[height] = NULL_MOVE;
+		applyNullMove(board, thread->undoStack[height]);
+		return 1;
+	}
+
+	// Track some move information for history lookups
+	thread->moveStack[height] = move;
+	thread->pieceStack[height] = pieceType(board.squares[MoveFrom(move)]);
+
+	// Apply the move and reject if illegal
+	applyMove(board, move, thread->undoStack[height]);
+	if (!moveWasLegal(board))
+		return revertMove(board, move, &thread->undoStack[height]), 0;
+
+	return 1;
+}

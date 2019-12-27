@@ -18,8 +18,6 @@
 
 #include <cassert>
 #include <cstdint>
-#include <cstdlib>
-#include <cstring>
 
 #include "transposition.h"
 #include "types.h"
@@ -104,31 +102,6 @@ int valueToTT(int value, int height) {
 
     return value >=  MATE_IN_MAX ? value + height
          : value <= MATED_IN_MAX ? value - height : value;
-}
-
-int getTTEntry(uint64_t hash, uint16_t& move, int& value, int& eval, int& depth, int& bound) {
-
-    const uint16_t hash16 = hash >> 48;
-    TTEntry *slots = Table.buckets[hash & Table.hashMask].slots;
-
-    // Search for a matching hash signature
-    for (int i = 0; i < TT_BUCKET_NB; ++i) {
-        if (slots[i].hash16 == hash16) {
-
-            // Update age but retain bound type
-            slots[i].generation = Table.generation | (slots[i].generation & TT_MASK_BOUND);
-
-            // Copy over the TTEntry and signal success
-            move  = slots[i].move;
-            value = slots[i].value;
-            eval  = slots[i].eval;
-            depth = slots[i].depth;
-            bound = slots[i].generation & TT_MASK_BOUND;
-            return 1;
-        }
-    }
-
-    return 0;
 }
 
 void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, int bound) {

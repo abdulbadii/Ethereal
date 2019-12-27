@@ -18,7 +18,6 @@
 
 #include <cassert>
 #include <cstdint>
-#include <cstdlib>
 
 #include "bitboards.h"
 #include "board.h"

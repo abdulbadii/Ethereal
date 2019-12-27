@@ -31,8 +31,6 @@
 #ifndef TB_NO_STDINT
 #include <cstdint>
 #endif
-#include <cstdlib>
-#include <cstring>
 #include <sys/stat.h>
 #include <fcntl.h>
 #ifndef _WIN32

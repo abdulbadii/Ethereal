@@ -19,8 +19,6 @@
 #ifdef TUNE
 
 #include <cmath>
-#include <cstdlib>
-#include <cstring>
 
 #include "bitboards.h"
 #include "board.h"

@@ -19,8 +19,6 @@
 #include <cassert>
 #include <cctype>
 #include <cinttypes>
-#include <cstdlib>
-#include <cstring>
 
 #include "attacks.h"
 #include "bitboards.h"

@@ -17,7 +17,6 @@
 */
 
 #include <cstdint>
-#include <cstdlib>
 
 #include "board.h"
 #include "history.h"

@@ -21,8 +21,6 @@
 #include <cmath>
 #include <pthread.h>
 #include <csetjmp>
-#include <cstdlib>
-#include <cstring>
 #include <ctime>
 
 #include "attacks.h"
@@ -69,7 +67,7 @@ void getBestMove(Thread *threads, Board& board, Limits& limits, uint16_t& best, 
 	// Minor house keeping for starting a search
 	updateTT(); // Table has an age component
 	ABORT_SIGNAL = 0; // Otherwise Threads will exit
-	initTimeManagment(&info, limits);
+	initTimeManagment(info, limits);
 	newSearchThreadPool(threads, board, &limits, &info);
 
 	// Create a new thread for each of the helpers and reuse the current

@@ -19,8 +19,6 @@
 #include <cinttypes>
 #include <pthread.h>
 #include <cstdint>
-#include <cstdlib>
-#include <cstring>
 #include <iostream>
 
 #include "attacks.h"
