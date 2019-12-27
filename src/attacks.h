@@ -21,6 +21,7 @@
 #include <cstdint>
 
 #include "types.h"
+#include "bitboards.h"
 
 struct Magic {
     uint64_t magic;
@@ -31,18 +32,89 @@ struct Magic {
 
 void initAttacks();
 
-uint64_t pawnAttacks(int colour, int sq);
-uint64_t knightAttacks(int sq);
-uint64_t bishopAttacks(int sq, uint64_t occupied);
-uint64_t rookAttacks(int sq, uint64_t occupied);
-uint64_t queenAttacks(int sq, uint64_t occupied);
-uint64_t kingAttacks(int sq);
+// uint64_t pawnAttacks(int colour, int sq);
+// uint64_t knightAttacks(int sq);
+// uint64_t bishopAttacks(int sq, uint64_t occupied);
+// uint64_t rookAttacks(int sq, uint64_t occupied);
+// uint64_t queenAttacks(int sq, uint64_t occupied);
+// uint64_t kingAttacks(int sq);
 
-uint64_t pawnLeftAttacks(uint64_t pawns, uint64_t targets, int colour);
-uint64_t pawnRightAttacks(uint64_t pawns, uint64_t targets, int colour);
-uint64_t pawnAttackSpan(uint64_t pawns, uint64_t targets, int colour);
-uint64_t pawnAdvance(uint64_t pawns, uint64_t occupied, int colour);
-uint64_t pawnEnpassCaptures(uint64_t pawns, int epsq, int colour);
+// uint64_t pawnLeftAttacks(uint64_t pawns, uint64_t targets, int colour);
+// uint64_t pawnRightAttacks(uint64_t pawns, uint64_t targets, int colour);
+// uint64_t pawnAttackSpan(uint64_t pawns, uint64_t targets, int colour);
+// uint64_t pawnAdvance(uint64_t pawns, uint64_t occupied, int colour);
+// uint64_t pawnEnpassCaptures(uint64_t pawns, int epsq, int colour);
+extern uint64_t PawnAttacks[COLOUR_NB][SQUARE_NB];
+extern uint64_t KnightAttacks[SQUARE_NB];
+extern uint64_t BishopAttacks[0x1480];
+extern uint64_t RookAttacks[0x19000];
+extern uint64_t KingAttacks[SQUARE_NB];
+
+extern Magic BishopTable[SQUARE_NB];
+extern Magic RookTable[SQUARE_NB];
+
+inline int sliderIndex(uint64_t occupied, Magic& table) {
+#ifdef USE_PEXT
+	return _pext_u64(occupied, table.mask);
+#else
+	return ((occupied & table.mask) * table.magic) >> table.shift;
+#endif
+}
+
+inline uint64_t pawnAttacks(int colour, int sq) {
+	assert(0 <= colour && colour < COLOUR_NB);
+	assert(0 <= sq && sq < SQUARE_NB);
+	return PawnAttacks[colour][sq];
+}
+
+inline uint64_t knightAttacks(int sq) {
+	assert(0 <= sq && sq < SQUARE_NB);
+	return KnightAttacks[sq];
+}
+
+inline uint64_t bishopAttacks(int sq, uint64_t occupied) {
+	assert(0 <= sq && sq < SQUARE_NB);
+	return BishopTable[sq].offset[sliderIndex(occupied, BishopTable[sq])];
+}
+
+inline uint64_t rookAttacks(int sq, uint64_t occupied) {
+	assert(0 <= sq && sq < SQUARE_NB);
+	return RookTable[sq].offset[sliderIndex(occupied, RookTable[sq])];
+}
+
+inline uint64_t queenAttacks(int sq, uint64_t occupied) {
+	assert(0 <= sq && sq < SQUARE_NB);
+	return bishopAttacks(sq, occupied) | rookAttacks(sq, occupied);
+}
+
+inline uint64_t kingAttacks(int sq) {
+	assert(0 <= sq && sq < SQUARE_NB);
+	return KingAttacks[sq];
+}
+
+inline uint64_t pawnLeftAttacks(uint64_t pawns, uint64_t targets, int colour) {
+	return targets & (colour == WHITE ? (pawns << 7) & ~FILE_H
+												: (pawns >> 7) & ~FILE_A);
+}
+
+inline uint64_t pawnRightAttacks(uint64_t pawns, uint64_t targets, int colour) {
+	return targets & (colour == WHITE ? (pawns << 9) & ~FILE_A
+												: (pawns >> 9) & ~FILE_H);
+}
+
+inline uint64_t pawnAttackSpan(uint64_t pawns, uint64_t targets, int colour) {
+	return pawnLeftAttacks(pawns, targets, colour)
+		| pawnRightAttacks(pawns, targets, colour);
+}
+
+inline uint64_t pawnAdvance(uint64_t pawns, uint64_t occupied, int colour) {
+	return ~occupied & (colour == WHITE ? (pawns << 8) : (pawns >> 8));
+}
+
+inline uint64_t pawnEnpassCaptures(uint64_t pawns, int epsq, int colour) {
+	return epsq == -1 ? 0ull : pawnAttacks(!colour, epsq) & pawns;
+}
+
 
 int squareIsAttacked(Board& board, int colour, int sq);
 uint64_t attackersToSquare(Board& board, int colour, int sq);

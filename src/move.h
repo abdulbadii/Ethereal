@@ -22,6 +22,7 @@
 
 #include "types.h"
 #include "thread.h"
+#include "movegen.h"
 
 enum {
     NONE_MOVE = 0, NULL_MOVE = 11,
@@ -48,8 +49,8 @@ int castleRookTo(int king, int rook);
 #define MovePromoPiece(move)   (1 + ((move) >> 14))
 #define MoveMake(from,to,flag) ((from) | ((to) << 6) | (flag))
 
-int apply(Thread *thread, Board& board, uint16_t move, int height);
-void applyLegal(Thread *thread, Board& board, uint16_t move, int height);
+// int apply(Thread *thread, Board& board, uint16_t move, int height);
+// void applyLegal(Thread *thread, Board& board, uint16_t move, int height);
 void applyMove(Board& board, uint16_t move, Undo& undo);
 void applyNormalMove(Board& board, uint16_t move, Undo& undo);
 void applyCastleMove(Board& board, uint16_t move, Undo& undo);
@@ -57,9 +58,9 @@ void applyEnpassMove(Board& board, uint16_t move, Undo& undo);
 void applyPromotionMove(Board& board, uint16_t move, Undo& undo);
 void applyNullMove(Board& board, Undo& undo);
 
-void revert(Thread *thread, Board& board, uint16_t move, int height);
+// void revert(Thread *thread, Board& board, uint16_t move, int height);
+// void revertNullMove(Board& board, Undo& undo);
 void revertMove(Board& board, uint16_t move, Undo *undo);
-void revertNullMove(Board& board, Undo *undo);
 
 int legalMoveCount(Board& board);
 int moveExaminedByMultiPV(Thread *thread, uint16_t move);
@@ -73,7 +74,7 @@ void moveToString(uint16_t move, char *str, int chess960);
 
 inline int apply(Thread *thread, Board& board, uint16_t move, int height) {
 
-	// nullptr moves are only tried when legal
+	// nul moves are only tried when legal
 	if (move == NULL_MOVE) {
 		thread->moveStack[height] = NULL_MOVE;
 		applyNullMove(board, thread->undoStack[height]);
@@ -91,3 +92,44 @@ inline int apply(Thread *thread, Board& board, uint16_t move, int height) {
 
 	return 1;
 }
+
+inline void applyLegal(Thread *thread, Board& board, uint16_t move, int height) {
+
+	// Track some move information for history lookups
+	thread->moveStack[height] = move;
+	thread->pieceStack[height] = pieceType(board.squares[MoveFrom(move)]);
+
+	// Assumed that this move is legal
+	applyMove(board, move, thread->undoStack[height]);
+	assert(moveWasLegal(board));
+}
+
+inline void revertNullMove(Board& board, Undo& undo) {
+
+	// Revert information which is hard to recompute
+	// We may, and have to, zero out the king attacks
+	board.hash            = undo.hash;
+	board.kingAttackers   = 0ull;
+	board.epSquare        = undo.epSquare;
+	board.halfMoveCounter = undo.halfMoveCounter;
+
+	// nullptr moves simply swap the turn only
+	board.turn = !board.turn;
+	board.numMoves--;
+}
+
+inline void revert(Thread *thread, Board& board, uint16_t move, int height) {
+	if (move == NULL_MOVE) revertNullMove(board, thread->undoStack[height]);
+	else revertMove(board, move, &thread->undoStack[height]);
+}
+inline int legalMoveCount(Board& board) {
+
+	// Count of the legal number of moves for a given position
+
+	int size = 0;
+	uint16_t moves[MAX_MOVES];
+	genAllLegalMoves(board, moves, size);
+
+	return size;
+}
+

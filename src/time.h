@@ -32,6 +32,6 @@ void initTimeManagment(SearchInfo& info, Limits& limits);
 void updateTimeManagment(SearchInfo *info, Limits *limits);
 int terminateTimeManagment(SearchInfo *info);
 int terminateSearchEarly(Thread *thread);
-
-static const double PVFactorCount  = 8;
-static const double PVFactorWeight = 0.085;
+namespace{
+const double PVFactorCount  = 8;
+const double PVFactorWeight = 0.085;}

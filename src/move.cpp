@@ -45,17 +45,6 @@ int castleRookTo(int king, int rook) {
 	return square(rankOf(king), (rook > king) ? 5 : 3);
 }
 
-void applyLegal(Thread *thread, Board& board, uint16_t move, int height) {
-
-	// Track some move information for history lookups
-	thread->moveStack[height] = move;
-	thread->pieceStack[height] = pieceType(board.squares[MoveFrom(move)]);
-
-	// Assumed that this move is legal
-	applyMove(board, move, thread->undoStack[height]);
-	assert(moveWasLegal(board));
-}
-
 void applyMove(Board& board, uint16_t move, Undo& undo) {
 
 	static void (*table[4])(Board&, uint16_t, Undo&) = {
@@ -306,11 +295,6 @@ void applyNullMove(Board& board, Undo& undo) {
 	}
 }
 
-void revert(Thread *thread, Board& board, uint16_t move, int height) {
-	if (move == NULL_MOVE) revertNullMove(board, &thread->undoStack[height]);
-	else revertMove(board, move, &thread->undoStack[height]);
-}
-
 void revertMove(Board& board, uint16_t move, Undo *undo) {
 
 	const int to = MoveTo(move);
@@ -398,31 +382,6 @@ void revertMove(Board& board, uint16_t move, Undo *undo) {
 		board.squares[to] = EMPTY;
 		board.squares[ep] = undo->capturePiece;
 	}
-}
-
-void revertNullMove(Board& board, Undo *undo) {
-
-	// Revert information which is hard to recompute
-	// We may, and have to, zero out the king attacks
-	board.hash            = undo->hash;
-	board.kingAttackers   = 0ull;
-	board.epSquare        = undo->epSquare;
-	board.halfMoveCounter = undo->halfMoveCounter;
-
-	// nullptr moves simply swap the turn only
-	board.turn = !board.turn;
-	board.numMoves--;
-}
-
-int legalMoveCount(Board& board) {
-
-	// Count of the legal number of moves for a given position
-
-	int size = 0;
-	uint16_t moves[MAX_MOVES];
-	genAllLegalMoves(board, moves, size);
-
-	return size;
 }
 
 int moveExaminedByMultiPV(Thread *thread, uint16_t move) {

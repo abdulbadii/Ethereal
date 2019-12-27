@@ -27,21 +27,21 @@
 #include "types.h"
 
 namespace {
-void buildEnpassMoves(uint16_t *moves, int& size, uint64_t attacks, int epsq) {
+inline void buildEnpassMoves(uint16_t *moves, int& size, uint64_t attacks, int epsq) {
     while (attacks) {
         int sq = poplsb(&attacks);
         moves[size++] = MoveMake(sq, epsq, ENPASS_MOVE);
     }
 }
 
-void buildPawnMoves(uint16_t *moves, int& size, uint64_t attacks, int delta) {
+inline void buildPawnMoves(uint16_t *moves, int& size, uint64_t attacks, int delta) {
     while (attacks) {
         int sq = poplsb(&attacks);
         moves[size++] = MoveMake(sq + delta, sq, NORMAL_MOVE);
     }
 }
 
-void buildPawnPromotions(uint16_t *moves, int& size, uint64_t attacks, int delta) {
+inline void buildPawnPromotions(uint16_t *moves, int& size, uint64_t attacks, int delta) {
     while (attacks) {
         int sq = poplsb(&attacks);
         moves[size++] = MoveMake(sq + delta, sq,  QUEEN_PROMO_MOVE);
@@ -51,35 +51,35 @@ void buildPawnPromotions(uint16_t *moves, int& size, uint64_t attacks, int delta
     }
 }
 
-void buildNonPawnMoves(uint16_t *moves, int& size, uint64_t attacks, int sq) {
+inline void buildNonPawnMoves(uint16_t *moves, int& size, uint64_t attacks, int sq) {
     while (attacks) {
         int to = poplsb(&attacks);
         moves[size++] = MoveMake(sq, to, NORMAL_MOVE);
     }
 }
 
-void buildKnightMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t targets) {
+inline void buildKnightMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t targets) {
     while (pieces) {
         int sq = poplsb(&pieces);
         buildNonPawnMoves(moves, size, knightAttacks(sq) & targets, sq);
     }
 }
 
-void buildBishopMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t occupied, uint64_t targets) {
+inline void buildBishopMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t occupied, uint64_t targets) {
     while (pieces) {
         int sq = poplsb(&pieces);
         buildNonPawnMoves(moves, size, bishopAttacks(sq, occupied) & targets, sq);
     }
 }
 
-void buildRookMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t occupied, uint64_t targets) {
+inline void buildRookMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t occupied, uint64_t targets) {
     while (pieces) {
         int sq = poplsb(&pieces);
         buildNonPawnMoves(moves, size, rookAttacks(sq, occupied) & targets, sq);
     }
 }
 
-void buildKingMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t targets) {
+inline void buildKingMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t targets) {
     int sq = getlsb(pieces);
     buildNonPawnMoves(moves, size, kingAttacks(sq) & targets, sq);
 }
