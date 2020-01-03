@@ -20,7 +20,7 @@
 ### ==========================================================================
 
 ### Executable name
-EXE := EtherealC++
+EXE := Ethereal
 
 ### Installation dir definitions
 PREFIX := /usr/local
@@ -68,7 +68,9 @@ prefetch := no
 popcnt := no
 sse := no
 pext := no
+pipe:=1
 ped:=yes
+w:=1
 cpp:=14
 sta:=yes
 dep:=
@@ -81,29 +83,24 @@ COMP := gcc
 ifeq ($(ARCH),general-32)
 	arch := any
 endif
-
 ifeq ($(ARCH),x86-32-old)
 	arch := i386
 endif
-
 ifeq ($(ARCH),x86-32)
 	arch := i386
 	prefetch := yes
 	sse := yes
 endif
-
 ifeq ($(ARCH),general-64)
 	arch := any
 	bits := 64
 endif
-
 ifeq ($(ARCH),x86-64)
 	arch := x86_64
 	bits := 64
 	prefetch := yes
 	sse := yes
 endif
-
 ifeq ($(ARCH),x86-64-modern)
 	arch := x86_64
 	bits := 64
@@ -111,7 +108,6 @@ ifeq ($(ARCH),x86-64-modern)
 	popcnt := yes
 	sse := yes
 endif
-
 ifeq ($(ARCH),x86-64-bmi2)
 	arch := x86_64
 	bits := 64
@@ -120,16 +116,13 @@ ifeq ($(ARCH),x86-64-bmi2)
 	sse := yes
 	pext := yes
 endif
-
 ifeq ($(ARCH),armv7)
 	arch := armv7
 	prefetch := yes
 endif
-
 ifeq ($(ARCH),ppc-32)
 	arch := ppc
 endif
-
 ifeq ($(ARCH),ppc-64)
 	arch := ppc64
 	bits := 64
@@ -142,15 +135,19 @@ endif
 ### Section 3. Low-level configuration
 ### ==========================================================================
 
-### 3.1 Selecting compiler (default=gcc)
+### 3.1 Selecting compiler (default=gcc) #-march=native
 
 CXXFLAGS +=	-std=c++$(cpp)
- # -march=native
 CXXFLAGS += -Wall -Wcast-qual -fno-exceptions $(EXTRACXXFLAGS)
-DEPENDFLAGS += -std=c++11
+DEPENDFLAGS += -std=c++$(cpp)
 LDFLAGS += -lm $(EXTRALDFLAGS)
 
-
+ifneq ($(w),1)
+	CXXFLAGS += -w
+endif
+ifneq ($(pipe),1)
+	CXXFLAGS += -pipe
+endif
 ifneq ($(filter $(dep),1 yes),)
 	dep:=.depend
 endif

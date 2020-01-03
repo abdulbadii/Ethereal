@@ -29,21 +29,21 @@
 namespace {
 inline void buildEnpassMoves(uint16_t *moves, int& size, uint64_t attacks, int epsq) {
     while (attacks) {
-        int sq = poplsb(&attacks);
+        int sq = poplsb(attacks);
         moves[size++] = MoveMake(sq, epsq, ENPASS_MOVE);
     }
 }
 
 inline void buildPawnMoves(uint16_t *moves, int& size, uint64_t attacks, int delta) {
     while (attacks) {
-        int sq = poplsb(&attacks);
+        int sq = poplsb(attacks);
         moves[size++] = MoveMake(sq + delta, sq, NORMAL_MOVE);
     }
 }
 
 inline void buildPawnPromotions(uint16_t *moves, int& size, uint64_t attacks, int delta) {
     while (attacks) {
-        int sq = poplsb(&attacks);
+        int sq = poplsb(attacks);
         moves[size++] = MoveMake(sq + delta, sq,  QUEEN_PROMO_MOVE);
         moves[size++] = MoveMake(sq + delta, sq,   ROOK_PROMO_MOVE);
         moves[size++] = MoveMake(sq + delta, sq, BISHOP_PROMO_MOVE);
@@ -53,28 +53,28 @@ inline void buildPawnPromotions(uint16_t *moves, int& size, uint64_t attacks, in
 
 inline void buildNonPawnMoves(uint16_t *moves, int& size, uint64_t attacks, int sq) {
     while (attacks) {
-        int to = poplsb(&attacks);
+        int to = poplsb(attacks);
         moves[size++] = MoveMake(sq, to, NORMAL_MOVE);
     }
 }
 
 inline void buildKnightMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t targets) {
     while (pieces) {
-        int sq = poplsb(&pieces);
+        int sq = poplsb(pieces);
         buildNonPawnMoves(moves, size, knightAttacks(sq) & targets, sq);
     }
 }
 
 inline void buildBishopMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t occupied, uint64_t targets) {
     while (pieces) {
-        int sq = poplsb(&pieces);
+        int sq = poplsb(pieces);
         buildNonPawnMoves(moves, size, bishopAttacks(sq, occupied) & targets, sq);
     }
 }
 
 inline void buildRookMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t occupied, uint64_t targets) {
     while (pieces) {
-        int sq = poplsb(&pieces);
+        int sq = poplsb(pieces);
         buildNonPawnMoves(moves, size, rookAttacks(sq, occupied) & targets, sq);
     }
 }
@@ -214,7 +214,7 @@ void genAllQuietMoves(Board& board, uint16_t *moves, int& size) {
     while (castles && !board.kingAttackers) {
 
         // Figure out which pieces are moving to which squares
-        rook = poplsb(&castles), king = getlsb(myKings);
+        rook = poplsb(castles), king = getlsb(myKings);
         rookTo = castleRookTo(king, rook);
         kingTo = castleKingTo(king, rook);
         attacked = 0;
@@ -228,7 +228,7 @@ void genAllQuietMoves(Board& board, uint16_t *moves, int& size) {
         // Castle is illegal if we move through a checking threat
         mask = bitsBetweenMasks(king, kingTo);
         while (mask)
-            if (squareIsAttacked(board, board.turn, poplsb(&mask)))
+            if (squareIsAttacked(board, board.turn, poplsb(mask)))
                 { attacked = 1; break; }
         if (attacked) continue;
 

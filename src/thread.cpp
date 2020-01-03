@@ -57,8 +57,8 @@ void resetThreadPool(Thread *threads) {
     // and evaluation caching. This is needed for ucinewgame
     // calls in order to ensure a deterministic behaviour
 
-    for (int i = 0; i < threads->nthreads; ++i) {
-        memset(&threads[i].pktable, 0, sizeof(PKTable));
+    for (int i = 0; i < threads->nthreads; i++) {
+        memset(&threads[i].pktable.entries, 0, sizeof(PKTable));
         memset(&threads[i].killers, 0, sizeof(KillerTable));
         memset(&threads[i].cmtable, 0, sizeof(CounterMoveTable));
         memset(&threads[i].history, 0, sizeof(HistoryTable));

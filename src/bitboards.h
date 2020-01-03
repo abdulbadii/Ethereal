@@ -68,8 +68,8 @@ int backmost(int colour, uint64_t bb);
 int popcount(uint64_t bb);
 int getlsb(uint64_t bb);
 int getmsb(uint64_t bb);
-int poplsb(uint64_t *bb);
-int popmsb(uint64_t *bb);
+int poplsb(uint64_t& bb);
+int popmsb(uint64_t& bb);
 bool several(uint64_t bb);
 bool onlyOne(uint64_t bb);
 

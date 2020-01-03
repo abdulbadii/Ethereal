@@ -158,7 +158,7 @@ void boardFromFEN(Board& board,const string& fens, int chess960) {
 	}
 
 	rooks = board.castleRooks;
-	while (rooks) board.hash ^= ZobristCastleKeys[poplsb(&rooks)];
+	while (rooks) board.hash ^= ZobristCastleKeys[poplsb(rooks)];
 
 	// En passant square
 	board.epSquare = stringToSquare(parse(fen, word));
@@ -220,7 +220,7 @@ void boardToFEN(Board& board, char *fen) {
 	// Castle rights for White
 	castles = board.colours[WHITE] & board.castleRooks;
 	while (castles) {
-		sq = popmsb(&castles);
+		sq = popmsb(castles);
 		if (board.chess960) *fen++ = 'A' + fileOf(sq);
 		else if (testBit(FILE_H, sq)) *fen++ = 'K';
 		else if (testBit(FILE_A, sq)) *fen++ = 'Q';
@@ -229,7 +229,7 @@ void boardToFEN(Board& board, char *fen) {
 	// Castle rights for Black
 	castles = board.colours[BLACK] & board.castleRooks;
 	while (castles) {
-		sq = popmsb(&castles);
+		sq = popmsb(castles);
 		if (board.chess960) *fen++ = 'a' + fileOf(sq);
 		else if (testBit(FILE_H, sq)) *fen++ = 'k';
 		else if (testBit(FILE_A, sq)) *fen++ = 'q';

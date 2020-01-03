@@ -141,10 +141,3 @@ void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, 
     // PKEntry& pkentry =pktable.entries[pkhash >> PKT_HASH_SHIFT];
     // return pkentry.pkhash == pkhash ? &pkentry : nullptr;
 // }
-
-void storePKEntry(PKTable& pktable, uint64_t pkhash, uint64_t passed, int eval) {
-    PKEntry& pkentry = pktable.entries[pkhash >> PKT_HASH_SHIFT];
-    pkentry.pkhash = pkhash;
-    pkentry.passed = passed;
-    pkentry.eval   = eval;
-}

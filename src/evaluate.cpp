@@ -339,7 +339,8 @@ const int Tempo = 20;
 
 #undef S
 
-int evaluateBoard(Board& board, PKTable& pktable) {
+// template<>
+int evaluateBoard(Board& board, const PKTable& pktable) {
 
 	EvalInfo ei;
 	int phase, factor, eval, pkeval;
@@ -423,7 +424,7 @@ int evaluatePawns(EvalInfo& ei, Board& board, int colour) {
 	while (tempPawns) {
 
 		// Pop off the next pawn
-		sq = poplsb(&tempPawns);
+		sq = poplsb(tempPawns);
 		if (TRACE) T.PawnValue[US]++;
 		if (TRACE) T.PawnPSQT32[relativeSquare32(US, sq)][US]++;
 
@@ -504,7 +505,7 @@ int evaluateKnights(EvalInfo& ei, Board& board, int colour) {
 	while (tempKnights) {
 
 		// Pop off the next knight
-		sq = poplsb(&tempKnights);
+		sq = poplsb(tempKnights);
 		if (TRACE) T.KnightValue[US]++;
 		if (TRACE) T.KnightPSQT32[relativeSquare32(US, sq)][US]++;
 
@@ -568,7 +569,7 @@ int evaluateBishops(EvalInfo& ei, Board& board, int colour) {
 	while (tempBishops) {
 
 		// Pop off the next Bishop
-		sq = poplsb(&tempBishops);
+		sq = poplsb(tempBishops);
 		if (TRACE) T.BishopValue[US]++;
 		if (TRACE) T.BishopPSQT32[relativeSquare32(US, sq)][US]++;
 
@@ -633,7 +634,7 @@ int evaluateRooks(EvalInfo& ei, Board& board, int colour) {
 	while (tempRooks) {
 
 		// Pop off the next rook
-		sq = poplsb(&tempRooks);
+		sq = poplsb(tempRooks);
 		if (TRACE) T.RookValue[US]++;
 		if (TRACE) T.RookPSQT32[relativeSquare32(US, sq)][US]++;
 
@@ -690,7 +691,7 @@ int evaluateQueens(EvalInfo& ei, Board& board, int colour) {
 	while (tempQueens) {
 
 		// Pop off the next queen
-		sq = poplsb(&tempQueens);
+		sq = poplsb(tempQueens);
 		if (TRACE) T.QueenValue[US]++;
 		if (TRACE) T.QueenPSQT32[relativeSquare32(US, sq)][US]++;
 
@@ -840,7 +841,7 @@ int evaluatePassed(EvalInfo& ei, Board& board, int colour) {
 	while (tempPawns) {
 
 		// Pop off the next passed Pawn
-		sq = poplsb(&tempPawns);
+		sq = poplsb(tempPawns);
 		rank = relativeRankOf(US, sq);
 		bitboard = pawnAdvance(1ull << sq, 0ull, US);
 
@@ -1071,7 +1072,7 @@ int evaluateScaleFactor(Board& board, int eval) {
 	return SCALE_NORMAL;
 }
 
-void initEvalInfo(EvalInfo& ei, Board& board, PKTable& pktable) {
+void initEvalInfo(EvalInfo& ei, Board& board, const PKTable& pktable) {
 
 	uint64_t white   = board.colours[WHITE];
 	uint64_t black   = board.colours[BLACK];
@@ -1119,18 +1120,19 @@ void initEvalInfo(EvalInfo& ei, Board& board, PKTable& pktable) {
 	ei.kingAttackersWeight[WHITE] = ei.kingAttackersWeight[BLACK] = 0;
 
 	// Try to read a hashed Pawn King Eval. Otherwise, start from scratch
-    PKEntry& pkentry =pktable.entries[board.pkhash >> PKT_HASH_SHIFT];
-    if (pkentry.pkhash == board.pkhash) {
-		ei.pkentry = &pkentry;
-		ei.passedPawns   = ei.pkentry->passed;
-		ei.pkeval[WHITE] = ei.pkentry->eval;
-	}
-	else {
+   if (!pktable.nul) {
 		ei.pkentry = nullptr;
 		ei.passedPawns   = 0ull;
 		ei.pkeval[WHITE] = 0   ;
 	}
-	
+	else {
+		PKEntry &pkentry =const_cast<PKTable&>(pktable).entries[board.pkhash >> PKT_HASH_SHIFT];
+		if (pkentry.pkhash == board.pkhash) {
+			ei.pkentry = &pkentry;
+			ei.passedPawns   = ei.pkentry->passed;
+			ei.pkeval[WHITE] = ei.pkentry->eval;
+		}
+	}
 	ei.pkeval[BLACK] = 0;
 }
 

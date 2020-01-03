@@ -67,8 +67,12 @@ struct PKEntry {
 
 struct PKTable {
     PKEntry entries[PKT_SIZE];
+	 PKTable(){};
+	 PKTable(bool n) : nul{n}{}
+	 bool nul=1;
 };
 
+extern TTable Table;
 void initTT(uint64_t megabytes);
 void updateTT();
 void clearTT();
@@ -77,9 +81,15 @@ int valueFromTT(int value, int height);
 int valueToTT(int value, int height);
 void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, int bound);
 // PKEntry* getPKEntry(PKTable& pktable, uint64_t pkhash);
-void storePKEntry(PKTable& pktable, uint64_t pkhash, uint64_t passed, int eval);
+// void storePKEntry(const PKTable& pktable, uint64_t pkhash, uint64_t passed, int eval);
 
-extern TTable Table;
+inline void storePKEntry(const PKTable& pktable, uint64_t pkhash, uint64_t passed, int eval) {
+    PKEntry& pkentry = const_cast<PKTable&>(pktable).entries[pkhash >> PKT_HASH_SHIFT];
+    pkentry.pkhash = pkhash;
+    pkentry.passed = passed;
+    pkentry.eval   = eval;
+}
+
 inline int getTTEntry(uint64_t hash, uint16_t& move, int& value, int& eval, int& depth, int& bound) {
 
     const uint16_t hash16 = hash >> 48;
