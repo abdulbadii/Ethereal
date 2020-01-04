@@ -64,8 +64,8 @@ void revertMove(Board& board, uint16_t move, Undo *undo);
 
 int legalMoveCount(Board& board);
 int moveExaminedByMultiPV(Thread *thread, uint16_t move);
-int moveIsTactical(Board& board, uint16_t move);
-int moveEstimatedValue(Board& board, uint16_t move);
+int moveIsTactical(const Board& board, uint16_t move);
+int moveEstimatedValue(const Board& board, uint16_t move);
 int moveBestCaseValue(Board& board);
 int moveIsPseudoLegal(Board& board, uint16_t move);
 int moveWasLegal(Board& board);

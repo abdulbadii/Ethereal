@@ -340,7 +340,7 @@ const int Tempo = 20;
 #undef S
 
 // template<>
-int evaluateBoard(Board& board, const PKTable& pktable) {
+int evaluateBoard(const Board& board, const PKTable& pktable) {
 
 	EvalInfo ei;
 	int phase, factor, eval, pkeval;
@@ -380,7 +380,7 @@ int evaluateBoard(Board& board, const PKTable& pktable) {
 	return board.turn == WHITE ? eval : -eval;
 }
 
-int evaluatePieces(EvalInfo& ei, Board& board) {
+int evaluatePieces(EvalInfo& ei, const Board& board) {
 
 	int eval;
 
@@ -396,7 +396,7 @@ int evaluatePieces(EvalInfo& ei, Board& board) {
 	return eval;
 }
 
-int evaluatePawns(EvalInfo& ei, Board& board, int colour) {
+int evaluatePawns(EvalInfo& ei,const Board& board, int colour) {
 
 	const int US = colour, THEM = !colour;
 	const int Forward = (colour == WHITE) ? 8 : -8;
@@ -489,7 +489,7 @@ int evaluatePawns(EvalInfo& ei, Board& board, int colour) {
 	return eval;
 }
 
-int evaluateKnights(EvalInfo& ei, Board& board, int colour) {
+int evaluateKnights(EvalInfo& ei,const Board& board, int colour) {
 
 	const int US = colour, THEM = !colour;
 
@@ -547,7 +547,7 @@ int evaluateKnights(EvalInfo& ei, Board& board, int colour) {
 	return eval;
 }
 
-int evaluateBishops(EvalInfo& ei, Board& board, int colour) {
+int evaluateBishops(EvalInfo& ei,const Board& board, int colour) {
 
 	const int US = colour, THEM = !colour;
 
@@ -617,7 +617,7 @@ int evaluateBishops(EvalInfo& ei, Board& board, int colour) {
 	return eval;
 }
 
-int evaluateRooks(EvalInfo& ei, Board& board, int colour) {
+int evaluateRooks(EvalInfo& ei,const Board& board, int colour) {
 
 	const int US = colour, THEM = !colour;
 
@@ -676,7 +676,7 @@ int evaluateRooks(EvalInfo& ei, Board& board, int colour) {
 	return eval;
 }
 
-int evaluateQueens(EvalInfo& ei, Board& board, int colour) {
+int evaluateQueens(EvalInfo& ei,const Board& board, int colour) {
 
 	const int US = colour, THEM = !colour;
 
@@ -717,7 +717,7 @@ int evaluateQueens(EvalInfo& ei, Board& board, int colour) {
 	return eval;
 }
 
-int evaluateKings(EvalInfo& ei, Board& board, int colour) {
+int evaluateKings(EvalInfo& ei,const Board& board, int colour) {
 
 	const int US = colour, THEM = !colour;
 
@@ -827,7 +827,7 @@ int evaluateKings(EvalInfo& ei, Board& board, int colour) {
 	return eval;
 }
 
-int evaluatePassed(EvalInfo& ei, Board& board, int colour) {
+int evaluatePassed(EvalInfo& ei,const Board& board, int colour) {
 
 	const int US = colour, THEM = !colour;
 
@@ -871,7 +871,7 @@ int evaluatePassed(EvalInfo& ei, Board& board, int colour) {
 	return eval;
 }
 
-int evaluateThreats(EvalInfo& ei, Board& board, int colour) {
+int evaluateThreats(EvalInfo& ei,const Board& board, int colour) {
 
 	const int US = colour, THEM = !colour;
 	const uint64_t Rank3Rel = US == WHITE ? RANK_3 : RANK_6;
@@ -965,7 +965,7 @@ int evaluateThreats(EvalInfo& ei, Board& board, int colour) {
 	return eval;
 }
 
-int evaluateClosedness(EvalInfo& ei, Board& board) {
+int evaluateClosedness(EvalInfo& ei, const Board& board) {
 
 	int closedness, count, eval = 0;
 
@@ -994,7 +994,7 @@ int evaluateClosedness(EvalInfo& ei, Board& board) {
 	return eval;
 }
 
-int evaluateComplexity(EvalInfo& ei, Board& board, int eval) {
+int evaluateComplexity(EvalInfo& ei, const Board& board, int eval) {
 
 	// Adjust endgame evaluation based on features related to how
 	// likely the stronger side is to convert the position.
@@ -1031,7 +1031,7 @@ int evaluateComplexity(EvalInfo& ei, Board& board, int eval) {
 	return MakeScore(0, v);
 }
 
-int evaluateScaleFactor(Board& board, int eval) {
+int evaluateScaleFactor(const Board& board, int eval) {
 
 	// Scale endgames based on remaining material. Currently, we only
 	// look for OCB endgames that include only one Knight or one Rook
@@ -1072,7 +1072,7 @@ int evaluateScaleFactor(Board& board, int eval) {
 	return SCALE_NORMAL;
 }
 
-void initEvalInfo(EvalInfo& ei, Board& board, const PKTable& pktable) {
+void initEvalInfo(EvalInfo& ei, const Board& board, const PKTable& pktable) {
 
 	uint64_t white   = board.colours[WHITE];
 	uint64_t black   = board.colours[BLACK];

@@ -396,7 +396,7 @@ int moveExaminedByMultiPV(Thread *thread, uint16_t move) {
 	return 0;
 }
 
-int moveIsTactical(Board& board, uint16_t move) {
+int moveIsTactical(const Board& board, uint16_t move) {
 
 	// We can use a simple bit trick since we assert that only
 	// the enpass and promotion moves will ever have the 13th bit,
@@ -410,7 +410,7 @@ int moveIsTactical(Board& board, uint16_t move) {
 		|| (move & ENPASS_MOVE & PROMOTION_MOVE);
 }
 
-int moveEstimatedValue(Board& board, uint16_t move) {
+int moveEstimatedValue(const Board& board, uint16_t move) {
 
 	// Start with the value of the piece on the target square
 	int value = SEEPieceValues[pieceType(board.squares[MoveTo(move)])];
