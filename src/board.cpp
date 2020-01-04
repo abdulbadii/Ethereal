@@ -44,7 +44,7 @@ const string Benchmarks[] = {
 	#include "bench.csv"
 	""
 };
-void clearBoard(Board& board) {
+inline void clearBoard(Board& board) {
 
 	// Wipe the entire board structure, and also set all of
 	// the pieces on the board to be EMPTY. Ideally, before
@@ -72,7 +72,7 @@ void setSquare(Board& board, int colour, int piece, int sq) {
 	if (piece == PAWN || piece == KING)
 		board.pkhash ^= ZobristKeys[board.squares[sq]][sq];
 }
-int stringToSquare(string& str) {
+int stringToSquare(const string& str) {
 
 	// Helper for reading the enpass square from a FEN. If no square
 	// is provided, Ethereal will use -1 to represent this internally
@@ -183,7 +183,7 @@ void boardFromFEN(Board& board,const string& fens, int chess960) {
 
 }
 
-void boardToFEN(Board& board, char *fen) {
+void boardToFEN(const Board& board, char *fen) {
 
 	int sq;
 	char str[3];
@@ -244,7 +244,7 @@ void boardToFEN(Board& board, char *fen) {
 	sprintf(fen, " %s %d %d", str, board.halfMoveCounter, board.fullMoveCounter);
 }
 
-void printBoard(Board& board) {
+void printBoard(const Board& board) {
 
 	char fen[256];
 
@@ -278,14 +278,14 @@ void printBoard(Board& board) {
 	cout << "\n" << fen << "\n\n";
 }
 
-int boardHasNonPawnMaterial(Board& board, int turn) {
+int boardHasNonPawnMaterial(const Board& board, int turn) {
 	uint64_t friendly = board.colours[turn];
 	uint64_t kings = board.pieces[KING];
 	uint64_t pawns = board.pieces[PAWN];
 	return (friendly & (kings | pawns)) != friendly;
 }
 
-int boardIsDrawn(Board& board, int height) {
+int boardIsDrawn(const Board& board, int height) {
 
 	// Drawn if any of the three possible cases
 	return boardDrawnByFiftyMoveRule(board)
@@ -293,7 +293,7 @@ int boardIsDrawn(Board& board, int height) {
 		|| boardDrawnByInsufficientMaterial(board);
 }
 
-int boardDrawnByFiftyMoveRule(Board& board) {
+int boardDrawnByFiftyMoveRule(const Board& board) {
 
 	// Fifty move rule triggered. BUG: We do not account for the case
 	// when the fifty move rule occurs as checkmate is delivered, which
@@ -301,7 +301,7 @@ int boardDrawnByFiftyMoveRule(Board& board) {
 	return board.halfMoveCounter > 99;
 }
 
-int boardDrawnByRepetition(Board& board, int height) {
+int boardDrawnByRepetition(const Board& board, int height) {
 
 	int reps = 0;
 
@@ -322,7 +322,7 @@ int boardDrawnByRepetition(Board& board, int height) {
 	return 0;
 }
 
-int boardDrawnByInsufficientMaterial(Board& board) {
+int boardDrawnByInsufficientMaterial(const Board& board) {
 
 	// Check for KvK, KvN, KvB, and KvNN.
 

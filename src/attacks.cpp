@@ -124,7 +124,7 @@ void initAttacks() {
 	}
 }
 
-int squareIsAttacked(Board& board, int colour, int sq) {
+int squareIsAttacked(const Board& board, int colour, int sq) {
 
 	uint64_t enemy    = board.colours[!colour];
 	uint64_t occupied = board.colours[ colour] | enemy;
@@ -147,7 +147,7 @@ int squareIsAttacked(Board& board, int colour, int sq) {
 		|| (kingAttacks(sq) & enemyKings);
 }
 
-uint64_t allAttackersToSquare(Board& board, uint64_t occupied, int sq) {
+uint64_t allAttackersToSquare(const Board& board, uint64_t occupied, int sq) {
 
 	// When performing a static exchange evaluation we need to find all
 	// attacks to a given square, but we also are given an updated occupied
@@ -162,7 +162,7 @@ uint64_t allAttackersToSquare(Board& board, uint64_t occupied, int sq) {
 			| (kingAttacks(sq) & board.pieces[KING]);
 }
 
-uint64_t attackersToKingSquare(Board& board) {
+uint64_t attackersToKingSquare(const Board& board) {
 
 	// Wrapper for allAttackersToSquare() for use in check detection
 	int kingsq = getlsb(board.colours[board.turn] & board.pieces[KING]);

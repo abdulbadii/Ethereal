@@ -115,11 +115,9 @@ inline uint64_t pawnEnpassCaptures(uint64_t pawns, int epsq, int colour) {
 	return epsq == -1 ? 0ull : pawnAttacks(!colour, epsq) & pawns;
 }
 
-
-int squareIsAttacked(Board& board, int colour, int sq);
-uint64_t attackersToSquare(Board& board, int colour, int sq);
-uint64_t allAttackersToSquare(Board& board, uint64_t occupied, int sq);
-uint64_t attackersToKingSquare(Board& board);
+int squareIsAttacked(const Board& board, int colour, int sq);
+uint64_t allAttackersToSquare(const Board& board, uint64_t occupied, int sq);
+uint64_t attackersToKingSquare(const Board& board);
 
 static const uint64_t RookMagics[SQUARE_NB] = {
     0xA180022080400230ull, 0x0040100040022000ull, 0x0080088020001002ull, 0x0080080280841000ull,

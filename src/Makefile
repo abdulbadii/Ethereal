@@ -68,14 +68,9 @@ prefetch := no
 popcnt := no
 sse := no
 pext := no
-pipe:=1
-ped:=yes
-w:=1
-cpp:=14
-sta:=yes
+cpp:=
+ped:=
 dep:=
-tune:=
-pro:=
 COMP := gcc
 
 ### 2.2 Architecture specific
@@ -83,24 +78,29 @@ COMP := gcc
 ifeq ($(ARCH),general-32)
 	arch := any
 endif
+
 ifeq ($(ARCH),x86-32-old)
 	arch := i386
 endif
+
 ifeq ($(ARCH),x86-32)
 	arch := i386
 	prefetch := yes
 	sse := yes
 endif
+
 ifeq ($(ARCH),general-64)
 	arch := any
 	bits := 64
 endif
+
 ifeq ($(ARCH),x86-64)
 	arch := x86_64
 	bits := 64
 	prefetch := yes
 	sse := yes
 endif
+
 ifeq ($(ARCH),x86-64-modern)
 	arch := x86_64
 	bits := 64
@@ -108,6 +108,7 @@ ifeq ($(ARCH),x86-64-modern)
 	popcnt := yes
 	sse := yes
 endif
+
 ifeq ($(ARCH),x86-64-bmi2)
 	arch := x86_64
 	bits := 64
@@ -116,13 +117,16 @@ ifeq ($(ARCH),x86-64-bmi2)
 	sse := yes
 	pext := yes
 endif
+
 ifeq ($(ARCH),armv7)
 	arch := armv7
 	prefetch := yes
 endif
+
 ifeq ($(ARCH),ppc-32)
 	arch := ppc
 endif
+
 ifeq ($(ARCH),ppc-64)
 	arch := ppc64
 	bits := 64
@@ -135,28 +139,54 @@ endif
 ### Section 3. Low-level configuration
 ### ==========================================================================
 
-### 3.1 Selecting compiler (default=gcc) #-march=native
+### 3.1 Selecting compiler (default=gcc)
 
-CXXFLAGS +=	-std=c++$(cpp)
-CXXFLAGS += -Wall -Wcast-qual -fno-exceptions $(EXTRACXXFLAGS)
-DEPENDFLAGS += -std=c++$(cpp)
-LDFLAGS += -lm $(EXTRALDFLAGS)
+ifeq ($(cpp),)
+	CXXFLAGS +=	-std=c++11
+else
+	ifeq ($(cpp),14)
+		CXXFLAGS +=	-std=c++14
+	else
+	ifeq ($(cpp),17)
+		CXXFLAGS +=	-std=c++17
+	endif
+	endif
+endif
+ifeq ($(ped),1)
+	CXXFLAGS +=	-pedantic
+endif
 
-ifneq ($(w),1)
-	CXXFLAGS += -w
-endif
-ifneq ($(pipe),1)
-	CXXFLAGS += -pipe
-endif
+CXXFLAGS += -Wall -Wcast-qual -fno-exceptions -march=native -lpthread -lm $(EXTRACXXFLAGS)
+DEPENDFLAGS += -std=c++11
+LDFLAGS += $(EXTRALDFLAGS)
+
+
 ifneq ($(filter $(dep),1 yes),)
 	dep:=.depend
+else
+	ifneq ($(filter $(DEP),1 YES),)
+		dep:=.depend
+	endif
 endif
 
-ifneq ($(filter $(tune),1 yes),)
-	CXXFLAGS += -fopenmp -DTUNE
+ifneq ($(filter $(deb),1 yes),)
+	debug:=yes
+else
+	ifneq ($(filter $(deb),1 yes),)
+		debug:=yes
+	endif
 endif
-ifneq ($(filter $(pro),1 yes),)
-	CXXFLAGS += -p -pg
+
+ifneq ($(filter $(MODE),TEX TEXEL tex),)
+	CXXFLAGS += -fopenmp -DTUNE
+else
+	ifneq ($(filter $(MODE),PRO PROFILE pro),)
+		CXXFLAGS += -p -pg
+	else
+	ifneq ($(filter $(MODE),REL RELEASE rel),)
+		LDFLAGS += -static
+	endif
+	endif
 endif
 
 ifeq ($(COMP),gcc)
@@ -202,14 +232,6 @@ ifeq ($(COMP),mingw)
 	endif
 
 	CXXFLAGS += -Wextra -Wshadow
-	ifeq ($(ped),yes)
-		CXXFLAGS +=	-pedantic
-	else
-		ped:=no
-	endif
-	ifeq ($(sta),yes)
-		LDFLAGS += -static
-	endif
 endif
 
 ifeq ($(COMP),icc)
@@ -268,21 +290,23 @@ ifdef COMPCXX
 	CXX := $(COMPCXX)
 endif
 
-# On Android Bionic's C library comes with its own pthread implementation bundled in
-ifneq ($(OS),Android)
-	# Haiku has pthreads in its libroot, so only link it in on other platforms
-	ifneq ($(KERNEL),Haiku)
-		LDFLAGS += -lpthread
+### On mingw use Windows threads, otherwise POSIX
+ifneq ($(comp),mingw)
+	# On Android Bionic's C library comes with its own pthread implementation bundled in
+	ifneq ($(OS),Android)
+		# Haiku has pthreads in its libroot, so only link it in on other platforms
+		ifneq ($(KERNEL),Haiku)
+			LDFLAGS += -lpthread
+		endif
 	endif
 endif
 
 ### 3.2.1 Debugging
-ifneq ($(filter $(debug),1 yes),)
+ifeq ($(debug),no)
+	CXXFLAGS += -DNDEBUG
+else
 	optimize :=no
 	CXXFLAGS += -g -O0
-	debug:=yes
-else
-	CXXFLAGS += -DNDEBUG
 endif
 
 ### 3.2.2 Debugging with undefined behavior sanitizers
@@ -345,18 +369,17 @@ endif
 ### This is a mix of compile and link time options because the lto link phase
 ### needs access to the optimization flags.
 ifeq ($(optimize),yes)
-ifneq ($(filter $(debug),1 yes),)
-	debug:=yes
-else
-	ifneq ($(filter $(comp),gcc clang),)
+ifeq ($(debug), no)
+	ifeq ($(comp),$(filter $(comp),gcc clang))
 		CXXFLAGS += -flto
 		LDFLAGS += $(CXXFLAGS)
 	endif
+
 	ifeq ($(comp),mingw)
-		ifeq ($(KERNEL),Linux)
-			CXXFLAGS += -flto
-			LDFLAGS += $(CXXFLAGS)
-		endif
+	CXXFLAGS += -flto
+	ifeq ($(KERNEL),Linux)
+		LDFLAGS += $(CXXFLAGS)
+	endif
 	endif
 endif
 endif
@@ -379,7 +402,7 @@ help:
 	@echo ""
 	@echo "To compile Ethereal, type: "
 	@echo ""
-	@echo "make target ARCH = arch [COMP = compiler] [COMPCXX = cxx]  [sta=]  [deb=1] [dep=1]"
+	@echo "make target ARCH = arch [COMP = compiler] [COMPCXX = cxx] [dep=1]"
 	@echo ""
 	@echo "Supported targets:"
 	@echo ""
@@ -408,12 +431,7 @@ help:
 	@echo "mingw                   > Gnu compiler with MinGW under Windows"
 	@echo "clang                   > LLVM Clang compiler"
 	@echo "icc                     > Intel compiler"
-	@echo "sta=           > don't link static library (defaults to static binary build)"
-	@echo "ped=           > don't compile in standard syntax (defaults to strict standard)"
-	@echo "debug= 1 or yes           > build with a debuggable feature"
-	@echo "dep= 1 or yes          > make a dependency log file"
-	@echo "tune= 1 or yes          > make a tuning build"
-	@echo "pro= 1 or yes          > make a profilng build"
+	@echo "DEP | dep = 1 	     > make a dependency log file"
 	@echo ""
 	@echo "Simple examples. If you don't know what to do, you likely want to run: "
 	@echo ""
@@ -424,8 +442,7 @@ help:
 	@echo ""
 	@echo "make build ARCH = x86-64 COMP = clang"
 	@echo "make profile-build ARCH = x86-64-bmi2 COMP=gcc COMPCXX = g++-4.8"
-	@echo "make profile-build ARCH = x86-64-modern COMP=gcc deb=yes dep=1"
-	@echo "make profile-build ARCH = x86-64-modern COMP=gcc tune=1"
+	@echo "make profile-build ARCH = x86-64-modern COMP=gcc deb=1 dep=1"
 	@echo ""
 
 
@@ -495,8 +512,6 @@ config-sanity:
 	@echo "popcnt: '$(popcnt)'"
 	@echo "sse: '$(sse)'"
 	@echo "pext: '$(pext)'"
-	@if [ "$(sta)" ] ;then echo "Releasing static library linked binary";else echo "The released binary requires OS' shared library";fi
-	@if [ "$(dep)" ] ;then echo "Dependencies list will be written in $(dep) file";else echo "No dependencies list is to be written";fi
 	@echo ""
 	@echo "Flags:"
 	@echo "CXX: $(CXX)"

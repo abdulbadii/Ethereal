@@ -103,7 +103,7 @@ void genAllLegalMoves(Board& board, uint16_t (&moves)[MAX_MOVES], int& size) {
     }
 }
 
-void genAllNoisyMoves(Board& board, uint16_t (&moves)[MAX_MOVES], int& size) {
+void genAllNoisyMoves(const Board& board, uint16_t (&moves)[MAX_MOVES], int& size) {
 
     const int Forward = board.turn == WHITE ? -8 : 8;
     const int Left    = board.turn == WHITE ? -7 : 7;
@@ -157,7 +157,7 @@ void genAllNoisyMoves(Board& board, uint16_t (&moves)[MAX_MOVES], int& size) {
     buildKingMoves(moves, size, myKings, enemy);
 }
 
-void genAllQuietMoves(Board& board, uint16_t *moves, int& size) {
+void genAllQuietMoves(const Board& board, uint16_t *moves, int& size) {
 
     const int Forward = board.turn == WHITE ? -8 : 8;
     const uint64_t Rank3Relative = board.turn == WHITE ? RANK_3 : RANK_6;

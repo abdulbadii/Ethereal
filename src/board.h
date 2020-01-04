@@ -41,13 +41,13 @@ struct Undo {
 
 void squareToString(int sq, char *str);
 void boardFromFEN(Board& board,const string& fen, int chess960);
-void boardToFEN(Board& board, char *fen);
-void printBoard(Board& board);
-int boardHasNonPawnMaterial(Board& board, int turn);
-int boardIsDrawn(Board& board, int height);
-int boardDrawnByFiftyMoveRule(Board& board);
-int boardDrawnByRepetition(Board& board, int height);
-int boardDrawnByInsufficientMaterial(Board& board);
+void boardToFEN(const Board& board, char *fen);
+void printBoard(const Board& board);
+int boardHasNonPawnMaterial(const Board& board, int turn);
+int boardIsDrawn(const Board& board, int height);
+int boardDrawnByFiftyMoveRule(const Board& board);
+int boardDrawnByRepetition(const Board& board, int height);
+int boardDrawnByInsufficientMaterial(const Board& board);
 
 uint64_t perft(Board& board, int depth);
 void runBenchmark(int argc, char **argv);
