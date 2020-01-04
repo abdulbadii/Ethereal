@@ -60,15 +60,15 @@ void applyNullMove(Board& board, Undo& undo);
 
 // void revert(Thread *thread, Board& board, uint16_t move, int height);
 // void revertNullMove(Board& board, Undo& undo);
-void revertMove(Board& board, uint16_t move, Undo *undo);
+void revertMove(Board& board, uint16_t move, Undo& undo);
 
 int legalMoveCount(Board& board);
 int moveExaminedByMultiPV(Thread *thread, uint16_t move);
 int moveIsTactical(const Board& board, uint16_t move);
 int moveEstimatedValue(const Board& board, uint16_t move);
-int moveBestCaseValue(Board& board);
-int moveIsPseudoLegal(Board& board, uint16_t move);
-int moveWasLegal(Board& board);
+int moveBestCaseValue(const Board& board);
+int moveIsPseudoLegal(const Board& board, uint16_t move);
+int moveWasLegal(const Board& board);
 void moveToString(uint16_t move, char *str, int chess960);
 
 
@@ -88,7 +88,7 @@ inline int apply(Thread *thread, Board& board, uint16_t move, int height) {
 	// Apply the move and reject if illegal
 	applyMove(board, move, thread->undoStack[height]);
 	if (!moveWasLegal(board))
-		return revertMove(board, move, &thread->undoStack[height]), 0;
+		return revertMove(board, move, thread->undoStack[height]), 0;
 
 	return 1;
 }
@@ -120,7 +120,7 @@ inline void revertNullMove(Board& board, Undo& undo) {
 
 inline void revert(Thread *thread, Board& board, uint16_t move, int height) {
 	if (move == NULL_MOVE) revertNullMove(board, thread->undoStack[height]);
-	else revertMove(board, move, &thread->undoStack[height]);
+	else revertMove(board, move, thread->undoStack[height]);
 }
 inline int legalMoveCount(Board& board) {
 

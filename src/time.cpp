@@ -44,7 +44,7 @@ double elapsedTime(SearchInfo *info) {
     return getRealTime() - info->startTime;
 }
 
-void initTimeManagment(SearchInfo& info, Limits& limits) {
+void initTimeManagment(SearchInfo& info, const Limits& limits) {
 
     info.startTime = limits.start; // Save off the start time of the search
 

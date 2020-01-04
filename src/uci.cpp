@@ -131,7 +131,7 @@ void *uciGo(void *cargo) {
 	return nullptr;
 }
 
-void uciSetOption(string& str, Thread *threads, int& multiPV, int& chess960) {
+void uciSetOption(const string& str, Thread *threads, int& multiPV, int& chess960) {
 
 	// Handle setting UCI options in Ethereal. Options include:
 	//  Hash             : Size of the Transposition Table in Megabyes
@@ -181,7 +181,7 @@ void uciSetOption(string& str, Thread *threads, int& multiPV, int& chess960) {
 	fflush(stdout);
 }
 
-void uciPosition(string& str, Board& board, int chess960) {
+void uciPosition(const string& str, Board& board, int chess960) {
 
 	int size;
 	uint16_t moves[MAX_MOVES];
@@ -262,7 +262,7 @@ void uciReport(Thread *threads, int alpha, int beta, int value) {
 	puts(""); fflush(stdout);
 }
 
-void uciReportTBRoot(Board& board, uint16_t move, unsigned wdl, unsigned dtz) {
+void uciReportTBRoot(const Board& board, uint16_t move, unsigned wdl, unsigned dtz) {
 
 	char moveStr[6];
 
@@ -280,7 +280,7 @@ void uciReportTBRoot(Board& board, uint16_t move, unsigned wdl, unsigned dtz) {
 	fflush(stdout);
 }
 
-void uciReportCurrentMove(Board& board, uint16_t move, int currmove, int depth) {
+void uciReportCurrentMove(const Board& board, uint16_t move, int currmove, int depth) {
 
 	char moveStr[6];
 	moveToString(move, moveStr, board.chess960);

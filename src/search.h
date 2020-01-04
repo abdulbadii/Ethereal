@@ -40,7 +40,7 @@ void* iterativeDeepening(void *vthread);
 void aspirationWindow(Thread *thread);
 int search(Thread *thread, PVariation& pv, int alpha, int beta, int depth, int height);
 int qsearch(Thread *thread, PVariation& pv, int alpha, int beta, int height);
-int staticExchangeEvaluation(Board& board, uint16_t move, int threshold);
+int staticExchangeEvaluation(const Board& board, uint16_t move, int threshold);
 int moveIsSingular(Thread *thread, uint16_t ttMove, int ttValue, int depth, int height);
 
 static const int SMPCycles      = 16;

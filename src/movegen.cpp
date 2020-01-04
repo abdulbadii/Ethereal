@@ -99,7 +99,7 @@ void genAllLegalMoves(Board& board, uint16_t (&moves)[MAX_MOVES], int& size) {
     for (int i = 0; i < pseudoSize; ++i) {
         applyMove(board, pseudoMoves[i], undo);
         if (moveWasLegal(board)) moves[size++] = pseudoMoves[i];
-        revertMove(board, pseudoMoves[i], &undo);
+        revertMove(board, pseudoMoves[i], undo);
     }
 }
 

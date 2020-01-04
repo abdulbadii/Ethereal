@@ -40,5 +40,5 @@ public:
 	Thread *threads;
 };
 void uciReport(Thread *threads, int alpha, int beta, int value);
-void uciReportCurrentMove(Board& board, uint16_t move, int currmove, int depth);
-void uciReportTBRoot(Board& board, uint16_t move, unsigned wdl, unsigned dtz);
+void uciReportCurrentMove(const Board& board, uint16_t move, int currmove, int depth);
+void uciReportTBRoot(const Board& board, uint16_t move, unsigned wdl, unsigned dtz);

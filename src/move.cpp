@@ -295,19 +295,19 @@ void applyNullMove(Board& board, Undo& undo) {
 	}
 }
 
-void revertMove(Board& board, uint16_t move, Undo *undo) {
+void revertMove(Board& board, uint16_t move, Undo& undo) {
 
 	const int to = MoveTo(move);
 	const int from = MoveFrom(move);
 
 	// Revert information which is hard to recompute
-	board.hash            = undo->hash;
-	board.pkhash          = undo->pkhash;
-	board.kingAttackers   = undo->kingAttackers;
-	board.castleRooks     = undo->castleRooks;
-	board.epSquare        = undo->epSquare;
-	board.halfMoveCounter = undo->halfMoveCounter;
-	board.psqtmat         = undo->psqtmat;
+	board.hash            = undo.hash;
+	board.pkhash          = undo.pkhash;
+	board.kingAttackers   = undo.kingAttackers;
+	board.castleRooks     = undo.castleRooks;
+	board.epSquare        = undo.epSquare;
+	board.halfMoveCounter = undo.halfMoveCounter;
+	board.psqtmat         = undo.psqtmat;
 
 	// Swap turns and update the history index
 	board.turn = !board.turn;
@@ -317,8 +317,8 @@ void revertMove(Board& board, uint16_t move, Undo *undo) {
 	if (MoveType(move) == NORMAL_MOVE) {
 
 		const int fromType = pieceType(board.squares[to]);
-		const int toType = pieceType(undo->capturePiece);
-		const int toColour = pieceColour(undo->capturePiece);
+		const int toType = pieceType(undo.capturePiece);
+		const int toColour = pieceColour(undo.capturePiece);
 
 		board.pieces[fromType]     ^= (1ull << from) ^ (1ull << to);
 		board.colours[board.turn] ^= (1ull << from) ^ (1ull << to);
@@ -327,7 +327,7 @@ void revertMove(Board& board, uint16_t move, Undo *undo) {
 		board.colours[toColour] ^= (1ull << to);
 
 		board.squares[from] = board.squares[to];
-		board.squares[to] = undo->capturePiece;
+		board.squares[to] = undo.capturePiece;
 	}
 
 	else if (MoveType(move) == CASTLE_MOVE) {
@@ -351,8 +351,8 @@ void revertMove(Board& board, uint16_t move, Undo *undo) {
 
 	else if (MoveType(move) == PROMOTION_MOVE) {
 
-		const int toType = pieceType(undo->capturePiece);
-		const int toColour = pieceColour(undo->capturePiece);
+		const int toType = pieceType(undo.capturePiece);
+		const int toColour = pieceColour(undo.capturePiece);
 		const int promotype = MovePromoPiece(move);
 
 		board.pieces[PAWN]         ^= (1ull << from);
@@ -363,7 +363,7 @@ void revertMove(Board& board, uint16_t move, Undo *undo) {
 		board.colours[toColour] ^= (1ull << to);
 
 		board.squares[from] = makePiece(PAWN, board.turn);
-		board.squares[to] = undo->capturePiece;
+		board.squares[to] = undo.capturePiece;
 	}
 
 	else { // (MoveType(move) == ENPASS_MOVE)
@@ -380,7 +380,7 @@ void revertMove(Board& board, uint16_t move, Undo *undo) {
 
 		board.squares[from] = board.squares[to];
 		board.squares[to] = EMPTY;
-		board.squares[ep] = undo->capturePiece;
+		board.squares[ep] = undo.capturePiece;
 	}
 }
 
@@ -430,7 +430,7 @@ int moveEstimatedValue(const Board& board, uint16_t move) {
 	return value;
 }
 
-int moveBestCaseValue(Board& board) {
+int moveBestCaseValue(const Board& board) {
 
 	// Assume the opponent has at least a pawn
 	int value = SEEPieceValues[PAWN];
@@ -449,7 +449,7 @@ int moveBestCaseValue(Board& board) {
 	return value;
 }
 
-int moveWasLegal(Board& board) {
+int moveWasLegal(const Board& board) {
 
 	// Grab the last player's King's square and verify safety
 	int sq = getlsb(board.colours[!board.turn] & board.pieces[KING]);
@@ -457,7 +457,7 @@ int moveWasLegal(Board& board) {
 	return !squareIsAttacked(board, !board.turn, sq);
 }
 
-int moveIsPseudoLegal(Board& board, uint16_t move) {
+int moveIsPseudoLegal(const Board& board, uint16_t move) {
 
 	int from   = MoveFrom(move);
 	int type   = MoveType(move);

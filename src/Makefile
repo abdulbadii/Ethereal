@@ -69,6 +69,8 @@ popcnt := no
 sse := no
 pext := no
 cpp:=
+w:=1
+pipe:=1
 ped:=
 dep:=
 COMP := gcc
@@ -141,32 +143,34 @@ endif
 
 ### 3.1 Selecting compiler (default=gcc)
 
+CXXFLAGS += -Wall -Wcast-qual -fno-exceptions -finline-functions -fwhole-program -fuse-linker-plugin -fno-aggressive-loop-optimizations $(EXTRACFLAGS)
+DEPENDFLAGS += -std=c++$(cpp)
+LDFLAGS += -lm $(EXTRALDFLAGS)
+ # -march=native
+
 ifeq ($(cpp),)
-	CXXFLAGS +=	-std=c++11
+	CXXFLAGS +=	-std=c++14
 else
-	ifeq ($(cpp),14)
-		CXXFLAGS +=	-std=c++14
+	ifeq ($(cpp),11)
+		CXXFLAGS +=	-std=c++11
 	else
 	ifeq ($(cpp),17)
 		CXXFLAGS +=	-std=c++17
 	endif
 	endif
 endif
+
+ifneq ($(w),1)
+	CXXFLAGS += -w
+endif
+ifeq ($(pipe),1)
+	CXXFLAGS += -pipe
+endif
 ifeq ($(ped),1)
 	CXXFLAGS +=	-pedantic
 endif
-
-CXXFLAGS += -Wall -Wcast-qual -fno-exceptions -march=native -lpthread -lm $(EXTRACXXFLAGS)
-DEPENDFLAGS += -std=c++11
-LDFLAGS += $(EXTRALDFLAGS)
-
-
 ifneq ($(filter $(dep),1 yes),)
 	dep:=.depend
-else
-	ifneq ($(filter $(DEP),1 YES),)
-		dep:=.depend
-	endif
 endif
 
 ifneq ($(filter $(deb),1 yes),)

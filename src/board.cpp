@@ -349,7 +349,7 @@ uint64_t perft(Board& board, int depth) {
 	for(size -= 1; size >= 0; size--) {
 		applyMove(board, moves[size], undo);
 		if (moveWasLegal(board)) found += perft(board, depth-1);
-		revertMove(board, moves[size], &undo);
+		revertMove(board, moves[size], undo);
 	}
 
 	return found;
