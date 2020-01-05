@@ -71,7 +71,7 @@ pext := no
 cpp:=
 w:=1
 pipe:=1
-ped:=
+ped:=1
 dep:=
 COMP := gcc
 
@@ -136,17 +136,16 @@ ifeq ($(ARCH),ppc-64)
 	prefetch := yes
 endif
 
-
 ### ==========================================================================
 ### Section 3. Low-level configuration
 ### ==========================================================================
 
 ### 3.1 Selecting compiler (default=gcc)
 
-CXXFLAGS += -Wall -Wcast-qual -fno-exceptions -finline-functions -fwhole-program -fuse-linker-plugin -fno-aggressive-loop-optimizations $(EXTRACFLAGS)
+CXXFLAGS += -Wall -Wcast-qual -fno-exceptions -finline-functions -fwhole-program -fuse-linker-plugin $(EXTRACFLAGS)
 DEPENDFLAGS += -std=c++$(cpp)
 LDFLAGS += -lm $(EXTRALDFLAGS)
- # -march=native
+#-march=native-fno-aggressive-loop-optimizations 
 
 ifeq ($(cpp),)
 	CXXFLAGS +=	-std=c++14

@@ -32,6 +32,11 @@ public:
 	uint64_t castleRooks, castleMasks[SQUARE_NB];
 	int turn, epSquare, halfMoveCounter, fullMoveCounter;
 	int psqtmat, numMoves, chess960;
+	void operator()(){
+	memset(this, 0, sizeof(*this));
+	memset(&squares, EMPTY, sizeof(squares));
+	return;
+	}
 };
 
 struct Undo {

@@ -55,8 +55,8 @@ void initSearch() {
 
 void getBestMove(Thread *threads, Board& board, Limits& limits, uint16_t& best, uint16_t& ponder) {
 
-	SearchInfo info = {};
-	// pthread_t pthreads[threads->nthreads];
+	SearchInfo info{};
+
 	pthread_t *pthreads = new pthread_t[threads->nthreads];
 
 	// If the root position can be found in the DTZ tablebases,

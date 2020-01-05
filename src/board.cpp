@@ -44,7 +44,7 @@ const string Benchmarks[] = {
 	#include "bench.csv"
 	""
 };
-inline void clearBoard(Board& board) {
+/* inline void clearBoard(Board& board) {
 
 	// Wipe the entire board structure, and also set all of
 	// the pieces on the board to be EMPTY. Ideally, before
@@ -52,7 +52,8 @@ inline void clearBoard(Board& board) {
 
 	memset(&board, 0, sizeof(Board));
 	memset(&board.squares, EMPTY, sizeof(board.squares));
-}
+}*/
+
 void setSquare(Board& board, int colour, int piece, int sq) {
 
 	// Generate a piece on the given square. This serves as an aid
@@ -111,7 +112,7 @@ void boardFromFEN(Board& board,const string& fens, int chess960) {
 	uint64_t rooks, kings, white, black;
 	parse(fen, word);
 
-	clearBoard(board); // Zero out, set squares to EMPTY
+	board(); // Zero out, set squares to EMPTY
 
 	// Piece placement
 	while ((ch = word[i++])) {
