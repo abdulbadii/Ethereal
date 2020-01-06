@@ -22,21 +22,20 @@
 using namespace std;
 #include "types.h"
 
-extern const char *PieceLabel[COLOUR_NB];
+extern const string PieceLabel[COLOUR_NB];
 
 class Board {
 public:
-	uint8_t squares[SQUARE_NB];
 	uint64_t pieces[8], colours[3], history[512];
 	uint64_t hash, pkhash, kingAttackers;
 	uint64_t castleRooks, castleMasks[SQUARE_NB];
-	int turn, epSquare, halfMoveCounter, fullMoveCounter;
-	int psqtmat, numMoves, chess960;
+	int psqtmat, numMoves, chess960,
+	turn, epSquare, halfMoveCounter, fullMoveCounter;
+	uint8_t squares[SQUARE_NB];
 	void operator()(){
 	memset(this, 0, sizeof(*this));
 	memset(&squares, EMPTY, sizeof(squares));
-	return;
-	}
+	return;}
 };
 
 struct Undo {

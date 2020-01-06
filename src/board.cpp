@@ -37,7 +37,7 @@
 
 #include <iostream>
 using namespace std;
-const char *PieceLabel[COLOUR_NB] = {"PNBRQK", "pnbrqk"};
+const string PieceLabel[COLOUR_NB] = {"PNBRQK", "pnbrqk"};
 
 namespace {
 const string Benchmarks[] = {
@@ -122,10 +122,10 @@ void boardFromFEN(Board& board,const string& fens, int chess960) {
 				sq -= 16;
 		else {
 				const bool colour = islower(ch);
-				const char *piece = strchr(PieceLabel[colour], ch);
+				const size_t piece = PieceLabel[colour].find(ch);
 
-				if (piece)
-					setSquare(board, colour, piece - PieceLabel[colour], sq++);
+				if (piece!=string::npos)
+					setSquare(board, colour, (int)piece, sq++);
 		}
 	}
 

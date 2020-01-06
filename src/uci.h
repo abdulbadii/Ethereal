@@ -34,11 +34,12 @@
 
 class UCIGoStruct {
 public:
-	int multiPV;
-	string str{string(512,0)};
 	Board board;
 	Thread *threads;
+	int multiPV;
+	string str{string(512,0)};
 };
+
 void uciReport(Thread *threads, int alpha, int beta, int value);
 void uciReportCurrentMove(const Board& board, uint16_t move, int currmove, int depth);
 void uciReportTBRoot(const Board& board, uint16_t move, unsigned wdl, unsigned dtz);

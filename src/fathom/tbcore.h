@@ -78,15 +78,15 @@ typedef uint32 base_t;
 #endif
 
 struct PairsData {
-  char *indextable;
+  int blocksize;
+  int idxbits;
+  int min_len;
   ushort *sizetable;
+  char *indextable;
   ubyte *data;
   ushort *offset;
   ubyte *symlen;
   ubyte *sympat;
-  int blocksize;
-  int idxbits;
-  int min_len;
   base_t base[1]; // C++ complains about base[]...
 };
 

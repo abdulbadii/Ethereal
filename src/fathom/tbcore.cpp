@@ -230,9 +230,8 @@ static void init_tb(char *str)
 {
   FD fd;
   struct TBEntry *entry;
-  int i, j, pcs[16];
   uint64 key, key2;
-  int color;
+  int color, i, j, pcs[16];
   char *s;
 
   fd = open_tb(str, WDLSUFFIX);

@@ -29,7 +29,7 @@
 EvalTrace T, EmptyTrace;
 int PSQT[32][SQUARE_NB];
 
-#define S(mg, eg) (MakeScore((mg), (eg)))
+#define S(mg, eg) ((int)((unsigned int)(eg) << 16) + (mg))
 
 /* Material Value Evaluation Terms */
 
@@ -333,13 +333,11 @@ const int ComplexityPawnFlanks  = S(   0,  49);
 const int ComplexityPawnEndgame = S(   0,  34);
 const int ComplexityAdjustment  = S(   0,-110);
 
+#undef S
 /* General Evaluation Terms */
 
 const int Tempo = 20;
 
-#undef S
-
-// template<>
 int evaluateBoard(const Board& board, const PKTable& pktable) {
 
 	EvalInfo ei;
