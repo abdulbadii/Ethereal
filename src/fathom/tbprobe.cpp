@@ -1,4 +1,5 @@
-/** tbprobe.c
+/*
+ * tbprobe.c
  * Copyright (c) 2013-2016 Ronald de Man
  * Copyright (c) 2016-2017 Jon Dart
  *
@@ -18,10 +19,12 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE. */
+ * DEALINGS IN THE SOFTWARE.
+ */
 
-#include <cassert>
-#include <cstdio>
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "tbprobe.h"
 
@@ -1052,7 +1055,7 @@ static int probe_dtz_no_ep(const struct pos *pos, int *success)
         return wdl == 2 ? 1 : 101;
 
     uint16_t moves0[TB_MAX_MOVES];
-    uint16_t *moves = moves0, *end = nullptr;
+    uint16_t *moves = moves0, *end = NULL;
 
     if (wdl > 0)
     {
@@ -1298,7 +1301,7 @@ static uint16_t probe_root(const struct pos *pos, int *score,
         if (!success)
             return 0;
         scores[i] = v;
-        if (results != nullptr)
+        if (results != NULL)
         {
             unsigned res = 0;
             res = TB_SET_WDL(res, dtz_to_wdl(pos->rule50, v));
@@ -1310,9 +1313,9 @@ static uint16_t probe_root(const struct pos *pos, int *score,
             results[j++] = res;
         }
     }
-    if (results != nullptr)
+    if (results != NULL)
         results[j++] = TB_RESULT_FAILED;
-    if (score != nullptr)
+    if (score != NULL)
         *score = dtz;
 
     // Now be a bit smart about filtering out moves.
@@ -1375,13 +1378,14 @@ static uint16_t probe_root(const struct pos *pos, int *score,
     }
 }
 
-bool tb_init_impl(const char *path){
-    // if (sizeof(uint64_t) != 8 ||        // Paranoid check
-            // sizeof(uint32_t) != 4 ||
-            // sizeof(uint16_t) != 2 ||
-            // sizeof(uint8_t) != 1)
-        // return false;
-    if (path == nullptr)
+bool tb_init_impl(const char *path)
+{
+    if (sizeof(uint64_t) != 8 ||        // Paranoid check
+            sizeof(uint32_t) != 4 ||
+            sizeof(uint16_t) != 2 ||
+            sizeof(uint8_t) != 1)
+        return false;
+    if (path == NULL)
         path = "";
     init_tablebases(path);
     return true;

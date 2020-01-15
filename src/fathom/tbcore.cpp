@@ -26,11 +26,13 @@
   a particular engine, provided the engine is written in C or C++.
 */
 
-#include <cassert>
-#include <cstdio>
+#include <assert.h>
+#include <stdio.h>
 #ifndef TB_NO_STDINT
-#include <cstdint>
+#include <stdint.h>
 #endif
+#include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #ifndef _WIN32
@@ -82,8 +84,8 @@ static LOCK_T TB_MUTEX;
 
 static int initialized = 0;
 static int num_paths = 0;
-static char *path_string = nullptr;
-static char **paths = nullptr;
+static char *path_string = NULL;
+static char **paths = NULL;
 
 static int TBnum_piece, TBnum_pawn;
 static struct TBEntry_piece TB_piece[TBMAX_PIECE];
@@ -128,8 +130,8 @@ static FD open_tb(const char *str, const char *suffix)
 #ifndef _WIN32
     fd = open(file, O_RDONLY);
 #else
-    fd = CreateFile(file, GENERIC_READ, FILE_SHARE_READ, nullptr,
-			  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    fd = CreateFile(file, GENERIC_READ, FILE_SHARE_READ, NULL,
+			  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 #endif
     if (fd != FD_ERR) {
       return fd;
@@ -151,16 +153,16 @@ static char *map_file(const char *name, const char *suffix, uint64 *mapping)
 {
   FD fd = open_tb(name, suffix);
   if (fd == FD_ERR)
-    return nullptr;
+    return NULL;
 #ifndef _WIN32
   struct stat statbuf;
   if (fstat(fd, &statbuf)) {
     perror("fstat");
     close_tb(fd);
-    return nullptr;
+    return NULL;
   }
   *mapping = statbuf.st_size;
-  char *data = (char *)mmap(nullptr, statbuf.st_size, PROT_READ,
+  char *data = (char *)mmap(NULL, statbuf.st_size, PROT_READ,
 			      MAP_SHARED, fd, 0);
   if (data == (char *)(-1)) {
     fprintf(stderr,"Could not mmap() %s.\n", name);
@@ -170,15 +172,15 @@ static char *map_file(const char *name, const char *suffix, uint64 *mapping)
   DWORD size_low, size_high;
   size_low = GetFileSize(fd, &size_high);
 //  *size = ((uint64)size_high) << 32 | ((uint64)size_low);
-  HANDLE map = CreateFileMapping(fd, nullptr, PAGE_READONLY, size_high, size_low,
-				  nullptr);
-  if (map == nullptr) {
+  HANDLE map = CreateFileMapping(fd, NULL, PAGE_READONLY, size_high, size_low,
+				  NULL);
+  if (map == NULL) {
     fprintf(stderr,"CreateFileMapping() failed.\n");
     exit(1);
   }
   *mapping = (uint64)map;
   char *data = (char *)MapViewOfFile(map, FILE_MAP_READ, 0, 0, 0);
-  if (data == nullptr) {
+  if (data == NULL) {
     fprintf(stderr,"MapViewOfFile() failed, name = %s%s, error = %lu.\n", name, suffix, GetLastError());
     exit(1);
   }
@@ -230,8 +232,9 @@ static void init_tb(char *str)
 {
   FD fd;
   struct TBEntry *entry;
+  int i, j, pcs[16];
   uint64 key, key2;
-  int color, i, j, pcs[16];
+  int color;
   char *s;
 
   fd = open_tb(str, WDLSUFFIX);
@@ -371,11 +374,11 @@ void init_tablebases(const char *path)
   for (i = 0; i < (1 << TBHASHBITS); ++i)
     for (j = 0; j < HSHMAX; ++j) {
       TB_hash[i][j].key = 0ULL;
-      TB_hash[i][j].ptr = nullptr;
+      TB_hash[i][j].ptr = NULL;
     }
 
   for (i = 0; i < DTZ_ENTRIES; ++i)
-    DTZ_table[i].entry = nullptr;
+    DTZ_table[i].entry = NULL;
 
   for (i = 1; i < 6; ++i) {
     sprintf(str, "K%cvK", pchr[i]);
@@ -1062,7 +1065,7 @@ static uint64 encode_pawn(struct TBEntry_pawn *ptr, ubyte *norm, int *pos, int *
 
 static ubyte decompress_pairs(struct PairsData *d, uint64 index);
 
-// place k like pieces on n & board
+// place k like pieces on n squares
 static int subfactor(int k, int n)
 {
   int i, f, l;
@@ -1365,7 +1368,7 @@ static int init_table_wdl(struct TBEntry *entry, char *str)
       ptr->precomp[1] = setup_pairs(data, tb_size[1], &size[3], &next, &flags, 1);
       data = next;
     } else
-      ptr->precomp[1] = nullptr;
+      ptr->precomp[1] = NULL;
 
     ptr->precomp[0]->indextable = (char *)data;
     data += size[0];
@@ -1404,7 +1407,7 @@ static int init_table_wdl(struct TBEntry *entry, char *str)
 	ptr->file[f].precomp[1] = setup_pairs(data, tb_size[2 * f + 1], &size[6 * f + 3], &next, &flags, 1);
 	data = next;
       } else
-	ptr->file[f].precomp[1] = nullptr;
+	ptr->file[f].precomp[1] = NULL;
     }
 
     for (f = 0; f < files; ++f) {
@@ -1628,7 +1631,7 @@ void load_dtz_table(char *str, uint64 key1, uint64 key2)
 
   DTZ_table[0].key1 = key1;
   DTZ_table[0].key2 = key2;
-  DTZ_table[0].entry = nullptr;
+  DTZ_table[0].entry = NULL;
 
   // find corresponding WDL entry
   ptr2 = TB_hash[key1 >> (64 - TBHASHBITS)];
@@ -1663,13 +1666,13 @@ void load_dtz_table(char *str, uint64 key1, uint64 key2)
 static void free_wdl_entry(struct TBEntry *entry)
 {
   unmap_file(entry->data, entry->mapping);
-  entry->data = nullptr; entry->mapping = 0;
+  entry->data = NULL; entry->mapping = 0;
   if (!entry->has_pawns) {
     struct TBEntry_piece *ptr = (struct TBEntry_piece *)entry;
     free(ptr->precomp[0]);
     if (ptr->precomp[1])
       free(ptr->precomp[1]);
-    ptr->precomp[0] = ptr->precomp[1] = nullptr;
+    ptr->precomp[0] = ptr->precomp[1] = NULL;
   } else {
     struct TBEntry_pawn *ptr = (struct TBEntry_pawn *)entry;
     int f;
@@ -1677,7 +1680,7 @@ static void free_wdl_entry(struct TBEntry *entry)
       free(ptr->file[f].precomp[0]);
       if (ptr->file[f].precomp[1])
 	free(ptr->file[f].precomp[1]);
-      ptr->file[f].precomp[0] = ptr->file[f].precomp[1] = nullptr;
+      ptr->file[f].precomp[0] = ptr->file[f].precomp[1] = NULL;
     }
   }
 }
@@ -1685,17 +1688,17 @@ static void free_wdl_entry(struct TBEntry *entry)
 static void free_dtz_entry(struct TBEntry *entry)
 {
   unmap_file(entry->data, entry->mapping);
-  entry->data = nullptr; entry->mapping = 0;
+  entry->data = NULL; entry->mapping = 0;
   if (!entry->has_pawns) {
     struct DTZEntry_piece *ptr = (struct DTZEntry_piece *)entry;
     free(ptr->precomp);
-    ptr->precomp = nullptr;
+    ptr->precomp = NULL;
   } else {
     struct DTZEntry_pawn *ptr = (struct DTZEntry_pawn *)entry;
     int f;
     for (f = 0; f < 4; ++f) {
       free(ptr->file[f].precomp);
-      ptr->file[f].precomp = nullptr;
+      ptr->file[f].precomp = NULL;
     }
   }
   free(entry);

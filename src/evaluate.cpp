@@ -327,18 +327,17 @@ const int ClosednessRookAdjustment[9] = {
 };
 
 /* Complexity Evaluation Terms */
-
 const int ComplexityTotalPawns  = S(   0,   7);
 const int ComplexityPawnFlanks  = S(   0,  49);
 const int ComplexityPawnEndgame = S(   0,  34);
 const int ComplexityAdjustment  = S(   0,-110);
 
 #undef S
-/* General Evaluation Terms */
 
+/* General Evaluation Terms */
 const int Tempo = 20;
 
-int evaluateBoard(const Board& board, const PKTable& pktable) {
+int evaluateBoard(const Board& board, const PKTable& pktable= static_cast<PKTable>(0)) {
 
 	EvalInfo ei;
 	int phase, factor, eval, pkeval;
@@ -1127,8 +1126,8 @@ void initEvalInfo(EvalInfo& ei, const Board& board, const PKTable& pktable) {
 		PKEntry &pkentry =const_cast<PKTable&>(pktable).entries[board.pkhash >> PKT_HASH_SHIFT];
 		if (pkentry.pkhash == board.pkhash) {
 			ei.pkentry = &pkentry;
-			ei.passedPawns   = ei.pkentry->passed;
-			ei.pkeval[WHITE] = ei.pkentry->eval;
+			ei.passedPawns   = pkentry.passed;
+			ei.pkeval[WHITE] = pkentry.eval;
 		}
 	}
 	ei.pkeval[BLACK] = 0;

@@ -68,7 +68,7 @@ struct PKEntry {
 struct PKTable {
 	PKEntry entries[PKT_SIZE];
 	PKTable(){};
-	PKTable(bool n) : nul{n}{}
+	PKTable(bool n): nul{n}{}
 	bool nul=1;
 };
 

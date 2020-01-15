@@ -27,7 +27,7 @@
 #include "tbconfig.h"
 
 #ifndef TB_NO_STDINT
-#include <cstdint>
+#include <stdint.h>
 #else
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
@@ -225,7 +225,7 @@ static inline unsigned tb_probe_wdl(
  * - results (OPTIONAL):
  *   Alternative results, one for each possible legal move.  The passed array
  *   must be TB_MAX_MOVES in size.
- *   If alternative results are not desired then set results=nullptr.
+ *   If alternative results are not desired then set results=NULL.
  *
  * RETURN:
  * - A TB_RESULT value comprising:
@@ -239,7 +239,7 @@ static inline unsigned tb_probe_wdl(
  *   2) TB_RESULT_CHECKMATE is returned if the position is in checkmate.
  *   3) TB_RESULT_FAILED is returned if the probe failed.
  *
- *   If results!=nullptr, then a TB_RESULT for each legal move will be generated
+ *   If results!=NULL, then a TB_RESULT for each legal move will be generated
  *   and stored in the results array.  The results array will be terminated
  *   by TB_RESULT_FAILED.
  *

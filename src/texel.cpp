@@ -215,7 +215,7 @@ void initTexelEntries(TexelEntry *tes, Thread *thread) {
 		// Vectorize the evaluation coefficients and save the eval
 		// relative to WHITE. We must first clear the coeff vector.
 		T = EmptyTrace;
-		tes[i].eval = evaluateBoard(thread->board, static_cast<PKTable>(0));
+		tes[i].eval = evaluateBoard(thread->board);
 		if (thread->board.turn == BLACK) tes[i].eval *= -1;
 		initCoefficients(coeffs);
 
