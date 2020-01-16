@@ -32,7 +32,7 @@ enum { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
 enum { MAX_PLY = 128, MAX_MOVES = 256, BLOCK=512 };
 
 enum {
-	WHITE_PAWN, BLACK_PAWN,
+	WHITE_PAWN   =  0, BLACK_PAWN   =  1,
 	WHITE_KNIGHT =  4, BLACK_KNIGHT =  5,
 	WHITE_BISHOP =  8, BLACK_BISHOP =  9,
 	WHITE_ROOK   = 12, BLACK_ROOK   = 13,
@@ -106,10 +106,10 @@ inline int makePiece(int type, int colour) {
 }
 }
 
-inline bool equStart(const string& s, const char* key, string& nx){
+inline bool equStart(string& s, const char* key, string& nx){
 	uint16_t l=strlen(key);	return !s.compare(0,l,key)? nx=s.substr(l), 1: 0;}
-inline bool equStart(const string& s, const char* key){	return !s.compare(0,strlen(key),key); }
-inline bool equStart(const string& s, const char* key, size_t& l){	return !s.compare(0,l=strlen(key),key); }
+inline bool equStart(string& s, const char* key){	return !s.compare(0,strlen(key),key); }
+inline bool equStart(string& s, const char* key, size_t& l){	return !s.compare(0,l=strlen(key),key); }
 
 inline string& parse(string& s, string& w, const char* del=WHITESPACE){
 	size_t q,p=s.find_first_not_of(del);
@@ -122,14 +122,14 @@ inline string& parse(string& s, string& w, const char* del=WHITESPACE){
 inline string& parse(string& s, string& w, const char* del,__attribute__((unused)) bool f){
 	char l[32];	return parse(s, w, strcat(strcpy(l,del),WHITESPACE));}
 
-inline bool strContains(const string& s, const char* key, string& nx) {
+inline bool strContains(string& s, const char* key, string& nx) {
 	size_t f=s.find(key), p;
 	return f==string::npos? 0: 
 	(nx=s.substr(f+strlen(key)),
 	p=nx.find_first_not_of(WHITESPACE),
 	nx=p==string::npos? "": nx.substr(p), 1);
 }
-inline bool strContains(const string& s, const char* key) {
+inline bool strContains(string& s, const char* key) {
 	size_t f=s.find(key);	return f==string::npos? 0: 1;}
 
 inline string& trTrail(string& s){

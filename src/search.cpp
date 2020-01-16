@@ -18,10 +18,12 @@
 
 #include <cassert>
 #include <cinttypes>
-#include <cmath>
+#include <math.h>
 #include <pthread.h>
 #include <csetjmp>
-#include <ctime>
+#include <cstdlib>
+#include <cstring>
+#include <time.h>
 
 #include "attacks.h"
 #include "bitboards.h"
@@ -55,8 +57,7 @@ void initSearch() {
 
 void getBestMove(Thread *threads, Board& board, Limits& limits, uint16_t& best, uint16_t& ponder) {
 
-	SearchInfo info{};
-
+	SearchInfo info = {};
 	pthread_t *pthreads = new pthread_t[threads->nthreads];
 
 	// If the root position can be found in the DTZ tablebases,
@@ -68,13 +69,13 @@ void getBestMove(Thread *threads, Board& board, Limits& limits, uint16_t& best, 
 	updateTT(); // Table has an age component
 	ABORT_SIGNAL = 0; // Otherwise Threads will exit
 	initTimeManagment(info, limits);
-	newSearchThreadPool(threads, board, &limits, &info);
+	newSearchThreadPool(threads, board, limits, info);
 
 	// Create a new thread for each of the helpers and reuse the current
 	// thread for the main thread, which avoids some overhead and saves
 	// us from having the current thread eating CPU time while waiting
 	for (int i = 1; i < threads->nthreads; ++i)
-		pthread_create(&pthreads[i], nullptr, &iterativeDeepening, &threads[i]);
+		pthread_create(&pthreads[i], nullptr, iterativeDeepening, &threads[i]);
 	iterativeDeepening((void*) threads);
 
 	// When the main thread exits it should signal for the helpers to
@@ -86,13 +87,15 @@ void getBestMove(Thread *threads, Board& board, Limits& limits, uint16_t& best, 
 	// The main thread will update SearchInfo with results
 	best = info.bestMoves[info.depth];
 	ponder = info.ponderMoves[info.depth];
+	
+	delete pthreads;
 }
 
 void* iterativeDeepening(void *vthread) {
 
 	Thread *const thread   = (Thread*) vthread;
-	SearchInfo *const info = thread->info;
-	Limits *const limits   = thread->limits;
+	SearchInfo& info = *thread->info;
+	Limits& limits   = *thread->limits;
 	const int mainThread   = thread->index == 0;
 	const int cycle        = thread->index % SMPCycles;
 
@@ -107,7 +110,7 @@ void* iterativeDeepening(void *vthread) {
 		if (setjmp(thread->jbuffer)) break;
 
 		// Perform a search for the current depth for each requested line of play
-		for (thread->multiPV = 0; thread->multiPV < limits->multiPV; ++thread->multiPV)
+		for (thread->multiPV = 0; thread->multiPV < limits.multiPV; ++thread->multiPV)
 				aspirationWindow(thread);
 
 		// Occasionally skip depths using Laser's method
@@ -118,10 +121,10 @@ void* iterativeDeepening(void *vthread) {
 		if (!mainThread) continue;
 
 		// Update SearchInfo and report some results
-		info->depth                    = thread->depth;
-		info->values[info->depth]      = thread->values[0];
-		info->bestMoves[info->depth]   = thread->bestMoves[0];
-		info->ponderMoves[info->depth] = thread->ponderMoves[0];
+		info.depth                    = thread->depth;
+		info.values[info.depth]      = thread->values[0];
+		info.bestMoves[info.depth]   = thread->bestMoves[0];
+		info.ponderMoves[info.depth] = thread->ponderMoves[0];
 
 		// Update time allocation based on score and pv changes
 		updateTimeManagment(info, limits);
@@ -130,10 +133,10 @@ void* iterativeDeepening(void *vthread) {
 		if (IS_PONDERING) continue;
 
 		// Check for termination by any of the possible limits
-		if (   (limits->limitedBySelf  && terminateTimeManagment(info))
-				|| (limits->limitedBySelf  && elapsedTime(info) > info->maxUsage)
-				|| (limits->limitedByTime  && elapsedTime(info) > limits->timeLimit)
-				|| (limits->limitedByDepth && thread->depth >= limits->depthLimit))
+		if (   (limits.limitedBySelf  && terminateTimeManagment(info))
+				|| (limits.limitedBySelf  && elapsedTime(info) > info.maxUsage)
+				|| (limits.limitedByTime  && elapsedTime(info) > limits.timeLimit)
+				|| (limits.limitedByDepth && thread->depth >= limits.depthLimit))
 				break;
 	}
 
@@ -160,7 +163,7 @@ void aspirationWindow(Thread *thread) {
 		// Perform a search and consider reporting results
 		value = search(thread, pv, alpha, beta, thread->depth, 0);
 		if (   (mainThread && value > alpha && value < beta)
-				|| (mainThread && elapsedTime(thread->info) >= WindowTimerMS))
+				|| (mainThread && elapsedTime(*thread->info) >= WindowTimerMS))
 				uciReport(thread->threads, alpha, beta, value);
 
 		// Search returned a result within our window. Save the eval as well
@@ -246,7 +249,7 @@ int search(Thread *thread, PVariation& pv, int alpha, int beta, int depth, int h
 	}
 
 	// Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
-	if ((ttHit = getTTEntry(board.hash, ttMove, ttValue, ttEval, ttDepth, ttBound))) {
+	if ((ttHit = getTTEntry(board.hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
 		ttValue = valueFromTT(ttValue, height); // Adjust any MATE scores
 
@@ -453,7 +456,7 @@ int search(Thread *thread, PVariation& pv, int alpha, int beta, int depth, int h
 		// The UCI spec allows us to output information about the current move
 		// that we are going to search. We only do this from the main thread,
 		// and we wait a few seconds in order to avoid floiding the output
-		if (RootNode && !thread->index && elapsedTime(thread->info) > CurrmoveTimerMS)
+		if (RootNode && !thread->index && elapsedTime(*thread->info) > CurrmoveTimerMS)
 				uciReportCurrentMove(board, move, played + thread->multiPV, depth);
 
 		// Step 14. Late Move Reductions. Compute the reduction,
@@ -596,7 +599,7 @@ int qsearch(Thread *thread, PVariation& pv, int alpha, int beta, int height) {
 		return evaluateBoard(board, thread->pktable);
 
 	// Step 4. Probe the Transposition Table, adjust the value, and consider cutoffs
-	if ((ttHit = getTTEntry(board.hash, ttMove, ttValue, ttEval, ttDepth, ttBound))) {
+	if ((ttHit = getTTEntry(board.hash, &ttMove, &ttValue, &ttEval, &ttDepth, &ttBound))) {
 
 		ttValue = valueFromTT(ttValue, height); // Adjust any MATE scores
 
@@ -662,7 +665,7 @@ int qsearch(Thread *thread, PVariation& pv, int alpha, int beta, int height) {
 	return best;
 }
 
-int staticExchangeEvaluation(const Board& board, uint16_t move, int threshold) {
+int staticExchangeEvaluation(Board& board, uint16_t move, int threshold) {
 
 	int from, to, type, colour, balance, nextVictim;
 	uint64_t bishops, rooks, occupied, attackers, myAttackers;

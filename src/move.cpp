@@ -18,6 +18,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <cstdlib>
 
 #include "attacks.h"
 #include "bitboards.h"
@@ -43,6 +44,38 @@ int castleKingTo(int king, int rook) {
 
 int castleRookTo(int king, int rook) {
 	return square(rankOf(king), (rook > king) ? 5 : 3);
+}
+
+int apply(Thread *thread, Board& board, uint16_t move, int height) {
+
+	// nullptr moves are only tried when legal
+	if (move == NULL_MOVE) {
+		thread->moveStack[height] = NULL_MOVE;
+		applyNullMove(board, thread->undoStack[height]);
+		return 1;
+	}
+
+	// Track some move information for history lookups
+	thread->moveStack[height] = move;
+	thread->pieceStack[height] = pieceType(board.squares[MoveFrom(move)]);
+
+	// Apply the move and reject if illegal
+	applyMove(board, move, thread->undoStack[height]);
+	if (!moveWasLegal(board))
+		return revertMove(board, move, thread->undoStack[height]), 0;
+
+	return 1;
+}
+
+void applyLegal(Thread *thread, Board& board, uint16_t move, int height) {
+
+	// Track some move information for history lookups
+	thread->moveStack[height] = move;
+	thread->pieceStack[height] = pieceType(board.squares[MoveFrom(move)]);
+
+	// Assumed that this move is legal
+	applyMove(board, move, thread->undoStack[height]);
+	assert(moveWasLegal(board));
 }
 
 void applyMove(Board& board, uint16_t move, Undo& undo) {
@@ -295,6 +328,11 @@ void applyNullMove(Board& board, Undo& undo) {
 	}
 }
 
+void revert(Thread *thread, Board& board, uint16_t move, int height) {
+	if (move == NULL_MOVE) revertNullMove(board, thread->undoStack[height]);
+	else revertMove(board, move, thread->undoStack[height]);
+}
+
 void revertMove(Board& board, uint16_t move, Undo& undo) {
 
 	const int to = MoveTo(move);
@@ -384,6 +422,31 @@ void revertMove(Board& board, uint16_t move, Undo& undo) {
 	}
 }
 
+void revertNullMove(Board& board, Undo& undo) {
+
+	// Revert information which is hard to recompute
+	// We may, and have to, zero out the king attacks
+	board.hash            = undo.hash;
+	board.kingAttackers   = 0ull;
+	board.epSquare        = undo.epSquare;
+	board.halfMoveCounter = undo.halfMoveCounter;
+
+	// nullptr moves simply swap the turn only
+	board.turn = !board.turn;
+	board.numMoves--;
+}
+
+int legalMoveCount(Board& board) {
+
+	// Count of the legal number of moves for a given position
+
+	int size = 0;
+	uint16_t moves[MAX_MOVES];
+	genAllLegalMoves(board, moves, size);
+
+	return size;
+}
+
 int moveExaminedByMultiPV(Thread *thread, uint16_t move) {
 
 	// Check to see if this move was already selected as the
@@ -396,7 +459,7 @@ int moveExaminedByMultiPV(Thread *thread, uint16_t move) {
 	return 0;
 }
 
-int moveIsTactical(const Board& board, uint16_t move) {
+int moveIsTactical(Board& board, uint16_t move) {
 
 	// We can use a simple bit trick since we assert that only
 	// the enpass and promotion moves will ever have the 13th bit,
@@ -410,7 +473,7 @@ int moveIsTactical(const Board& board, uint16_t move) {
 		|| (move & ENPASS_MOVE & PROMOTION_MOVE);
 }
 
-int moveEstimatedValue(const Board& board, uint16_t move) {
+int moveEstimatedValue(Board& board, uint16_t move) {
 
 	// Start with the value of the piece on the target square
 	int value = SEEPieceValues[pieceType(board.squares[MoveTo(move)])];
@@ -430,13 +493,13 @@ int moveEstimatedValue(const Board& board, uint16_t move) {
 	return value;
 }
 
-int moveBestCaseValue(const Board& board) {
+int moveBestCaseValue(Board& board) {
 
 	// Assume the opponent has at least a pawn
 	int value = SEEPieceValues[PAWN];
 
 	// Check for a higher value target
-	for (int piece = QUEEN; piece > PAWN; piece--)
+	for (int piece = QUEEN; piece > PAWN; --piece)
 		if (board.pieces[piece] & board.colours[!board.turn])
 			{ value = SEEPieceValues[piece]; break; }
 
@@ -449,7 +512,7 @@ int moveBestCaseValue(const Board& board) {
 	return value;
 }
 
-int moveWasLegal(const Board& board) {
+int moveWasLegal(Board& board) {
 
 	// Grab the last player's King's square and verify safety
 	int sq = getlsb(board.colours[!board.turn] & board.pieces[KING]);
@@ -457,7 +520,7 @@ int moveWasLegal(const Board& board) {
 	return !squareIsAttacked(board, !board.turn, sq);
 }
 
-int moveIsPseudoLegal(const Board& board, uint16_t move) {
+int moveIsPseudoLegal(Board& board, uint16_t move) {
 
 	int from   = MoveFrom(move);
 	int type   = MoveType(move);

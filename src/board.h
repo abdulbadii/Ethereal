@@ -22,20 +22,20 @@
 using namespace std;
 #include "types.h"
 
-extern const string PieceLabel[COLOUR_NB];
+extern const char *PieceLabel[COLOUR_NB];
 
 class Board {
 public:
+	uint8_t squares[SQUARE_NB];
 	uint64_t pieces[8], colours[3], history[512];
 	uint64_t hash, pkhash, kingAttackers;
 	uint64_t castleRooks, castleMasks[SQUARE_NB];
-	int psqtmat, numMoves, chess960,
-	turn, epSquare, halfMoveCounter, fullMoveCounter;
-	uint8_t squares[SQUARE_NB];
+	int turn, epSquare, halfMoveCounter, fullMoveCounter;
+	int psqtmat, numMoves, chess960;
+	
 	void operator()(){
 	memset(this, 0, sizeof(*this));
-	memset(&squares, EMPTY, sizeof(squares));
-	return;}
+	memset(&squares, EMPTY, sizeof(squares));return;}
 };
 
 struct Undo {
@@ -45,13 +45,13 @@ struct Undo {
 
 void squareToString(int sq, char *str);
 void boardFromFEN(Board& board,const string& fen, int chess960);
-void boardToFEN(const Board& board, char *fen);
-void printBoard(const Board& board);
-int boardHasNonPawnMaterial(const Board& board, int turn);
-int boardIsDrawn(const Board& board, int height);
-int boardDrawnByFiftyMoveRule(const Board& board);
-int boardDrawnByRepetition(const Board& board, int height);
-int boardDrawnByInsufficientMaterial(const Board& board);
+void boardToFEN(Board& board, string& fen);
+void printBoard(Board& board);
+int boardHasNonPawnMaterial(Board& board, int turn);
+int boardIsDrawn(Board& board, int height);
+int boardDrawnByFiftyMoveRule(Board& board);
+int boardDrawnByRepetition(Board& board, int height);
+int boardDrawnByInsufficientMaterial(Board& board);
 
 uint64_t perft(Board& board, int depth);
 void runBenchmark(int argc, char **argv);

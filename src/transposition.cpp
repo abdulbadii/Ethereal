@@ -18,6 +18,8 @@
 
 #include <cassert>
 #include <cstdint>
+#include <cstdlib>
+#include <cstring>
 
 #include "transposition.h"
 #include "types.h"
@@ -104,40 +106,67 @@ int valueToTT(int value, int height) {
          : value <= MATED_IN_MAX ? value - height : value;
 }
 
+int getTTEntry(uint64_t hash, uint16_t *move, int *value, int *eval, int *depth, int *bound) {
+
+    const uint16_t hash16 = hash >> 48;
+    TTEntry *slots = Table.buckets[hash & Table.hashMask].slots;
+
+    // Search for a matching hash signature
+    for (int i = 0; i < TT_BUCKET_NB; ++i) {
+        if (slots[i].hash16 == hash16) {
+
+            // Update age but retain bound type
+            slots[i].generation = Table.generation | (slots[i].generation & TT_MASK_BOUND);
+
+            // Copy over the TTEntry and signal success
+            *move  = slots[i].move;
+            *value = slots[i].value;
+            *eval  = slots[i].eval;
+            *depth = slots[i].depth;
+            *bound = slots[i].generation & TT_MASK_BOUND;
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 void storeTTEntry(uint64_t hash, uint16_t move, int value, int eval, int depth, int bound) {
 
     int i;
     const uint16_t hash16 = hash >> 48;
     TTEntry *slots = Table.buckets[hash & Table.hashMask].slots;
-    TTEntry& replace = *slots;
+    TTEntry *replace = slots; // &slots[0]
 
     // Find a matching hash, or replace using MAX(x1, x2, x3),
     // where xN equals the depth minus 4 times the age difference
     for (i = 0; i < TT_BUCKET_NB && slots[i].hash16 != hash16; ++i)
-        if (   replace.depth - ((259 + Table.generation - replace.generation) & TT_MASK_AGE)
+        if (   replace->depth - ((259 + Table.generation - replace->generation) & TT_MASK_AGE)
             >= slots[i].depth - ((259 + Table.generation - slots[i].generation) & TT_MASK_AGE))
-            replace = slots[i];
+            replace = &slots[i];
 
     // Prefer a matching hash, otherwise score a replacement
-    replace = (i != TT_BUCKET_NB) ? slots[i] : replace;
+    replace = (i != TT_BUCKET_NB) ? &slots[i] : replace;
 
     // Don't overwrite an entry from the same position, unless we have
     // an exact bound or depth that is nearly as good as the old one
     if (   bound != BOUND_EXACT
-        && hash16 == replace.hash16
-        && depth < replace.depth - 3)
+        && hash16 == replace->hash16
+        && depth < replace->depth - 3)
         return;
 
     // Finally, copy the new data into the replaced slot
-    replace.depth      = (int8_t)depth;
-    replace.generation = (uint8_t)bound | Table.generation;
-    replace.value      = (int16_t)value;
-    replace.eval       = (int16_t)eval;
-    replace.move       = move;
-    replace.hash16     = hash16;
+    replace->depth      = (int8_t)depth;
+    replace->generation = (uint8_t)bound | Table.generation;
+    replace->value      = (int16_t)value;
+    replace->eval       = (int16_t)eval;
+    replace->move       = (uint16_t)move;
+    replace->hash16     = (uint16_t)hash16;
 }
 
-// PKEntry* getPKEntry(PKTable& pktable, uint64_t pkhash) {
-    // PKEntry& pkentry =pktable.entries[pkhash >> PKT_HASH_SHIFT];
-    // return pkentry.pkhash == pkhash ? &pkentry : nullptr;
-// }
+void storePKEntry(PKTable& pktable, uint64_t pkhash, uint64_t passed, int eval) {
+    PKEntry *pkentry = &pktable.entries[pkhash >> PKT_HASH_SHIFT];
+    pkentry->pkhash = pkhash;
+    pkentry->passed = passed;
+    pkentry->eval   = eval;
+}

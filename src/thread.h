@@ -44,20 +44,17 @@ public:
 	Limits *limits;
 	SearchInfo *info;
 
-	uint64_t nodes, tbhits;
-	int depth, seldepth;
-	int *evalStack, _evalStack[STACK_SIZE];
-
-	int index, nthreads;
-	Thread *threads;
-	jmp_buf jbuffer;
-
 	int multiPV;
 	int values[MAX_MOVES];
-	int *pieceStack, _pieceStack[STACK_SIZE];
 	uint16_t bestMoves[MAX_MOVES];
 	uint16_t ponderMoves[MAX_MOVES];
+
+	int depth, seldepth;
+	uint64_t nodes, tbhits;
+
+	int *evalStack, _evalStack[STACK_SIZE];
 	uint16_t *moveStack, _moveStack[STACK_SIZE];
+	int *pieceStack, _pieceStack[STACK_SIZE];
 	Undo undoStack[STACK_SIZE];
 
 	PKTable pktable;
@@ -65,11 +62,15 @@ public:
 	CounterMoveTable cmtable;
 	HistoryTable history;
 	ContinuationTable continuation;
+
+	int index, nthreads;
+	Thread *threads;
+	jmp_buf jbuffer;
 };
 
 
 Thread* createThreadPool(int nthreads);
 void resetThreadPool(Thread *threads);
-void newSearchThreadPool(Thread *threads, Board& board, Limits *limits, SearchInfo *info);
+void newSearchThreadPool(Thread *threads, Board& board, Limits& limits, SearchInfo& info);
 uint64_t nodesSearchedThreadPool(Thread *threads);
 uint64_t tbhitsThreadPool(Thread *threads);

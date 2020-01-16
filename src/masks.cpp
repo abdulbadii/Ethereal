@@ -18,6 +18,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <cstdlib>
 
 #include "attacks.h"
 #include "bitboards.h"

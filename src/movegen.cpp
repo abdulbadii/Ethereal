@@ -27,21 +27,21 @@
 #include "types.h"
 
 namespace {
-inline void buildEnpassMoves(uint16_t *moves, int& size, uint64_t attacks, int epsq) {
+void buildEnpassMoves(uint16_t *moves, int& size, uint64_t attacks, int epsq) {
     while (attacks) {
         int sq = poplsb(attacks);
         moves[size++] = MoveMake(sq, epsq, ENPASS_MOVE);
     }
 }
 
-inline void buildPawnMoves(uint16_t *moves, int& size, uint64_t attacks, int delta) {
+void buildPawnMoves(uint16_t *moves, int& size, uint64_t attacks, int delta) {
     while (attacks) {
         int sq = poplsb(attacks);
         moves[size++] = MoveMake(sq + delta, sq, NORMAL_MOVE);
     }
 }
 
-inline void buildPawnPromotions(uint16_t *moves, int& size, uint64_t attacks, int delta) {
+void buildPawnPromotions(uint16_t *moves, int& size, uint64_t attacks, int delta) {
     while (attacks) {
         int sq = poplsb(attacks);
         moves[size++] = MoveMake(sq + delta, sq,  QUEEN_PROMO_MOVE);
@@ -51,41 +51,41 @@ inline void buildPawnPromotions(uint16_t *moves, int& size, uint64_t attacks, in
     }
 }
 
-inline void buildNonPawnMoves(uint16_t *moves, int& size, uint64_t attacks, int sq) {
+void buildNonPawnMoves(uint16_t *moves, int& size, uint64_t attacks, int sq) {
     while (attacks) {
         int to = poplsb(attacks);
         moves[size++] = MoveMake(sq, to, NORMAL_MOVE);
     }
 }
 
-inline void buildKnightMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t targets) {
+void buildKnightMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t targets) {
     while (pieces) {
         int sq = poplsb(pieces);
         buildNonPawnMoves(moves, size, knightAttacks(sq) & targets, sq);
     }
 }
 
-inline void buildBishopMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t occupied, uint64_t targets) {
+void buildBishopMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t occupied, uint64_t targets) {
     while (pieces) {
         int sq = poplsb(pieces);
         buildNonPawnMoves(moves, size, bishopAttacks(sq, occupied) & targets, sq);
     }
 }
 
-inline void buildRookMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t occupied, uint64_t targets) {
+void buildRookMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t occupied, uint64_t targets) {
     while (pieces) {
         int sq = poplsb(pieces);
         buildNonPawnMoves(moves, size, rookAttacks(sq, occupied) & targets, sq);
     }
 }
 
-inline void buildKingMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t targets) {
+void buildKingMoves(uint16_t *moves, int& size, uint64_t pieces, uint64_t targets) {
     int sq = getlsb(pieces);
     buildNonPawnMoves(moves, size, kingAttacks(sq) & targets, sq);
 }
 }
 
-void genAllLegalMoves(Board& board, uint16_t (&moves)[MAX_MOVES], int& size) {
+void genAllLegalMoves(Board& board, uint16_t *moves, int& size) {
 
     Undo undo;
     int pseudoSize = 0;
@@ -103,7 +103,7 @@ void genAllLegalMoves(Board& board, uint16_t (&moves)[MAX_MOVES], int& size) {
     }
 }
 
-void genAllNoisyMoves(const Board& board, uint16_t (&moves)[MAX_MOVES], int& size) {
+void genAllNoisyMoves(Board& board, uint16_t *moves, int& size) {
 
     const int Forward = board.turn == WHITE ? -8 : 8;
     const int Left    = board.turn == WHITE ? -7 : 7;
@@ -157,7 +157,7 @@ void genAllNoisyMoves(const Board& board, uint16_t (&moves)[MAX_MOVES], int& siz
     buildKingMoves(moves, size, myKings, enemy);
 }
 
-void genAllQuietMoves(const Board& board, uint16_t *moves, int& size) {
+void genAllQuietMoves(Board& board, uint16_t *moves, int& size) {
 
     const int Forward = board.turn == WHITE ? -8 : 8;
     const uint64_t Rank3Relative = board.turn == WHITE ? RANK_3 : RANK_6;

@@ -19,7 +19,8 @@
 #include <cinttypes>
 #include <pthread.h>
 #include <cstdint>
-#include <iostream>
+#include <cstdlib>
+#include <cstring>
 
 #include "attacks.h"
 #include "board.h"
@@ -43,12 +44,14 @@ extern unsigned TB_PROBE_DEPTH;   // Defined by Syzygy.c
 extern volatile int ABORT_SIGNAL; // Defined by Search.c
 extern volatile int IS_PONDERING; // Defined by Search.c
 
-
 pthread_mutex_t READYLOCK = PTHREAD_MUTEX_INITIALIZER;
+#include <iostream>
 using namespace std;
 const string StartPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 string nextr(8192,0);
 
+inline string& strs(string& s, const char* key){
+	size_t f=s.find(key);	return s=f==string::npos? "": s.substr(f);}
 
 void *uciGo(void *cargo) {
 
@@ -131,7 +134,7 @@ void *uciGo(void *cargo) {
 	return nullptr;
 }
 
-void uciSetOption(const string& str, Thread *threads, int& multiPV, int& chess960) {
+void uciSetOption(string& str, Thread *threads, int& multiPV, int& chess960) {
 
 	// Handle setting UCI options in Ethereal. Options include:
 	//  Hash             : Size of the Transposition Table in Megabyes
@@ -181,11 +184,11 @@ void uciSetOption(const string& str, Thread *threads, int& multiPV, int& chess96
 	fflush(stdout);
 }
 
-void uciPosition(const string& str, Board& board, int chess960) {
+void uciPosition(string& str, Board& board, int chess960) {
 
 	int size;
 	uint16_t moves[MAX_MOVES];
-	string moveStr(6,0);
+	string moveStr(6,0), w(5,0);
 	char testStr[6];
 	Undo undo;
 
@@ -197,7 +200,6 @@ void uciPosition(const string& str, Board& board, int chess960) {
 	else if (strContains(str, "startpos"))
 		boardFromFEN(board, StartPosition, chess960);
 
-	string w(5,0);
 	if (strContains(str, "moves ", nextr))
 		
 	// Apply each move in the move list. UCI sends moves in long algebraic notation
@@ -231,7 +233,7 @@ void uciReport(Thread *threads, int alpha, int beta, int value) {
 	int depth       = threads->depth;
 	int seldepth    = threads->seldepth;
 	int multiPV     = threads->multiPV + 1;
-	int elapsed     = elapsedTime(threads->info);
+	int elapsed     = elapsedTime(*threads->info);
 	int bounded     = MAX(alpha, MIN(value, beta));
 	uint64_t nodes  = nodesSearchedThreadPool(threads);
 	uint64_t tbhits = tbhitsThreadPool(threads);
@@ -262,7 +264,7 @@ void uciReport(Thread *threads, int alpha, int beta, int value) {
 	puts(""); fflush(stdout);
 }
 
-void uciReportTBRoot(const Board& board, uint16_t move, unsigned wdl, unsigned dtz) {
+void uciReportTBRoot(Board& board, uint16_t move, unsigned wdl, unsigned dtz) {
 
 	char moveStr[6];
 
@@ -280,7 +282,7 @@ void uciReportTBRoot(const Board& board, uint16_t move, unsigned wdl, unsigned d
 	fflush(stdout);
 }
 
-void uciReportCurrentMove(const Board& board, uint16_t move, int currmove, int depth) {
+void uciReportCurrentMove(Board& board, uint16_t move, int currmove, int depth) {
 
 	char moveStr[6];
 	moveToString(move, moveStr, board.chess960);
@@ -353,7 +355,7 @@ int main(int argc, char* argv[]) {
 				uciGoStruct.multiPV = multiPV;
 				uciGoStruct.board   = board;
 				uciGoStruct.threads = threads;
-				pthread_create(&pthreadsgo, nullptr, &uciGo, &uciGoStruct);
+				pthread_create(&pthreadsgo, nullptr, uciGo, &uciGoStruct);
 		}
 		else if (str=="ponderhit")	IS_PONDERING = 0;
 

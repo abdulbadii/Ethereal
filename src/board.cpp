@@ -19,6 +19,8 @@
 #include <cassert>
 #include <cctype>
 #include <cinttypes>
+#include <cstdlib>
+#include <cstring>
 
 #include "attacks.h"
 #include "bitboards.h"
@@ -37,23 +39,13 @@
 
 #include <iostream>
 using namespace std;
-const string PieceLabel[COLOUR_NB] = {"PNBRQK", "pnbrqk"};
+const char *PieceLabel[COLOUR_NB] = {"PNBRQK", "pnbrqk"};
 
 namespace {
 const string Benchmarks[] = {
 	#include "bench.csv"
 	""
 };
-/* inline void clearBoard(Board& board) {
-
-	// Wipe the entire board structure, and also set all of
-	// the pieces on the board to be EMPTY. Ideally, before
-	// this board is used again we will call boardFromFEN()
-
-	memset(&board, 0, sizeof(Board));
-	memset(&board.squares, EMPTY, sizeof(board.squares));
-}*/
-
 void setSquare(Board& board, int colour, int piece, int sq) {
 
 	// Generate a piece on the given square. This serves as an aid
@@ -73,7 +65,7 @@ void setSquare(Board& board, int colour, int piece, int sq) {
 	if (piece == PAWN || piece == KING)
 		board.pkhash ^= ZobristKeys[board.squares[sq]][sq];
 }
-int stringToSquare(const string& str) {
+int stringToSquare(string& str) {
 
 	// Helper for reading the enpass square from a FEN. If no square
 	// is provided, Ethereal will use -1 to represent this internally
@@ -97,7 +89,7 @@ void squareToString(int sq, char *str) {
 		*str++ = rankOf(sq) + '1';
 	}
 
-	*str++ = '\0';
+	*str = 0;
 }
 
 void boardFromFEN(Board& board,const string& fens, int chess960) {
@@ -107,13 +99,13 @@ void boardFromFEN(Board& board,const string& fens, int chess960) {
 
 	int sq = 56;
 	char ch;
-	string word, fen=fens;
-	uint16_t i=0;
+	string word(43,0), fen=fens;
 	uint64_t rooks, kings, white, black;
-	parse(fen, word);
 
 	board(); // Zero out, set squares to EMPTY
 
+	parse(fen, word);
+	uint16_t i=0;
 	// Piece placement
 	while ((ch = word[i++])) {
 		if (isdigit(ch))
@@ -122,10 +114,10 @@ void boardFromFEN(Board& board,const string& fens, int chess960) {
 				sq -= 16;
 		else {
 				const bool colour = islower(ch);
-				const size_t piece = PieceLabel[colour].find(ch);
+				const char *piece = strchr(PieceLabel[colour], ch);
 
-				if (piece!=string::npos)
-					setSquare(board, colour, (int)piece, sq++);
+				if (piece)
+					setSquare(board, colour, piece - PieceLabel[colour], sq++);
 		}
 	}
 
@@ -143,17 +135,21 @@ void boardFromFEN(Board& board,const string& fens, int chess960) {
 	black = board.colours[BLACK];
 	i=0;
 	while ((ch = word[i++])) {
-		if (ch == 'K') setBit(board.castleRooks, getmsb(white & rooks & RANK_1));
-		if (ch == 'Q') setBit(board.castleRooks, getlsb(white & rooks & RANK_1));
-		if (ch == 'k') setBit(board.castleRooks, getmsb(black & rooks & RANK_8));
-		if (ch == 'q') setBit(board.castleRooks, getlsb(black & rooks & RANK_8));
+		switch(ch) {
+		case 'K': setBit(board.castleRooks, getmsb(white & rooks & RANK_1)); break;
+		case 'Q': setBit(board.castleRooks, getlsb(white & rooks & RANK_1));  break;
+		case 'k': setBit(board.castleRooks, getmsb(black & rooks & RANK_8)); break;
+		case 'q': setBit(board.castleRooks, getlsb(black & rooks & RANK_8));   break;
+		default:
 		if ('A' <= ch && ch <= 'H') setBit(board.castleRooks, square(0, ch - 'A'));
-		if ('a' <= ch && ch <= 'h') setBit(board.castleRooks, square(7, ch - 'a'));
+		else if ('a' <= ch && ch <= 'h') setBit(board.castleRooks, square(7, ch - 'a'));
+		break;
+		}
 	}
 
 	for (sq = 0; sq < SQUARE_NB; ++sq) {
 		board.castleMasks[sq] = allON;
-		if (testBit(board.castleRooks, sq)) clearBit(&board.castleMasks[sq], sq);
+		if (testBit(board.castleRooks, sq)) clearBit(board.castleMasks[sq], sq);
 		if (testBit(white & kings, sq)) board.castleMasks[sq] &= ~white;
 		if (testBit(black & kings, sq)) board.castleMasks[sq] &= ~black;
 	}
@@ -184,15 +180,16 @@ void boardFromFEN(Board& board,const string& fens, int chess960) {
 
 }
 
-void boardToFEN(const Board& board, char *fen) {
+void boardToFEN(Board& board, string& fen) {
 
 	int sq;
 	char str[3];
 	uint64_t castles;
+	uint16_t i=0, cnt;
 
 	// Piece placement
-	for (int r = RANK_NB-1; r >= 0; r--) {
-		int cnt = 0;
+	for (int r = RANK_NB-1; r >= 0; --r) {
+		cnt = 0;
 
 		for (int f = 0; f < FILE_NB; ++f) {
 				const int s = square(r, f);
@@ -200,54 +197,54 @@ void boardToFEN(const Board& board, char *fen) {
 
 				if (p != EMPTY) {
 					if (cnt)
-						*fen++ = cnt + '0';
+						fen[i++] = cnt + '0';
 
-					*fen++ = PieceLabel[pieceColour(p)][pieceType(p)];
+					fen[i++] = PieceLabel[pieceColour(p)][pieceType(p)];
 					cnt = 0;
 				} else
 					cnt++;
 		}
 
 		if (cnt)
-				*fen++ = cnt + '0';
+				fen[i++] = cnt + '0';
 
-		*fen++ = r == 0 ? ' ' : '/';
+		fen[i++] = r == 0 ? ' ' : '/';
 	}
 
 	// Turn of play
-	*fen++ = board.turn == WHITE ? 'w' : 'b';
-	*fen++ = ' ';
+	fen[i++] = board.turn == WHITE ? 'w' : 'b';
+	fen[i++] = ' ';
 
 	// Castle rights for White
 	castles = board.colours[WHITE] & board.castleRooks;
 	while (castles) {
 		sq = popmsb(castles);
-		if (board.chess960) *fen++ = 'A' + fileOf(sq);
-		else if (testBit(FILE_H, sq)) *fen++ = 'K';
-		else if (testBit(FILE_A, sq)) *fen++ = 'Q';
+		if (board.chess960) fen[i++] = 'A' + fileOf(sq);
+		else if (testBit(FILE_H, sq)) fen[i++] = 'K';
+		else if (testBit(FILE_A, sq)) fen[i++] = 'Q';
 	}
 
 	// Castle rights for Black
 	castles = board.colours[BLACK] & board.castleRooks;
 	while (castles) {
 		sq = popmsb(castles);
-		if (board.chess960) *fen++ = 'a' + fileOf(sq);
-		else if (testBit(FILE_H, sq)) *fen++ = 'k';
-		else if (testBit(FILE_A, sq)) *fen++ = 'q';
+		if (board.chess960) fen[i++] = 'a' + fileOf(sq);
+		else if (testBit(FILE_H, sq)) fen[i++] = 'k';
+		else if (testBit(FILE_A, sq)) fen[i++] = 'q';
 	}
 
 	// Check for empty Castle rights
 	if (!board.castleRooks)
-		*fen++ = '-';
+		fen[i++] = '-';
 
 	// En passant square, Half Move Counter, and Full Move Counter
 	squareToString(board.epSquare, str);
-	sprintf(fen, " %s %d %d", str, board.halfMoveCounter, board.fullMoveCounter);
+	sprintf(&fen[0], " %s %d %d", str, board.halfMoveCounter, board.fullMoveCounter);
 }
 
-void printBoard(const Board& board) {
+void printBoard(Board& board) {
 
-	char fen[256];
+	string fen(256,0);
 
 	// Print each row of the board, starting from the top
 	for(int sq = square(RANK_NB-1, 0); sq >= 0; sq -= FILE_NB) {
@@ -279,14 +276,14 @@ void printBoard(const Board& board) {
 	cout << "\n" << fen << "\n\n";
 }
 
-int boardHasNonPawnMaterial(const Board& board, int turn) {
+int boardHasNonPawnMaterial(Board& board, int turn) {
 	uint64_t friendly = board.colours[turn];
 	uint64_t kings = board.pieces[KING];
 	uint64_t pawns = board.pieces[PAWN];
 	return (friendly & (kings | pawns)) != friendly;
 }
 
-int boardIsDrawn(const Board& board, int height) {
+int boardIsDrawn(Board& board, int height) {
 
 	// Drawn if any of the three possible cases
 	return boardDrawnByFiftyMoveRule(board)
@@ -294,7 +291,7 @@ int boardIsDrawn(const Board& board, int height) {
 		|| boardDrawnByInsufficientMaterial(board);
 }
 
-int boardDrawnByFiftyMoveRule(const Board& board) {
+int boardDrawnByFiftyMoveRule(Board& board) {
 
 	// Fifty move rule triggered. BUG: We do not account for the case
 	// when the fifty move rule occurs as checkmate is delivered, which
@@ -302,7 +299,7 @@ int boardDrawnByFiftyMoveRule(const Board& board) {
 	return board.halfMoveCounter > 99;
 }
 
-int boardDrawnByRepetition(const Board& board, int height) {
+int boardDrawnByRepetition(Board& board, int height) {
 
 	int reps = 0;
 
@@ -323,7 +320,7 @@ int boardDrawnByRepetition(const Board& board, int height) {
 	return 0;
 }
 
-int boardDrawnByInsufficientMaterial(const Board& board) {
+int boardDrawnByInsufficientMaterial(Board& board) {
 
 	// Check for KvK, KvN, KvB, and KvNN.
 
@@ -347,7 +344,7 @@ uint64_t perft(Board& board, int depth) {
 	genAllQuietMoves(board, moves, size);
 
 	// Recurse on all valid moves
-	for(size -= 1; size >= 0; size--) {
+	for(size -= 1; size >= 0; --size) {
 		applyMove(board, moves[size], undo);
 		if (moveWasLegal(board)) found += perft(board, depth-1);
 		revertMove(board, moves[size], undo);
@@ -393,9 +390,9 @@ void runBenchmark(int argc, char** argv) {
 		clearTT(); // Reset TT for new search
 	}
 
-	cout << "Time  : " << (int)(getRealTime() - start) << "ms\n";
+	cout << "Time  : " << int(getRealTime() - start) << "ms\n";
 	cout << "Nodes : " << nodes << "\n";
-	cout << "NPS   : " << (int)(nodes / ((getRealTime() - start) / 1000.0)) << "\n";
+	cout << "NPS   : " << int(nodes / ((getRealTime() - start) / 1000.0)) << "\n";
 
 	free(threads);
 }

@@ -26,12 +26,29 @@
 
 #include "types.h"
 
-double getRealTime();
-double elapsedTime(SearchInfo *info);
-void initTimeManagment(SearchInfo& info, const Limits& limits);
-void updateTimeManagment(SearchInfo *info, Limits *limits);
-int terminateTimeManagment(SearchInfo *info);
+inline double getRealTime() {
+#if defined(_WIN32) || defined(_WIN64)
+	return double(GetTickCount());
+#else
+	struct timeval tv;
+	double secsInMilli, usecsInMilli;
+
+	gettimeofday(&tv, nullptr);
+	secsInMilli = ((double)tv.tv_sec) * 1000;
+	usecsInMilli = tv.tv_usec / 1000;
+
+	return secsInMilli + usecsInMilli;
+#endif
+}
+
+inline double elapsedTime(SearchInfo& info) {
+	return getRealTime() - info.startTime;
+}
+
+void initTimeManagment(SearchInfo& info, Limits& limits);
+void updateTimeManagment(SearchInfo& info, Limits& limits);
+int terminateTimeManagment(SearchInfo& info);
 int terminateSearchEarly(Thread *thread);
-namespace{
-const double PVFactorCount  = 8;
-const double PVFactorWeight = 0.085;}
+
+static const double PVFactorCount  = 8;
+static const double PVFactorWeight = 0.085;
